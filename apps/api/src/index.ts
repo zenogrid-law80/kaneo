@@ -31,6 +31,7 @@ import giteaIntegration, { handleGiteaWebhookRoute } from "./gitea-integration";
 import githubIntegration, {
   handleGithubWebhookRoute,
 } from "./github-integration";
+import googleChatIntegration from "./google-chat-integration";
 import getInstanceStatus from "./instance/controllers/get-instance-status";
 import invitation from "./invitation";
 import label from "./label";
@@ -594,6 +595,10 @@ export function createApp() {
     "/generic-webhook-integration",
     genericWebhookIntegration,
   );
+  const googleChatIntegrationApi = api.route(
+    "/google-chat-integration",
+    googleChatIntegration,
+  );
   const discordIntegrationApi = api.route(
     "/discord-integration",
     discordIntegration,
@@ -756,6 +761,7 @@ export function createApp() {
     discordIntegrationApi,
     externalLinkApi,
     genericWebhookIntegrationApi,
+    googleChatIntegrationApi,
     githubIntegrationApi,
     giteaIntegrationApi,
     invitationApi,
@@ -874,6 +880,7 @@ const {
   discordIntegrationApi,
   externalLinkApi,
   genericWebhookIntegrationApi,
+  googleChatIntegrationApi,
   githubIntegrationApi,
   giteaIntegrationApi,
   invitationApi,
@@ -921,6 +928,7 @@ export type AppType =
   | typeof githubIntegrationApi
   | typeof giteaIntegrationApi
   | typeof genericWebhookIntegrationApi
+  | typeof googleChatIntegrationApi
   | typeof discordIntegrationApi
   | typeof slackIntegrationApi
   | typeof telegramIntegrationApi
