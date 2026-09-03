@@ -3,7 +3,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
 import type Task from "@/types/task";
-import { type BoardFilters, DUE_DATE_FILTER_VALUES } from "./use-task-filters";
+import {
+  type BoardFilters,
+  DUE_DATE_FILTER_VALUES,
+  UNASSIGNED_FILTER_VALUE,
+} from "./use-task-filters";
 
 const DEFAULT_FILTERS: BoardFilters = {
   status: null,
@@ -116,7 +120,7 @@ export function useTaskFiltersWithLabelsSupport(
         if (
           filters.assignee &&
           filters.assignee.length > 0 &&
-          !filters.assignee.includes(task.userId ?? "")
+          !filters.assignee.includes(task.userId ?? UNASSIGNED_FILTER_VALUE)
         ) {
           return false;
         }

@@ -46,6 +46,9 @@ export const authClient = createAuthClient({
       dynamicAccessControl: {
         enabled: true,
       },
+      teams: {
+        enabled: true,
+      },
     }),
     genericOAuthClient(),
     deviceAuthorizationClient(),

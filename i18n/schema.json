@@ -3013,6 +3013,168 @@
 						"deleteDialog"
 					]
 				},
+				"workspaceTeams": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"create": {
+							"type": "string"
+						},
+						"createTitle": {
+							"type": "string"
+						},
+						"editTitle": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"nameDescription": {
+							"type": "string"
+						},
+						"emptyTitle": {
+							"type": "string"
+						},
+						"emptyDescription": {
+							"type": "string"
+						},
+						"memberCount_one": {
+							"type": "string"
+						},
+						"memberCount_zero": {
+							"type": "string"
+						},
+						"memberCount_two": {
+							"type": "string"
+						},
+						"memberCount_few": {
+							"type": "string"
+						},
+						"memberCount_many": {
+							"type": "string"
+						},
+						"memberCount_other": {
+							"type": "string"
+						},
+						"members": {
+							"type": "string"
+						},
+						"edit": {
+							"type": "string"
+						},
+						"delete": {
+							"type": "string"
+						},
+						"cancel": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"done": {
+							"type": "string"
+						},
+						"manageMembersTitle": {
+							"type": "string"
+						},
+						"manageMembersDescription": {
+							"type": "string"
+						},
+						"currentMembers": {
+							"type": "string"
+						},
+						"noCurrentMembers": {
+							"type": "string"
+						},
+						"availableMembers": {
+							"type": "string"
+						},
+						"addMember": {
+							"type": "string"
+						},
+						"removeMember": {
+							"type": "string"
+						},
+						"deleteTitle": {
+							"type": "string"
+						},
+						"deleteDescription": {
+							"type": "string"
+						},
+						"createSuccess": {
+							"type": "string"
+						},
+						"updateSuccess": {
+							"type": "string"
+						},
+						"deleteSuccess": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"membersLoadError": {
+							"type": "string"
+						},
+						"createError": {
+							"type": "string"
+						},
+						"updateError": {
+							"type": "string"
+						},
+						"deleteError": {
+							"type": "string"
+						},
+						"saveError": {
+							"type": "string"
+						},
+						"memberUpdateError": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"create",
+						"createTitle",
+						"editTitle",
+						"name",
+						"nameDescription",
+						"emptyTitle",
+						"emptyDescription",
+						"members",
+						"edit",
+						"delete",
+						"cancel",
+						"save",
+						"done",
+						"manageMembersTitle",
+						"manageMembersDescription",
+						"currentMembers",
+						"noCurrentMembers",
+						"availableMembers",
+						"addMember",
+						"removeMember",
+						"deleteTitle",
+						"deleteDescription",
+						"createSuccess",
+						"updateSuccess",
+						"deleteSuccess",
+						"loadError",
+						"membersLoadError",
+						"createError",
+						"updateError",
+						"deleteError",
+						"saveError",
+						"memberUpdateError"
+					]
+				},
 				"workspaceLabels": {
 					"type": "object",
 					"additionalProperties": false,
@@ -5279,6 +5441,7 @@
 				"apiKey",
 				"workspaceGeneral",
 				"workspaceRoles",
+				"workspaceTeams",
 				"workspaceLabels",
 				"projectGeneral",
 				"projectIntegrations",
@@ -6556,6 +6719,140 @@
 					},
 					"required": ["board", "list"]
 				},
+				"hierarchy": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"emptyDescription": {
+							"type": "string"
+						},
+						"expandTask": {
+							"type": "string"
+						},
+						"collapseTask": {
+							"type": "string"
+						},
+						"unassigned": {
+							"type": "string"
+						},
+						"filters": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"filterBy": {
+									"type": "string"
+								},
+								"label": {
+									"type": "string"
+								},
+								"all": {
+									"type": "string"
+								},
+								"open": {
+									"type": "string"
+								},
+								"completed": {
+									"type": "string"
+								},
+								"assignee": {
+									"type": "string"
+								},
+								"allAssignees": {
+									"type": "string"
+								},
+								"unassigned": {
+									"type": "string"
+								},
+								"selected": {
+									"type": "string"
+								},
+								"selected_zero": {
+									"type": "string"
+								},
+								"selected_one": {
+									"type": "string"
+								},
+								"selected_two": {
+									"type": "string"
+								},
+								"selected_few": {
+									"type": "string"
+								},
+								"selected_many": {
+									"type": "string"
+								},
+								"selected_other": {
+									"type": "string"
+								},
+								"dueDate": {
+									"type": "string"
+								},
+								"allDueDates": {
+									"type": "string"
+								},
+								"dueThisWeek": {
+									"type": "string"
+								},
+								"dueNextWeek": {
+									"type": "string"
+								},
+								"noDueDate": {
+									"type": "string"
+								},
+								"labels": {
+									"type": "string"
+								},
+								"relation": {
+									"type": "string"
+								},
+								"allRelations": {
+									"type": "string"
+								},
+								"related": {
+									"type": "string"
+								},
+								"standalone": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"filterBy",
+								"label",
+								"all",
+								"open",
+								"completed",
+								"assignee",
+								"allAssignees",
+								"unassigned",
+								"dueDate",
+								"allDueDates",
+								"dueThisWeek",
+								"dueNextWeek",
+								"noDueDate",
+								"labels",
+								"relation",
+								"allRelations",
+								"related",
+								"standalone"
+							]
+						}
+					},
+					"required": [
+						"title",
+						"empty",
+						"emptyDescription",
+						"expandTask",
+						"collapseTask",
+						"unassigned",
+						"filters"
+					]
+				},
 				"common": {
 					"type": "object",
 					"additionalProperties": false,
@@ -7218,11 +7515,30 @@
 								"unassigned": {
 									"type": "string"
 								},
+								"searchPlaceholder": {
+									"type": "string"
+								},
+								"noMembersFound": {
+									"type": "string"
+								},
+								"allMembers": {
+									"type": "string"
+								},
+								"otherMembers": {
+									"type": "string"
+								},
 								"updateError": {
 									"type": "string"
 								}
 							},
-							"required": ["unassigned", "updateError"]
+							"required": [
+								"unassigned",
+								"searchPlaceholder",
+								"noMembersFound",
+								"allMembers",
+								"otherMembers",
+								"updateError"
+							]
 						},
 						"status": {
 							"type": "object",
@@ -7589,6 +7905,18 @@
 						"allAssignees": {
 							"type": "string"
 						},
+						"unassigned": {
+							"type": "string"
+						},
+						"allTeamMembers": {
+							"type": "string"
+						},
+						"noTeams": {
+							"type": "string"
+						},
+						"noTeamMembers": {
+							"type": "string"
+						},
 						"allDueDates": {
 							"type": "string"
 						},
@@ -7663,6 +7991,10 @@
 						"allStatuses",
 						"allPriorities",
 						"allAssignees",
+						"unassigned",
+						"allTeamMembers",
+						"noTeams",
+						"noTeamMembers",
 						"allDueDates",
 						"allLabels",
 						"subjects",
@@ -8345,6 +8677,7 @@
 				"priority",
 				"boardSearchPlaceholder",
 				"view",
+				"hierarchy",
 				"common",
 				"detail",
 				"entity",
@@ -8853,6 +9186,9 @@
 								"role": {
 									"type": "string"
 								},
+								"teams": {
+									"type": "string"
+								},
 								"joined": {
 									"type": "string"
 								},
@@ -8860,7 +9196,7 @@
 									"type": "string"
 								}
 							},
-							"required": ["name", "role", "joined", "actions"]
+							"required": ["name", "role", "teams", "joined", "actions"]
 						},
 						"memberRolePending": {
 							"type": "string"

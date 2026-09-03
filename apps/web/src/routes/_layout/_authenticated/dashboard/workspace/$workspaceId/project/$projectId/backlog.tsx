@@ -1,7 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { produce } from "immer";
-import { ArrowRight, Calendar, Filter, Plus, User, X } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar,
+  Filter,
+  Plus,
+  User,
+  UserRoundX,
+  UsersRound,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import BacklogListView from "@/components/backlog-list-view";
@@ -20,6 +29,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
 import labelColors from "@/constants/label-colors";
@@ -27,9 +39,13 @@ import { shortcuts } from "@/constants/shortcuts";
 import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
+import useWorkspaceTeams from "@/hooks/queries/workspace/use-workspace-teams";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { DUE_DATE_FILTER_VALUES } from "@/hooks/use-task-filters";
+import {
+  DUE_DATE_FILTER_VALUES,
+  UNASSIGNED_FILTER_VALUE,
+} from "@/hooks/use-task-filters";
 import { getInitials } from "@/lib/get-initials";
 import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
@@ -68,6 +84,7 @@ function RouteComponent() {
   });
 
   const { data: users } = useGetActiveWorkspaceUsers(workspaceId);
+  const { data: workspaceTeams = [] } = useWorkspaceTeams(workspaceId);
   const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(workspaceId);
   const queryClient = useQueryClient();
 
@@ -117,7 +134,7 @@ function RouteComponent() {
 
   const [filters, setFilters] = useState({
     priority: null as string | null,
-    assignee: null as string | null,
+    assignee: [] as string[],
     dueDate: null as string | null,
     labels: [] as string[],
   });
@@ -138,7 +155,7 @@ function RouteComponent() {
   const clearFilters = () => {
     setFilters({
       priority: null,
-      assignee: null,
+      assignee: [],
       dueDate: null,
       labels: [],
     });
@@ -155,6 +172,9 @@ function RouteComponent() {
   }, [data, setProject]);
 
   const getAssigneeDisplayName = (userId: string) => {
+    if (userId === UNASSIGNED_FILTER_VALUE) {
+      return t("tasks:boardFilters.unassigned");
+    }
     const member = users?.members?.find((m) => m.userId === userId);
     return member?.user?.name || t("common:people.unknown");
   };
@@ -179,7 +199,10 @@ function RouteComponent() {
           return false;
         }
 
-        if (filters.assignee && task.userId !== filters.assignee) {
+        if (
+          filters.assignee.length > 0 &&
+          !filters.assignee.includes(task.userId ?? UNASSIGNED_FILTER_VALUE)
+        ) {
           return false;
         }
 
@@ -417,7 +440,7 @@ function RouteComponent() {
                   </Button>
                 )}
 
-                {filters.assignee && (
+                {filters.assignee.length > 0 && (
                   <Button
                     variant="secondary"
                     size="xs"
@@ -426,7 +449,12 @@ function RouteComponent() {
                     <User className="h-3 w-3" />
                     <span>
                       {t("tasks:backlog.filters.assignee", {
-                        name: getAssigneeDisplayName(filters.assignee),
+                        name:
+                          filters.assignee.length === 1
+                            ? getAssigneeDisplayName(filters.assignee[0])
+                            : t("tasks:boardFilters.selectedCount", {
+                                count: filters.assignee.length,
+                              }),
                       })}
                     </span>
                     <Button
@@ -435,7 +463,10 @@ function RouteComponent() {
                       className="h-4 w-4 p-0 ml-1 hover:bg-destructive hover:text-destructive-foreground"
                       onClick={(e) => {
                         e.stopPropagation();
-                        updateFilter("assignee", null);
+                        setFilters((current) => ({
+                          ...current,
+                          assignee: [],
+                        }));
                       }}
                     >
                       <X className="h-2.5 w-2.5" />
@@ -588,30 +619,107 @@ function RouteComponent() {
                         {t("tasks:assignee.label")}
                       </DropdownMenuLabel>
                     </DropdownMenuGroup>
-                    {users?.members?.map((member) => (
-                      <DropdownMenuCheckboxItem
-                        key={member.userId}
-                        checked={filters.assignee === member.userId}
-                        onCheckedChange={(checked) =>
-                          updateFilter(
-                            "assignee",
-                            checked ? member.userId : null,
+                    <DropdownMenuCheckboxItem
+                      checked={filters.assignee.includes(
+                        UNASSIGNED_FILTER_VALUE,
+                      )}
+                      indicatorVariant="checkbox"
+                      onCheckedChange={() =>
+                        setFilters((current) => ({
+                          ...current,
+                          assignee: current.assignee.includes(
+                            UNASSIGNED_FILTER_VALUE,
                           )
-                        }
-                        className="h-8 rounded-md text-sm"
-                      >
-                        <Avatar className="h-6 w-6 mr-2">
-                          <AvatarImage
-                            src={member.user?.image ?? ""}
-                            alt={member.user?.name || ""}
-                          />
-                          <AvatarFallback className="text-xs font-medium border border-border/30">
-                            {getInitials(member.user?.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{member.user?.name}</span>
-                      </DropdownMenuCheckboxItem>
-                    ))}
+                            ? current.assignee.filter(
+                                (userId) => userId !== UNASSIGNED_FILTER_VALUE,
+                              )
+                            : [...current.assignee, UNASSIGNED_FILTER_VALUE],
+                        }))
+                      }
+                      className="h-8 rounded-md text-sm"
+                    >
+                      <UserRoundX className="size-4" />
+                      {t("tasks:boardFilters.unassigned")}
+                    </DropdownMenuCheckboxItem>
+                    {workspaceTeams.map((team) => {
+                      const teamMembers = (users?.members ?? []).filter(
+                        (member) => team.userIds.includes(member.userId),
+                      );
+                      const teamUserIds = teamMembers.map(
+                        (member) => member.userId,
+                      );
+                      const allSelected =
+                        teamUserIds.length > 0 &&
+                        teamUserIds.every((userId) =>
+                          filters.assignee.includes(userId),
+                        );
+                      return (
+                        <DropdownMenuSub key={team.id}>
+                          <DropdownMenuSubTrigger className="h-8 rounded-md text-sm">
+                            <UsersRound className="size-4" />
+                            {team.name}
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent className="w-64">
+                            <DropdownMenuCheckboxItem
+                              checked={allSelected}
+                              indicatorVariant="checkbox"
+                              onCheckedChange={() =>
+                                setFilters((current) => ({
+                                  ...current,
+                                  assignee: allSelected
+                                    ? current.assignee.filter(
+                                        (userId) =>
+                                          !teamUserIds.includes(userId),
+                                      )
+                                    : [
+                                        ...new Set([
+                                          ...current.assignee,
+                                          ...teamUserIds,
+                                        ]),
+                                      ],
+                                }))
+                              }
+                            >
+                              {t("tasks:boardFilters.allTeamMembers")}
+                            </DropdownMenuCheckboxItem>
+                            <DropdownMenuSeparator />
+                            {teamMembers.map((member) => (
+                              <DropdownMenuCheckboxItem
+                                key={member.userId}
+                                checked={filters.assignee.includes(
+                                  member.userId,
+                                )}
+                                indicatorVariant="checkbox"
+                                onCheckedChange={() =>
+                                  setFilters((current) => ({
+                                    ...current,
+                                    assignee: current.assignee.includes(
+                                      member.userId,
+                                    )
+                                      ? current.assignee.filter(
+                                          (userId) => userId !== member.userId,
+                                        )
+                                      : [...current.assignee, member.userId],
+                                  }))
+                                }
+                                className="h-8 rounded-md text-sm"
+                              >
+                                <Avatar className="h-6 w-6 mr-2">
+                                  <AvatarImage
+                                    src={member.user?.image ?? ""}
+                                    alt={member.user?.name || ""}
+                                  />
+                                  <AvatarFallback className="text-xs font-medium border border-border/30">
+                                    {getInitials(member.user?.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span>{member.user?.name}</span>
+                              </DropdownMenuCheckboxItem>
+                            ))}
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                      );
+                    })}
 
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>

@@ -18,6 +18,8 @@ export const DUE_DATE_FILTER_VALUES = {
   noDueDate: "noDueDate",
 } as const;
 
+export const UNASSIGNED_FILTER_VALUE = "unassigned";
+
 const DEFAULT_FILTERS: BoardFilters = {
   status: null,
   priority: null,
@@ -104,7 +106,7 @@ export function useTaskFilters(
       if (
         filters.assignee &&
         filters.assignee.length > 0 &&
-        !filters.assignee.includes(task.userId ?? "")
+        !filters.assignee.includes(task.userId ?? UNASSIGNED_FILTER_VALUE)
       ) {
         return false;
       }

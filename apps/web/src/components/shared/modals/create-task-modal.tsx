@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import AssigneePickerContent from "@/components/task/assignee-picker-content";
 import TaskDescriptionEditor from "@/components/task/task-description-editor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,7 @@ import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useWorkspaceTeams from "@/hooks/queries/workspace/use-workspace-teams";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
@@ -174,6 +176,7 @@ function CreateTaskModal({
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
     workspace?.id || "",
   );
+  const { data: workspaceTeams = [] } = useWorkspaceTeams(workspace?.id || "");
   const { mutateAsync: createLabel } = useCreateLabel();
   const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(
     workspace?.id || "",
@@ -835,51 +838,14 @@ function CreateTaskModal({
                     )}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-48 p-1" align="start">
-                  <div className="space-y-1">
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
-                      onClick={() => setAssigneeId("")}
-                    >
-                      <div
-                        className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center"
-                        title={t(
-                          "common:modals.createTask.assignUnassignedTitle",
-                        )}
-                      >
-                        <span className="text-[10px] font-medium text-muted-foreground">
-                          ?
-                        </span>
-                      </div>
-                      <span className="text-sm">
-                        {t("common:modals.createTask.assignUnassigned")}
-                      </span>
-                      {!assigneeId && <Check className="ml-auto h-4 w-4" />}
-                    </button>
-                    {workspaceUsers?.members?.map((member) => (
-                      <button
-                        key={member.userId}
-                        type="button"
-                        className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
-                        onClick={() => setAssigneeId(member.userId || "")}
-                      >
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage
-                            src={member?.user?.image ?? ""}
-                            alt={member?.user?.name || ""}
-                          />
-                          <AvatarFallback className="text-xs font-medium border border-border/30">
-                            {getInitials(member?.user?.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm">{member?.user?.name}</span>
-                        {assigneeId === member.userId && (
-                          <Check className="ml-auto h-4 w-4" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                <PopoverContent className="w-80 p-0" align="start">
+                  <AssigneePickerContent
+                    members={workspaceUsers?.members ?? []}
+                    teams={workspaceTeams}
+                    selectedUserId={assigneeId || null}
+                    unassignedSelected={!assigneeId}
+                    onSelect={setAssigneeId}
+                  />
                 </PopoverContent>
               </Popover>
 

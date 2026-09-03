@@ -14,3 +14,13 @@ export const workspaceMemberSchema = z
   .openapi("WorkspaceMember");
 
 export const workspaceMemberListSchema = z.array(workspaceMemberSchema);
+
+export const workspaceTeamSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    userIds: z.array(z.string()),
+  })
+  .openapi("WorkspaceTeam");
+
+export const workspaceTeamListSchema = z.array(workspaceTeamSchema);

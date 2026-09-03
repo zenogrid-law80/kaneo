@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { shortcuts } from "@/constants/shortcuts";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
+import useWorkspaceTeams from "@/hooks/queries/workspace/use-workspace-teams";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { useBoardSort } from "@/hooks/use-board-sort";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -92,6 +93,7 @@ function RouteComponent() {
 
   const { data: users } = useGetActiveWorkspaceUsers(workspaceId);
   const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(workspaceId);
+  const { data: workspaceTeams = [] } = useWorkspaceTeams(workspaceId);
 
   const handleCloseTaskSheet = useCallback(() => {
     navigate({
@@ -230,6 +232,7 @@ function RouteComponent() {
           clearFilters={clearFilters}
           hasActiveFilters={hasActiveFilters}
           users={users}
+          teams={workspaceTeams}
           workspaceLabels={workspaceLabels}
           viewMode={viewMode}
           setViewMode={setViewMode}
