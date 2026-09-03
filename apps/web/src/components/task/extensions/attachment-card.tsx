@@ -1,8 +1,43 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 import type { NodeViewProps } from "@tiptap/react";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { FileText } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { escapeHtml, isValidUrl } from "./url-safety";
+
+const embeddableVideoMimeTypes = new Set([
+  "video/mp4",
+  "video/avi",
+  "video/msvideo",
+  "video/webm",
+  "video/x-msvideo",
+]);
+
+export function isEmbeddableVideoMimeType(mimeType: string) {
+  return embeddableVideoMimeTypes.has(
+    mimeType.toLowerCase().split(";", 1)[0]?.trim() ?? "",
+  );
+}
+
+export function isEmbeddableVideoAttachment(
+  mimeType: string,
+  filename: string,
+  url: string,
+) {
+  if (isEmbeddableVideoMimeType(mimeType)) return true;
+
+  return [filename, url].some((value) => {
+    const normalized = value.split(/[?#]/, 1)[0]?.toLowerCase() ?? "";
+    return normalized.endsWith(".mp4") || normalized.endsWith(".webm");
+  });
+}
+
+export function parseAttachmentMimeType(element: HTMLElement) {
+  return (
+    element.getAttribute("mime-type") ||
+    element.getAttribute("data-mime-type") ||
+    ""
+  );
+}
 
 function formatBytes(size: number) {
   if (!Number.isFinite(size) || size <= 0) return "";
@@ -20,8 +55,36 @@ function AttachmentCardView({ node }: NodeViewProps) {
   const mimeType = String(node.attrs.mimeType || "");
   const size = Number(node.attrs.size || 0);
 
+  if (url && isEmbeddableVideoAttachment(mimeType, filename, url)) {
+    return (
+      <NodeViewWrapper as="div" className="kaneo-video-attachment">
+        {/* biome-ignore lint/a11y/useMediaCaption: uploaded attachments do not include a separate captions track. */}
+        <video className="kaneo-video-player" controls preload="metadata">
+          <source src={url} type={mimeType || "video/mp4"} />
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            {filename}
+          </a>
+        </video>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="kaneo-video-download"
+          title={filename}
+        >
+          <span className="kaneo-attachment-title">{filename}</span>
+          <span className="kaneo-attachment-meta">
+            {formatBytes(size)}
+            {mimeType ? ` · ${mimeType}` : ""}
+          </span>
+          <Download className="size-4" aria-hidden="true" />
+        </a>
+      </NodeViewWrapper>
+    );
+  }
+
   return (
-    <NodeViewWrapper as="span" className="kaneo-attachment-node">
+    <NodeViewWrapper as="div" className="kaneo-attachment-node">
       <a
         href={url || undefined}
         target="_blank"
@@ -46,8 +109,8 @@ function AttachmentCardView({ node }: NodeViewProps) {
 
 export const AttachmentCard = Node.create({
   name: "attachmentCard",
-  group: "inline",
-  inline: true,
+  group: "block",
+  inline: false,
   atom: true,
   selectable: false,
 
@@ -55,7 +118,10 @@ export const AttachmentCard = Node.create({
     return {
       url: { default: "" },
       filename: { default: "" },
-      mimeType: { default: "" },
+      mimeType: {
+        default: "",
+        parseHTML: parseAttachmentMimeType,
+      },
       size: { default: 0 },
     };
   },
