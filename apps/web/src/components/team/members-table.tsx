@@ -12,6 +12,7 @@ import useCancelInvitation from "@/hooks/mutations/workspace-user/use-cancel-inv
 import useDeleteWorkspaceUser from "@/hooks/mutations/workspace-user/use-delete-workspace-user";
 import useUpdateWorkspaceUserRole from "@/hooks/mutations/workspace-user/use-update-workspace-user-role";
 import useWorkspaceRoles from "@/hooks/queries/workspace/use-workspace-roles";
+import useMemberTeamNames from "@/hooks/queries/workspace-users/use-member-team-names";
 import { useCopyInvitationLink } from "@/hooks/use-copy-invitation-link";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
@@ -106,6 +107,7 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
   const { mutateAsync: updateMemberRole } = useUpdateWorkspaceUserRole();
   const { copy: copyInvitationLink } = useCopyInvitationLink();
   const { data: allWorkspaceRoles = [] } = useWorkspaceRoles(workspaceId);
+  const { data: teamNamesByUserId = {} } = useMemberTeamNames(workspaceId);
   const { canManageTeam, canRemoveMembers, canInviteUsers } =
     useWorkspacePermission();
   const canChangeRoles = Boolean(canManageTeam());
@@ -193,6 +195,9 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
             </TableHead>
             <TableHead className="text-foreground font-medium">
               {t("team:membersTable.columns.role", { defaultValue: "Role" })}
+            </TableHead>
+            <TableHead className="text-foreground font-medium">
+              {t("team:membersTable.columns.teams")}
             </TableHead>
             <TableHead className="text-foreground font-medium">
               {t("team:membersTable.columns.joined", {
@@ -289,6 +294,19 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
                     </Badge>
                   )}
                 </TableCell>
+                <TableCell className="py-3">
+                  <div className="flex max-w-64 flex-wrap gap-1">
+                    {(teamNamesByUserId[member.userId] ?? []).length > 0 ? (
+                      teamNamesByUserId[member.userId].map((teamName) => (
+                        <Badge key={teamName} variant="outline" size="sm">
+                          {teamName}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="py-3 text-sm text-muted-foreground tabular-nums">
                   {member.createdAt ? formatDateMedium(member.createdAt) : "–"}
                 </TableCell>
@@ -363,6 +381,9 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
               <TableCell className="py-3 text-sm text-muted-foreground">
                 –
               </TableCell>
+              <TableCell className="py-3 text-sm text-muted-foreground">
+                –
+              </TableCell>
               <TableCell className="pe-6 py-3 text-right">
                 {canInvite ? (
                   <Menu>
@@ -402,7 +423,7 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
 
           {users.length === 0 && pendingInvitations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="py-16 text-center">
+              <TableCell colSpan={5} className="py-16 text-center">
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">
                   <p className="text-sm font-medium text-foreground">
                     {t("team:membersTable.emptyTitle")}

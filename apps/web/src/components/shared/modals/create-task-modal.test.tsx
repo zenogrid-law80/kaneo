@@ -49,6 +49,10 @@ vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
   default: () => ({ data: { id: "workspace-1", name: "WS" } }),
 }));
 
+vi.mock("@/hooks/queries/workspace/use-workspace-teams", () => ({
+  default: () => ({ data: [] }),
+}));
+
 vi.mock(
   "@/hooks/queries/workspace-users/use-get-active-workspace-users",
   () => ({

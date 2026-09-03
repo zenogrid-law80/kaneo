@@ -54,6 +54,10 @@ vi.mock("@/hooks/queries/workspace/use-workspace-roles", () => ({
   default: () => ({ data: [] }),
 }));
 
+vi.mock("@/hooks/queries/workspace-users/use-member-team-names", () => ({
+  default: () => ({ data: {} }),
+}));
+
 const canInviteUsers = vi.fn(() => true);
 
 vi.mock("@/hooks/use-workspace-permission", () => ({

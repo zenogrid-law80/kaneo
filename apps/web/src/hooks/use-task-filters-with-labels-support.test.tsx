@@ -1,11 +1,28 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { ProjectWithTasks } from "@/types/project";
 import { useTaskFiltersWithLabelsSupport } from "./use-task-filters-with-labels-support";
 
 describe("useTaskFiltersWithLabelsSupport", () => {
   const storageKey = "kaneo:board-filters:project-1";
 
   beforeEach(() => {
+    if (!window.localStorage) {
+      const values = new Map<string, string>();
+      Object.defineProperty(window, "localStorage", {
+        configurable: true,
+        value: {
+          clear: () => values.clear(),
+          getItem: (key: string) => values.get(key) ?? null,
+          key: (index: number) => [...values.keys()][index] ?? null,
+          get length() {
+            return values.size;
+          },
+          removeItem: (key: string) => values.delete(key),
+          setItem: (key: string, value: string) => values.set(key, value),
+        } satisfies Storage,
+      });
+    }
     window.localStorage.clear();
   });
 
@@ -181,4 +198,35 @@ describe("useTaskFiltersWithLabelsSupport", () => {
       ]);
     },
   );
+
+  it("matches only tasks without an assignee for the unassigned filter", async () => {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({ assignee: ["unassigned"] }),
+    );
+    const project = {
+      id: "project-1",
+      slug: "PROJ",
+      columns: [
+        {
+          id: "todo",
+          tasks: [
+            { id: "unassigned", status: "todo", userId: null, labels: [] },
+            { id: "assigned", status: "todo", userId: "user-1", labels: [] },
+          ],
+        },
+      ],
+    } as unknown as ProjectWithTasks;
+
+    const { result } = renderHook(() =>
+      useTaskFiltersWithLabelsSupport(project, "project-1"),
+    );
+
+    await waitFor(() => {
+      expect(result.current.filters.assignee).toEqual(["unassigned"]);
+    });
+    expect(result.current.filteredProject?.columns[0]?.tasks).toEqual([
+      expect.objectContaining({ id: "unassigned" }),
+    ]);
+  });
 });

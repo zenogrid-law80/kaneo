@@ -1,4 +1,11 @@
-import { Filter, PanelsTopLeft, Rows3, X } from "lucide-react";
+import {
+  Filter,
+  PanelsTopLeft,
+  Rows3,
+  UserRoundX,
+  UsersRound,
+  X,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import SortControl from "@/components/common/sort-control";
@@ -16,9 +23,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
 import labelColors from "@/constants/label-colors";
+import type { WorkspaceTeam } from "@/hooks/queries/workspace/use-workspace-teams";
 import {
   type BoardFilters,
   DUE_DATE_FILTER_VALUES,
+  UNASSIGNED_FILTER_VALUE,
 } from "@/hooks/use-task-filters";
 import { getColumnIcon } from "@/lib/column";
 import { getInitials } from "@/lib/get-initials";
@@ -54,6 +63,7 @@ type BoardToolbarProps = {
   clearFilters: () => void;
   hasActiveFilters: boolean;
   users?: ActiveUsers;
+  teams: WorkspaceTeam[];
   workspaceLabels: WorkspaceLabel[];
   viewMode: "board" | "list";
   setViewMode: (mode: "board" | "list") => void;
@@ -138,6 +148,7 @@ export default function BoardToolbar({
   clearFilters,
   hasActiveFilters,
   users,
+  teams,
   workspaceLabels,
   viewMode,
   setViewMode,
@@ -163,10 +174,16 @@ export default function BoardToolbar({
     getPriorityLabel(priority);
 
   const getAssigneeDisplayName = (userId: string) => {
+    if (userId === UNASSIGNED_FILTER_VALUE) {
+      return t("tasks:boardFilters.unassigned");
+    }
     const member = users?.members?.find((m) => m.userId === userId);
     return member?.user?.name || t("common:people.unknown");
   };
   const getAssigneeAvatar = (userId: string) => {
+    if (userId === UNASSIGNED_FILTER_VALUE) {
+      return <UserRoundX className="size-4" />;
+    }
     const member = users?.members?.find((m) => m.userId === userId);
     return (
       <Avatar className="h-4 w-4">
@@ -219,6 +236,17 @@ export default function BoardToolbar({
     const next = exists
       ? selectedAssigneeIds.filter((id) => id !== userId)
       : [...selectedAssigneeIds, userId];
+    updateFilter("assignee", next.length > 0 ? next : null);
+  };
+
+  const toggleTeamMembers = (userIds: string[]) => {
+    if (userIds.length === 0) return;
+    const allSelected = userIds.every((userId) =>
+      selectedAssigneeIds.includes(userId),
+    );
+    const next = allSelected
+      ? selectedAssigneeIds.filter((userId) => !userIds.includes(userId))
+      : [...new Set([...selectedAssigneeIds, ...userIds])];
     updateFilter("assignee", next.length > 0 ? next : null);
   };
 
@@ -380,36 +408,120 @@ export default function BoardToolbar({
                         <CheckSlot checked={selectedAssigneeIds.length === 0} />
                         {t("tasks:boardFilters.allAssignees")}
                       </button>
-                      {users?.members?.map((member) => (
-                        <button
-                          key={member.userId}
-                          className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
-                            selectedAssigneeIds.includes(member.userId)
-                              ? "bg-accent text-accent-foreground"
-                              : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
-                          }`}
-                          onClick={() => toggleAssigneeFilter(member.userId)}
-                          type="button"
-                        >
-                          <CheckSlot
-                            checked={selectedAssigneeIds.includes(
-                              member.userId,
-                            )}
-                          />
-                          <span className="inline-flex items-center gap-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage
-                                src={member.user?.image ?? ""}
-                                alt={member.user?.name || ""}
-                              />
-                              <AvatarFallback className="border border-border/30 text-[10px] font-medium">
-                                {getInitials(member.user?.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>{member.user?.name}</span>
-                          </span>
-                        </button>
-                      ))}
+                      <button
+                        className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
+                          selectedAssigneeIds.includes(UNASSIGNED_FILTER_VALUE)
+                            ? "bg-accent text-accent-foreground"
+                            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
+                        }`}
+                        onClick={() =>
+                          toggleAssigneeFilter(UNASSIGNED_FILTER_VALUE)
+                        }
+                        type="button"
+                      >
+                        <CheckSlot
+                          checked={selectedAssigneeIds.includes(
+                            UNASSIGNED_FILTER_VALUE,
+                          )}
+                        />
+                        <UserRoundX className="size-4 text-muted-foreground" />
+                        {t("tasks:boardFilters.unassigned")}
+                      </button>
+                      <div className="my-1 h-px bg-border" />
+                      {teams.map((team) => {
+                        const teamMembers = (users?.members ?? []).filter(
+                          (member) => team.userIds.includes(member.userId),
+                        );
+                        return (
+                          <DropdownMenuSub key={team.id}>
+                            <DropdownMenuSubTrigger className="h-7 rounded-md text-xs">
+                              <UsersRound className="size-4 text-muted-foreground" />
+                              <span className="truncate">{team.name}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="w-64">
+                              <div className="grid grid-cols-1 gap-1 p-1">
+                                {teamMembers.length > 0 ? (
+                                  <>
+                                    <button
+                                      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
+                                        teamMembers.every((member) =>
+                                          selectedAssigneeIds.includes(
+                                            member.userId,
+                                          ),
+                                        )
+                                          ? "bg-accent text-accent-foreground"
+                                          : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
+                                      }`}
+                                      onClick={() =>
+                                        toggleTeamMembers(
+                                          teamMembers.map(
+                                            (member) => member.userId,
+                                          ),
+                                        )
+                                      }
+                                      type="button"
+                                    >
+                                      <CheckSlot
+                                        checked={teamMembers.every((member) =>
+                                          selectedAssigneeIds.includes(
+                                            member.userId,
+                                          ),
+                                        )}
+                                      />
+                                      <UsersRound className="size-5 text-muted-foreground" />
+                                      {t("tasks:boardFilters.allTeamMembers")}
+                                    </button>
+                                    <div className="my-1 h-px bg-border" />
+                                    {teamMembers.map((member) => (
+                                      <button
+                                        key={member.userId}
+                                        className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
+                                          selectedAssigneeIds.includes(
+                                            member.userId,
+                                          )
+                                            ? "bg-accent text-accent-foreground"
+                                            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
+                                        }`}
+                                        onClick={() =>
+                                          toggleAssigneeFilter(member.userId)
+                                        }
+                                        type="button"
+                                      >
+                                        <CheckSlot
+                                          checked={selectedAssigneeIds.includes(
+                                            member.userId,
+                                          )}
+                                        />
+                                        <Avatar className="h-5 w-5">
+                                          <AvatarImage
+                                            src={member.user?.image ?? ""}
+                                            alt={member.user?.name || ""}
+                                          />
+                                          <AvatarFallback className="border border-border/30 text-[10px] font-medium">
+                                            {getInitials(member.user?.name)}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <span className="truncate">
+                                          {member.user?.name}
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </>
+                                ) : (
+                                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                                    {t("tasks:boardFilters.noTeamMembers")}
+                                  </div>
+                                )}
+                              </div>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                        );
+                      })}
+                      {teams.length === 0 && (
+                        <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                          {t("tasks:boardFilters.noTeams")}
+                        </div>
+                      )}
                     </div>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
