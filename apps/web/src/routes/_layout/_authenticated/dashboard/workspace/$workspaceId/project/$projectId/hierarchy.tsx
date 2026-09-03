@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { addWeeks, endOfWeek, isWithinInterval, startOfWeek } from "date-fns";
-import { Filter } from "lucide-react";
+import { Filter, UserRoundX, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
@@ -14,17 +14,25 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
 import labelColors from "@/constants/label-colors";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
+import useWorkspaceTeams from "@/hooks/queries/workspace/use-workspace-teams";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
-import { DUE_DATE_FILTER_VALUES } from "@/hooks/use-task-filters";
+import {
+  DUE_DATE_FILTER_VALUES,
+  UNASSIGNED_FILTER_VALUE,
+} from "@/hooks/use-task-filters";
 import { isTaskCompleted } from "@/lib/due-date-status";
 import type { SortConfig } from "@/lib/sort-tasks";
 import { sortTasks } from "@/lib/sort-tasks";
@@ -53,12 +61,13 @@ function RouteComponent() {
   const navigate = useNavigate();
   const { data } = useGetTasks(projectId);
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(workspaceId);
+  const { data: workspaceTeams = [] } = useWorkspaceTeams(workspaceId);
   const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(workspaceId);
   const { project, setProject } = useProjectStore();
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
   const [completionFilter, setCompletionFilter] =
     useState<CompletionFilter>("all");
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [assigneeFilters, setAssigneeFilters] = useState<string[]>([]);
   const [dueDateFilter, setDueDateFilter] = useState<DueDateFilter>("all");
   const [labelFilters, setLabelFilters] = useState<string[]>([]);
   const [sort, setSort] = useState<SortConfig>({
@@ -88,11 +97,9 @@ function RouteComponent() {
         }
       }
 
-      if (assigneeFilter === "unassigned" && task.userId) return false;
       if (
-        assigneeFilter !== "all" &&
-        assigneeFilter !== "unassigned" &&
-        task.userId !== assigneeFilter
+        assigneeFilters.length > 0 &&
+        !assigneeFilters.includes(task.userId ?? UNASSIGNED_FILTER_VALUE)
       ) {
         return false;
       }
@@ -132,7 +139,7 @@ function RouteComponent() {
 
     return sortTasks(tasks, sort);
   }, [
-    assigneeFilter,
+    assigneeFilters,
     completionFilter,
     dueDateFilter,
     labelFilters,
@@ -143,23 +150,44 @@ function RouteComponent() {
 
   const activeFilterCount =
     Number(completionFilter !== "all") +
-    Number(assigneeFilter !== "all") +
+    Number(assigneeFilters.length > 0) +
     Number(dueDateFilter !== "all") +
     Number(labelFilters.length > 0);
   const selectedAssignee = workspaceUsers?.members?.find(
-    (member) => member.userId === assigneeFilter,
+    (member) => member.userId === assigneeFilters[0],
   );
+  const toggleAssigneeFilter = (userId: string) => {
+    setAssigneeFilters((current) =>
+      current.includes(userId)
+        ? current.filter((id) => id !== userId)
+        : [...current, userId],
+    );
+  };
+  const toggleTeamMembers = (userIds: string[]) => {
+    if (userIds.length === 0) return;
+    setAssigneeFilters((current) => {
+      const allSelected = userIds.every((userId) => current.includes(userId));
+      return allSelected
+        ? current.filter((userId) => !userIds.includes(userId))
+        : [...new Set([...current, ...userIds])];
+    });
+  };
   const filterLabel =
     activeFilterCount === 0
       ? t("tasks:hierarchy.filters.all")
       : activeFilterCount === 1
         ? completionFilter !== "all"
           ? t(`tasks:hierarchy.filters.${completionFilter}`)
-          : assigneeFilter === "unassigned"
+          : assigneeFilters.length === 1 &&
+              assigneeFilters[0] === UNASSIGNED_FILTER_VALUE
             ? t("tasks:hierarchy.filters.unassigned")
-            : assigneeFilter !== "all"
-              ? (selectedAssignee?.user?.name ??
-                t("tasks:hierarchy.filters.assignee"))
+            : assigneeFilters.length > 0
+              ? assigneeFilters.length === 1
+                ? (selectedAssignee?.user?.name ??
+                  t("tasks:hierarchy.filters.assignee"))
+                : t("tasks:boardFilters.selectedCount", {
+                    count: assigneeFilters.length,
+                  })
               : dueDateFilter !== "all"
                 ? t(`tasks:hierarchy.filters.${dueDateFilter}`)
                 : t("tasks:hierarchy.filters.labels")
@@ -211,22 +239,74 @@ function RouteComponent() {
             </DropdownMenuLabel>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup
-            value={assigneeFilter}
-            onValueChange={setAssigneeFilter}
-          >
-            <DropdownMenuRadioItem value="all">
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => setAssigneeFilters([])}>
               {t("tasks:hierarchy.filters.allAssignees")}
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="unassigned">
+            </DropdownMenuItem>
+            <DropdownMenuCheckboxItem
+              checked={assigneeFilters.includes(UNASSIGNED_FILTER_VALUE)}
+              indicatorVariant="checkbox"
+              onCheckedChange={() =>
+                toggleAssigneeFilter(UNASSIGNED_FILTER_VALUE)
+              }
+            >
+              <UserRoundX className="size-4 text-muted-foreground" />
               {t("tasks:hierarchy.filters.unassigned")}
-            </DropdownMenuRadioItem>
-            {workspaceUsers?.members?.map((member) => (
-              <DropdownMenuRadioItem key={member.userId} value={member.userId}>
-                {member.user?.name ?? member.user?.email}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuSeparator />
+            {workspaceTeams.map((team) => {
+              const teamMembers = (workspaceUsers?.members ?? []).filter(
+                (member) => team.userIds.includes(member.userId),
+              );
+              const teamUserIds = teamMembers.map((member) => member.userId);
+              return (
+                <DropdownMenuSub key={team.id}>
+                  <DropdownMenuSubTrigger>
+                    <UsersRound className="size-4 text-muted-foreground" />
+                    <span className="truncate">{team.name}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-64">
+                    {teamMembers.length > 0 ? (
+                      <>
+                        <DropdownMenuCheckboxItem
+                          checked={teamUserIds.every((userId) =>
+                            assigneeFilters.includes(userId),
+                          )}
+                          indicatorVariant="checkbox"
+                          onCheckedChange={() => toggleTeamMembers(teamUserIds)}
+                        >
+                          <UsersRound className="size-4 text-muted-foreground" />
+                          {t("tasks:boardFilters.allTeamMembers")}
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuSeparator />
+                        {teamMembers.map((member) => (
+                          <DropdownMenuCheckboxItem
+                            key={member.userId}
+                            checked={assigneeFilters.includes(member.userId)}
+                            indicatorVariant="checkbox"
+                            onCheckedChange={() =>
+                              toggleAssigneeFilter(member.userId)
+                            }
+                          >
+                            {member.user?.name ?? member.user?.email}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                        {t("tasks:boardFilters.noTeamMembers")}
+                      </div>
+                    )}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              );
+            })}
+            {workspaceTeams.length === 0 && (
+              <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                {t("tasks:boardFilters.noTeams")}
+              </div>
+            )}
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuLabel>
