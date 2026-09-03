@@ -770,6 +770,44 @@
 				"description": "这将永久删除角色 \"{{role}}\"，分配给该角色的成员将失去其权限。"
 			}
 		},
+		"workspaceTeams": {
+			"title": "Teams",
+			"description": "Organize workspace members into focused groups.",
+			"create": "Create team",
+			"createTitle": "Create team",
+			"editTitle": "Rename team",
+			"name": "Team name",
+			"nameDescription": "Use a short name that members will recognize.",
+			"emptyTitle": "No teams yet",
+			"emptyDescription": "Create a team to group people by function, project, or responsibility.",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"members": "Members",
+			"edit": "Edit team",
+			"delete": "Delete",
+			"cancel": "Cancel",
+			"save": "Save",
+			"done": "Done",
+			"manageMembersTitle": "Manage {{name}} members",
+			"manageMembersDescription": "Add or remove existing workspace members.",
+			"currentMembers": "当前成员（{{memberCount}}）",
+			"noCurrentMembers": "此团队目前没有成员。",
+			"availableMembers": "可添加的成员（{{memberCount}}）",
+			"addMember": "Add",
+			"removeMember": "Remove",
+			"deleteTitle": "Delete team?",
+			"deleteDescription": "{{name}} will be permanently deleted. Workspace members will not be removed.",
+			"createSuccess": "Team created",
+			"updateSuccess": "Team updated",
+			"deleteSuccess": "Team deleted",
+			"loadError": "Failed to load teams",
+			"membersLoadError": "Failed to load team members",
+			"createError": "Failed to create team",
+			"updateError": "Failed to update team",
+			"deleteError": "Failed to delete team",
+			"saveError": "Failed to save team",
+			"memberUpdateError": "Failed to update team member"
+		},
 		"workspaceLabels": {
 			"pageTitle": "标签设置",
 			"title": "标签",
@@ -1813,6 +1851,10 @@
 		"popover": {
 			"assignee": {
 				"unassigned": "未指派",
+				"searchPlaceholder": "按姓名搜索成员...",
+				"noMembersFound": "未找到成员",
+				"allMembers": "所有成员",
+				"otherMembers": "其他成员",
 				"updateError": "更新任务负责人失败"
 			},
 			"status": {
@@ -2167,6 +2209,7 @@
 			"columns": {
 				"name": "姓名",
 				"role": "角色",
+				"teams": "Teams",
 				"joined": "加入于",
 				"actions": "操作"
 			},

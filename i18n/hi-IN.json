@@ -771,6 +771,44 @@
 				"description": "यह भूमिका \"{{role}}\" को स्थायी रूप से हटा देगा। इस भूमिका वाले सदस्य इसकी अनुमतियाँ खो देंगे।"
 			}
 		},
+		"workspaceTeams": {
+			"title": "Teams",
+			"description": "Organize workspace members into focused groups.",
+			"create": "Create team",
+			"createTitle": "Create team",
+			"editTitle": "Rename team",
+			"name": "Team name",
+			"nameDescription": "Use a short name that members will recognize.",
+			"emptyTitle": "No teams yet",
+			"emptyDescription": "Create a team to group people by function, project, or responsibility.",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"members": "Members",
+			"edit": "Edit team",
+			"delete": "Delete",
+			"cancel": "Cancel",
+			"save": "Save",
+			"done": "Done",
+			"manageMembersTitle": "Manage {{name}} members",
+			"manageMembersDescription": "Add or remove existing workspace members.",
+			"currentMembers": "वर्तमान सदस्य ({{memberCount}})",
+			"noCurrentMembers": "इस टीम में अभी कोई सदस्य नहीं है।",
+			"availableMembers": "उपलब्ध सदस्य ({{memberCount}})",
+			"addMember": "Add",
+			"removeMember": "Remove",
+			"deleteTitle": "Delete team?",
+			"deleteDescription": "{{name}} will be permanently deleted. Workspace members will not be removed.",
+			"createSuccess": "Team created",
+			"updateSuccess": "Team updated",
+			"deleteSuccess": "Team deleted",
+			"loadError": "Failed to load teams",
+			"membersLoadError": "Failed to load team members",
+			"createError": "Failed to create team",
+			"updateError": "Failed to update team",
+			"deleteError": "Failed to delete team",
+			"saveError": "Failed to save team",
+			"memberUpdateError": "Failed to update team member"
+		},
 		"workspaceLabels": {
 			"pageTitle": "लेबल सेटिंग",
 			"title": "लेबल",
@@ -1818,6 +1856,10 @@
 		"popover": {
 			"assignee": {
 				"unassigned": "असाइन नहीं",
+				"searchPlaceholder": "नाम से सदस्य खोजें...",
+				"noMembersFound": "कोई सदस्य नहीं मिला",
+				"allMembers": "सभी सदस्य",
+				"otherMembers": "अन्य सदस्य",
 				"updateError": "कार्य का सौंपा गया अपडेट करने में विफल"
 			},
 			"status": {
@@ -2174,6 +2216,7 @@
 			"columns": {
 				"name": "नाम",
 				"role": "भूमिका",
+				"teams": "Teams",
 				"joined": "शामिल हुए",
 				"actions": "कार्रवाइयाँ"
 			},

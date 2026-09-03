@@ -1285,6 +1285,44 @@
 				"description": "Ова трајно ќе ја избрише улогата \"{{role}}\". Членовите со оваа улога ќе ги изгубат нејзините дозволи."
 			}
 		},
+		"workspaceTeams": {
+			"title": "Teams",
+			"description": "Organize workspace members into focused groups.",
+			"create": "Create team",
+			"createTitle": "Create team",
+			"editTitle": "Rename team",
+			"name": "Team name",
+			"nameDescription": "Use a short name that members will recognize.",
+			"emptyTitle": "No teams yet",
+			"emptyDescription": "Create a team to group people by function, project, or responsibility.",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"members": "Members",
+			"edit": "Edit team",
+			"delete": "Delete",
+			"cancel": "Cancel",
+			"save": "Save",
+			"done": "Done",
+			"manageMembersTitle": "Manage {{name}} members",
+			"manageMembersDescription": "Add or remove existing workspace members.",
+			"currentMembers": "Тековни членови ({{memberCount}})",
+			"noCurrentMembers": "Во моментов нема членови во овој тим.",
+			"availableMembers": "Достапни членови ({{memberCount}})",
+			"addMember": "Add",
+			"removeMember": "Remove",
+			"deleteTitle": "Delete team?",
+			"deleteDescription": "{{name}} will be permanently deleted. Workspace members will not be removed.",
+			"createSuccess": "Team created",
+			"updateSuccess": "Team updated",
+			"deleteSuccess": "Team deleted",
+			"loadError": "Failed to load teams",
+			"membersLoadError": "Failed to load team members",
+			"createError": "Failed to create team",
+			"updateError": "Failed to update team",
+			"deleteError": "Failed to delete team",
+			"saveError": "Failed to save team",
+			"memberUpdateError": "Failed to update team member"
+		},
 		"workspaceLabels": {
 			"pageTitle": "Поставки за ознаки",
 			"title": "Ознаки",
@@ -1818,6 +1856,10 @@
 		"popover": {
 			"assignee": {
 				"unassigned": "Недоделен",
+				"searchPlaceholder": "Пребарај членови по име...",
+				"noMembersFound": "Не се пронајдени членови",
+				"allMembers": "Сите членови",
+				"otherMembers": "Други членови",
 				"updateError": "Неуспешно ажурирање на доделеност на задача"
 			},
 			"status": {
@@ -2174,6 +2216,7 @@
 			"columns": {
 				"name": "Име",
 				"role": "Улога",
+				"teams": "Teams",
 				"joined": "Приклучен",
 				"actions": "Акции"
 			},

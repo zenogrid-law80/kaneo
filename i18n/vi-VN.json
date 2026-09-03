@@ -770,6 +770,44 @@
 				"description": "Thao tác này sẽ xóa vĩnh viễn vai trò \"{{role}}\". Các thành viên được gán vai trò này sẽ mất các quyền của nó."
 			}
 		},
+		"workspaceTeams": {
+			"title": "Teams",
+			"description": "Organize workspace members into focused groups.",
+			"create": "Create team",
+			"createTitle": "Create team",
+			"editTitle": "Rename team",
+			"name": "Team name",
+			"nameDescription": "Use a short name that members will recognize.",
+			"emptyTitle": "No teams yet",
+			"emptyDescription": "Create a team to group people by function, project, or responsibility.",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"members": "Members",
+			"edit": "Edit team",
+			"delete": "Delete",
+			"cancel": "Cancel",
+			"save": "Save",
+			"done": "Done",
+			"manageMembersTitle": "Manage {{name}} members",
+			"manageMembersDescription": "Add or remove existing workspace members.",
+			"currentMembers": "Thành viên hiện tại ({{memberCount}})",
+			"noCurrentMembers": "Hiện chưa có thành viên nào trong nhóm này.",
+			"availableMembers": "Thành viên có thể thêm ({{memberCount}})",
+			"addMember": "Add",
+			"removeMember": "Remove",
+			"deleteTitle": "Delete team?",
+			"deleteDescription": "{{name}} will be permanently deleted. Workspace members will not be removed.",
+			"createSuccess": "Team created",
+			"updateSuccess": "Team updated",
+			"deleteSuccess": "Team deleted",
+			"loadError": "Failed to load teams",
+			"membersLoadError": "Failed to load team members",
+			"createError": "Failed to create team",
+			"updateError": "Failed to update team",
+			"deleteError": "Failed to delete team",
+			"saveError": "Failed to save team",
+			"memberUpdateError": "Failed to update team member"
+		},
 		"workspaceLabels": {
 			"pageTitle": "Cài đặt nhãn",
 			"title": "Nhãn",
@@ -1813,6 +1851,10 @@
 		"popover": {
 			"assignee": {
 				"unassigned": "Chưa giao",
+				"searchPlaceholder": "Tìm thành viên theo tên...",
+				"noMembersFound": "Không tìm thấy thành viên",
+				"allMembers": "Tất cả thành viên",
+				"otherMembers": "Thành viên khác",
 				"updateError": "Không thể cập nhật người được giao công việc"
 			},
 			"status": {
@@ -2167,6 +2209,7 @@
 			"columns": {
 				"name": "Tên",
 				"role": "Vai trò",
+				"teams": "Teams",
 				"joined": "Ngày tham gia",
 				"actions": "Hành động"
 			},

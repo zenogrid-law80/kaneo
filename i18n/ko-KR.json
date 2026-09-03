@@ -1284,6 +1284,43 @@
 				"description": "역할 \"{{role}}\"이(가) 영구적으로 삭제됩니다. 이 역할이 할당된 멤버는 해당 권한을 잃게 됩니다."
 			}
 		},
+		"workspaceTeams": {
+			"title": "팀",
+			"description": "워크스페이스 멤버를 목적에 맞는 그룹으로 구성합니다.",
+			"create": "팀 만들기",
+			"createTitle": "팀 만들기",
+			"editTitle": "팀 이름 변경",
+			"name": "팀 이름",
+			"nameDescription": "멤버가 쉽게 알아볼 수 있는 짧은 이름을 사용하세요.",
+			"emptyTitle": "아직 팀이 없습니다",
+			"emptyDescription": "직무, 프로젝트 또는 책임에 따라 멤버를 묶을 팀을 만들어 보세요.",
+			"memberCount_other": "멤버 {{count}}명",
+			"members": "멤버",
+			"edit": "팀 편집",
+			"delete": "삭제",
+			"cancel": "취소",
+			"save": "저장",
+			"done": "완료",
+			"manageMembersTitle": "{{name}} 멤버 관리",
+			"manageMembersDescription": "기존 워크스페이스 멤버를 추가하거나 제거합니다.",
+			"currentMembers": "현재 멤버 ({{memberCount}}명)",
+			"noCurrentMembers": "현재 이 팀에 소속된 멤버가 없습니다.",
+			"availableMembers": "추가 가능한 멤버 ({{memberCount}}명)",
+			"addMember": "추가",
+			"removeMember": "제거",
+			"deleteTitle": "팀을 삭제할까요?",
+			"deleteDescription": "{{name}} 팀이 영구적으로 삭제됩니다. 워크스페이스 멤버는 삭제되지 않습니다.",
+			"createSuccess": "팀이 생성되었습니다",
+			"updateSuccess": "팀이 업데이트되었습니다",
+			"deleteSuccess": "팀이 삭제되었습니다",
+			"loadError": "팀을 불러오지 못했습니다",
+			"membersLoadError": "팀 멤버를 불러오지 못했습니다",
+			"createError": "팀 생성에 실패했습니다",
+			"updateError": "팀 업데이트에 실패했습니다",
+			"deleteError": "팀 삭제에 실패했습니다",
+			"saveError": "팀 저장에 실패했습니다",
+			"memberUpdateError": "팀 멤버 업데이트에 실패했습니다"
+		},
 		"workspaceLabels": {
 			"pageTitle": "라벨 설정",
 			"title": "라벨",
@@ -1813,6 +1850,10 @@
 		"popover": {
 			"assignee": {
 				"unassigned": "미할당",
+				"searchPlaceholder": "이름으로 멤버 검색...",
+				"noMembersFound": "멤버를 찾을 수 없습니다",
+				"allMembers": "모든 멤버",
+				"otherMembers": "기타 멤버",
 				"updateError": "작업 담당자 업데이트에 실패했습니다"
 			},
 			"status": {
@@ -2167,6 +2208,7 @@
 			"columns": {
 				"name": "이름",
 				"role": "역할",
+				"teams": "팀",
 				"joined": "참여",
 				"actions": "작업"
 			},

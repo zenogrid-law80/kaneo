@@ -772,6 +772,45 @@
 			},
 			"permissionCount_many": "{{count}} permessi"
 		},
+		"workspaceTeams": {
+			"title": "Teams",
+			"description": "Organize workspace members into focused groups.",
+			"create": "Create team",
+			"createTitle": "Create team",
+			"editTitle": "Rename team",
+			"name": "Team name",
+			"nameDescription": "Use a short name that members will recognize.",
+			"emptyTitle": "No teams yet",
+			"emptyDescription": "Create a team to group people by function, project, or responsibility.",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"memberCount_many": "{{count}} members",
+			"members": "Members",
+			"edit": "Edit team",
+			"delete": "Delete",
+			"cancel": "Cancel",
+			"save": "Save",
+			"done": "Done",
+			"manageMembersTitle": "Manage {{name}} members",
+			"manageMembersDescription": "Add or remove existing workspace members.",
+			"currentMembers": "Membri attuali ({{memberCount}})",
+			"noCurrentMembers": "Al momento non ci sono membri in questo team.",
+			"availableMembers": "Membri disponibili ({{memberCount}})",
+			"addMember": "Add",
+			"removeMember": "Remove",
+			"deleteTitle": "Delete team?",
+			"deleteDescription": "{{name}} will be permanently deleted. Workspace members will not be removed.",
+			"createSuccess": "Team created",
+			"updateSuccess": "Team updated",
+			"deleteSuccess": "Team deleted",
+			"loadError": "Failed to load teams",
+			"membersLoadError": "Failed to load team members",
+			"createError": "Failed to create team",
+			"updateError": "Failed to update team",
+			"deleteError": "Failed to delete team",
+			"saveError": "Failed to save team",
+			"memberUpdateError": "Failed to update team member"
+		},
 		"workspaceLabels": {
 			"pageTitle": "Impostazioni Etichette",
 			"title": "Etichette",
@@ -1823,6 +1862,10 @@
 		"popover": {
 			"assignee": {
 				"unassigned": "Non assegnato",
+				"searchPlaceholder": "Cerca membri per nome...",
+				"noMembersFound": "Nessun membro trovato",
+				"allMembers": "Tutti i membri",
+				"otherMembers": "Altri membri",
 				"updateError": "Aggiornamento assegnatario attività fallito"
 			},
 			"status": {
@@ -2181,6 +2224,7 @@
 			"columns": {
 				"name": "Nome",
 				"role": "Ruolo",
+				"teams": "Teams",
 				"joined": "Iscritto",
 				"actions": "Azioni"
 			},

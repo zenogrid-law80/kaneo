@@ -262,6 +262,7 @@ function RouteComponent() {
           team={selectedTeam}
           workspaceId={workspaceId}
           workspaceMembers={workspaceMembers}
+          canManage={canManage}
         />
       )}
 
@@ -328,11 +329,17 @@ function TeamCard({
       <CardHeader>
         <div>
           <CardTitle>{team.name}</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="-ml-2 mt-1 h-auto px-2 py-1 text-muted-foreground hover:text-foreground"
+            onClick={onMembers}
+          >
             {t("settings:workspaceTeams.memberCount", {
               count: team.userIds.length,
             })}
-          </p>
+          </Button>
         </div>
         {canManage && (
           <CardAction className="flex gap-1">
@@ -362,23 +369,43 @@ function TeamCard({
   );
 }
 
+export function splitTeamMembers(
+  workspaceMembers: WorkspaceUser[],
+  memberIds: Set<string>,
+) {
+  return {
+    currentMembers: workspaceMembers.filter((member) =>
+      memberIds.has(member.userId),
+    ),
+    availableMembers: workspaceMembers.filter(
+      (member) => !memberIds.has(member.userId),
+    ),
+  };
+}
+
 function ManageMembersDialog({
   open,
   onOpenChange,
   team,
   workspaceId,
   workspaceMembers,
+  canManage,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   team: Team;
   workspaceId: string;
   workspaceMembers: WorkspaceUser[];
+  canManage: boolean;
 }) {
   const { t } = useTranslation();
   const { data: teams = [] } = useWorkspaceTeams(workspaceId);
   const currentTeam = teams.find((candidate) => candidate.id === team.id);
   const memberIds = new Set(currentTeam?.userIds ?? team.userIds);
+  const { currentMembers, availableMembers } = splitTeamMembers(
+    workspaceMembers,
+    memberIds,
+  );
   const toggleMember = useMutation({
     mutationFn: async ({
       userId,
@@ -420,55 +447,76 @@ function ManageMembersDialog({
             {t("settings:workspaceTeams.manageMembersDescription")}
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-80 space-y-1 overflow-y-auto">
-          {workspaceMembers.map((member) => {
-            const included = memberIds.has(member.userId);
-            return (
-              <div
-                key={member.id}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted/60"
-              >
-                <Avatar className="size-8">
-                  <AvatarImage src={member.user.image ?? ""} />
-                  <AvatarFallback>
-                    {getInitials(member.user.name, "?")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {member.user.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {member.user.email}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant={included ? "outline" : "default"}
-                  disabled={toggleMember.isPending}
-                  onClick={async () => {
-                    try {
-                      await toggleMember.mutateAsync({
-                        userId: member.userId,
-                        included,
-                      });
-                    } catch (error) {
-                      toast.error(
-                        getErrorMessage(
-                          error,
-                          t("settings:workspaceTeams.memberUpdateError"),
-                        ),
-                      );
+        <div className="max-h-80 space-y-5 overflow-y-auto">
+          <section aria-labelledby="current-team-members-heading">
+            <h3
+              id="current-team-members-heading"
+              className="mb-2 text-sm font-medium"
+            >
+              {t("settings:workspaceTeams.currentMembers", {
+                memberCount: currentMembers.length,
+              })}
+            </h3>
+            {currentMembers.length === 0 ? (
+              <p className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
+                {t("settings:workspaceTeams.noCurrentMembers")}
+              </p>
+            ) : (
+              <div className="space-y-1">
+                {currentMembers.map((member) => (
+                  <MemberRow
+                    key={member.id}
+                    member={member}
+                    action={
+                      canManage
+                        ? {
+                            label: t("settings:workspaceTeams.removeMember"),
+                            variant: "outline",
+                            disabled: toggleMember.isPending,
+                            onAction: () =>
+                              toggleMember.mutateAsync({
+                                userId: member.userId,
+                                included: true,
+                              }),
+                          }
+                        : undefined
                     }
-                  }}
-                >
-                  {included
-                    ? t("settings:workspaceTeams.removeMember")
-                    : t("settings:workspaceTeams.addMember")}
-                </Button>
+                  />
+                ))}
               </div>
-            );
-          })}
+            )}
+          </section>
+
+          {canManage && availableMembers.length > 0 && (
+            <section aria-labelledby="available-team-members-heading">
+              <h3
+                id="available-team-members-heading"
+                className="mb-2 text-sm font-medium"
+              >
+                {t("settings:workspaceTeams.availableMembers", {
+                  memberCount: availableMembers.length,
+                })}
+              </h3>
+              <div className="space-y-1">
+                {availableMembers.map((member) => (
+                  <MemberRow
+                    key={member.id}
+                    member={member}
+                    action={{
+                      label: t("settings:workspaceTeams.addMember"),
+                      variant: "default",
+                      disabled: toggleMember.isPending,
+                      onAction: () =>
+                        toggleMember.mutateAsync({
+                          userId: member.userId,
+                          included: false,
+                        }),
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)}>
@@ -477,5 +525,55 @@ function ManageMembersDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function MemberRow({
+  member,
+  action,
+}: {
+  member: WorkspaceUser;
+  action?: {
+    label: string;
+    variant: "default" | "outline";
+    disabled: boolean;
+    onAction: () => Promise<unknown>;
+  };
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted/60">
+      <Avatar className="size-8">
+        <AvatarImage src={member.user.image ?? ""} />
+        <AvatarFallback>{getInitials(member.user.name, "?")}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{member.user.name}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {member.user.email}
+        </p>
+      </div>
+      {action && (
+        <Button
+          size="sm"
+          variant={action.variant}
+          disabled={action.disabled}
+          onClick={async () => {
+            try {
+              await action.onAction();
+            } catch (error) {
+              toast.error(
+                getErrorMessage(
+                  error,
+                  t("settings:workspaceTeams.memberUpdateError"),
+                ),
+              );
+            }
+          }}
+        >
+          {action.label}
+        </Button>
+      )}
+    </div>
   );
 }

@@ -1164,6 +1164,45 @@
 			},
 			"permissionCount_many": "{{count}} permisos"
 		},
+		"workspaceTeams": {
+			"title": "Teams",
+			"description": "Organize workspace members into focused groups.",
+			"create": "Create team",
+			"createTitle": "Create team",
+			"editTitle": "Rename team",
+			"name": "Team name",
+			"nameDescription": "Use a short name that members will recognize.",
+			"emptyTitle": "No teams yet",
+			"emptyDescription": "Create a team to group people by function, project, or responsibility.",
+			"memberCount_one": "{{count}} member",
+			"memberCount_other": "{{count}} members",
+			"memberCount_many": "{{count}} members",
+			"members": "Members",
+			"edit": "Edit team",
+			"delete": "Delete",
+			"cancel": "Cancel",
+			"save": "Save",
+			"done": "Done",
+			"manageMembersTitle": "Manage {{name}} members",
+			"manageMembersDescription": "Add or remove existing workspace members.",
+			"currentMembers": "Miembros actuales ({{memberCount}})",
+			"noCurrentMembers": "Actualmente no hay miembros en este equipo.",
+			"availableMembers": "Miembros disponibles ({{memberCount}})",
+			"addMember": "Add",
+			"removeMember": "Remove",
+			"deleteTitle": "Delete team?",
+			"deleteDescription": "{{name}} will be permanently deleted. Workspace members will not be removed.",
+			"createSuccess": "Team created",
+			"updateSuccess": "Team updated",
+			"deleteSuccess": "Team deleted",
+			"loadError": "Failed to load teams",
+			"membersLoadError": "Failed to load team members",
+			"createError": "Failed to create team",
+			"updateError": "Failed to update team",
+			"deleteError": "Failed to delete team",
+			"saveError": "Failed to save team",
+			"memberUpdateError": "Failed to update team member"
+		},
 		"workspaceLabels": {
 			"pageTitle": "Ajustes de etiquetas",
 			"title": "Etiquetas",
@@ -1812,6 +1851,10 @@
 		"popover": {
 			"assignee": {
 				"unassigned": "No asignada",
+				"searchPlaceholder": "Buscar miembros por nombre...",
+				"noMembersFound": "No se encontraron miembros",
+				"allMembers": "Todos los miembros",
+				"otherMembers": "Otros miembros",
 				"updateError": "Error al actualizar el asignado a esta tarea"
 			},
 			"status": {
@@ -2181,6 +2224,7 @@
 			"columns": {
 				"name": "Nombre",
 				"role": "Rol",
+				"teams": "Teams",
 				"joined": "Unido",
 				"actions": "Acciones"
 			},

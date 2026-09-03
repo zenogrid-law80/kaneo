@@ -1,7 +1,8 @@
-import { Check, Search, UsersRound } from "lucide-react";
+import { Check, ChevronRight, Search, UsersRound } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandCollection,
@@ -13,6 +14,11 @@ import {
   CommandPanel,
   CommandSeparator,
 } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { WorkspaceTeam } from "@/hooks/queries/workspace/use-workspace-teams";
 import { getInitials } from "@/lib/get-initials";
 import type WorkspaceUser from "@/types/workspace-user";
@@ -119,6 +125,7 @@ export default function AssigneePickerContent({
   const unassignedLabel = t("tasks:popover.assignee.unassigned");
   const showUnassigned = matchesAssigneeSearch(unassignedLabel, query);
   const hasResults = showUnassigned || filteredGroups.length > 0;
+  const isSearching = query.trim().length > 0;
 
   return (
     <Command items={filteredGroups} mode="none">
@@ -161,51 +168,101 @@ export default function AssigneePickerContent({
                 </CommandCollection>
               </CommandGroup>
             )}
-            {filteredGroups.map((group, index) => (
-              <Fragment key={group.value}>
-                {(showUnassigned || index > 0) && <CommandSeparator />}
-                <CommandGroup items={group.members}>
-                  <CommandGroupLabel className="flex items-center gap-1.5">
-                    <UsersRound className="size-3.5" />
-                    {group.label}
-                  </CommandGroupLabel>
-                  <CommandCollection>
-                    {(member: WorkspaceUser) => (
-                      <CommandItem
-                        key={`${group.value}-${member.userId}`}
-                        value={`${member.user.name} ${member.user.email}`}
-                        onClick={() => onSelect(member.userId)}
-                        className="flex items-start gap-3 px-3 py-3"
-                      >
-                        <Avatar className="mt-0.5 size-7 shrink-0">
-                          <AvatarImage
-                            src={member.user.image ?? ""}
-                            alt={member.user.name}
-                          />
-                          <AvatarFallback className="text-xs">
-                            {getInitials(member.user.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-sm font-medium">
-                            {member.user.name}
-                          </div>
-                          <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                            {member.user.email}
-                          </div>
-                        </div>
-                        {selectedUserId === member.userId && (
-                          <Check className="size-4" />
+            {isSearching
+              ? filteredGroups.map((group, index) => (
+                  <Fragment key={group.value}>
+                    {(showUnassigned || index > 0) && <CommandSeparator />}
+                    <CommandGroup items={group.members}>
+                      <CommandGroupLabel className="flex items-center gap-1.5">
+                        <UsersRound className="size-3.5" />
+                        {group.label}
+                      </CommandGroupLabel>
+                      <CommandCollection>
+                        {(member: WorkspaceUser) => (
+                          <CommandItem
+                            key={`${group.value}-${member.userId}`}
+                            value={`${member.user.name} ${member.user.email}`}
+                            onClick={() => onSelect(member.userId)}
+                            className="flex items-start gap-3 px-3 py-3"
+                          >
+                            <MemberIdentity member={member} />
+                            {selectedUserId === member.userId && (
+                              <Check className="size-4" />
+                            )}
+                          </CommandItem>
                         )}
-                      </CommandItem>
-                    )}
-                  </CommandCollection>
-                </CommandGroup>
-              </Fragment>
-            ))}
+                      </CommandCollection>
+                    </CommandGroup>
+                  </Fragment>
+                ))
+              : groups.map((group, index) => (
+                  <Fragment key={group.value}>
+                    {(showUnassigned || index > 0) && <CommandSeparator />}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-9 w-full justify-start gap-2 rounded-sm px-3 font-normal"
+                        >
+                          <UsersRound className="size-4 text-muted-foreground" />
+                          <span className="min-w-0 flex-1 truncate text-left">
+                            {group.label}
+                          </span>
+                          <ChevronRight className="size-4 text-muted-foreground" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        side="right"
+                        align="start"
+                        sideOffset={6}
+                        className="w-72 p-1"
+                      >
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                          {group.label}
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {group.members.map((member) => (
+                            <Button
+                              key={member.userId}
+                              type="button"
+                              variant="ghost"
+                              className="h-auto w-full justify-start gap-3 px-2 py-2 font-normal"
+                              onClick={() => onSelect(member.userId)}
+                            >
+                              <MemberIdentity member={member} />
+                              {selectedUserId === member.userId && (
+                                <Check className="size-4 shrink-0" />
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </Fragment>
+                ))}
           </CommandList>
         )}
       </CommandPanel>
     </Command>
+  );
+}
+
+function MemberIdentity({ member }: { member: WorkspaceUser }) {
+  return (
+    <>
+      <Avatar className="mt-0.5 size-7 shrink-0">
+        <AvatarImage src={member.user.image ?? ""} alt={member.user.name} />
+        <AvatarFallback className="text-xs">
+          {getInitials(member.user.name)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1 text-left">
+        <div className="truncate text-sm font-medium">{member.user.name}</div>
+        <div className="mt-0.5 truncate text-xs text-muted-foreground">
+          {member.user.email}
+        </div>
+      </div>
+    </>
   );
 }
