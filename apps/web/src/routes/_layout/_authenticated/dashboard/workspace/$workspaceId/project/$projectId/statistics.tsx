@@ -290,7 +290,10 @@ function RouteComponent() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
-                              <div className="truncate font-medium">
+                              <div
+                                id={`member-${member.userId}-name`}
+                                className="truncate font-medium"
+                              >
                                 {member.name}
                               </div>
                               <div className="truncate text-xs text-muted-foreground">
@@ -318,7 +321,10 @@ function RouteComponent() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Progress value={member.completionRate} />
+                            <Progress
+                              value={member.completionRate}
+                              aria-labelledby={`member-${member.userId}-name`}
+                            />
                             <span className="w-10 text-right text-sm tabular-nums">
                               {member.completionRate}%
                             </span>

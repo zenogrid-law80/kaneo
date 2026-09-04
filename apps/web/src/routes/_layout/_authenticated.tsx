@@ -20,7 +20,10 @@ export const Route = createFileRoute("/_layout/_authenticated")({
       throw redirect({
         to: "/auth/sign-in",
         search: {
-          redirect: location.pathname + location.search + location.hash,
+          redirect:
+            location.pathname +
+            location.searchStr +
+            (location.hash ? `#${location.hash}` : ""),
         },
       });
     }

@@ -64,6 +64,10 @@ export default defineConfig({
     },
   },
   build: {
+    // Route chunks are loaded on demand by TanStack Router. Preloading every
+    // generated route defeats code splitting and pulls large editors into the
+    // initial dashboard load.
+    modulePreload: false,
     // Source maps are required for the Sentry Vite plugin to upload and
     // symbolicate stack traces. Hidden so the .map files are not served
     // to end users; the Sentry plugin still attaches them to uploaded

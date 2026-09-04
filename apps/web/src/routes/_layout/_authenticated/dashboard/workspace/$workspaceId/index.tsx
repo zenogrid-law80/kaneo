@@ -394,6 +394,7 @@ function RouteComponent() {
 
                   const IconComponent =
                     icons[project.icon as keyof typeof icons] || icons.Layout;
+                  const projectNameId = `project-${project.id}-name`;
 
                   const getStatusText = () => {
                     if (project.statistics.totalTasks === 0)
@@ -420,13 +421,16 @@ function RouteComponent() {
                       <TableCell className="py-3">
                         <div className="flex items-center gap-3">
                           <IconComponent className="w-5 h-5 text-muted-foreground" />
-                          <span className="font-medium">{project.name}</span>
+                          <span id={projectNameId} className="font-medium">
+                            {project.name}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="py-3">
                         <div className="flex items-center gap-2">
                           <Progress
                             value={project.statistics.completionPercentage}
+                            aria-labelledby={projectNameId}
                             className="w-16 h-2"
                           />
                           <span className="text-sm text-muted-foreground">
