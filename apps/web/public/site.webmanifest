@@ -1,6 +1,9 @@
 {
 	"name": "Kaneo",
 	"short_name": "Kaneo",
+	"id": "/",
+	"start_url": "/",
+	"scope": "/",
 	"icons": [
 		{
 			"src": "/web-app-manifest-192x192.png",
@@ -17,5 +20,6 @@
 	],
 	"theme_color": "#141414",
 	"background_color": "#141414",
-	"display": "standalone"
+	"display": "standalone",
+	"orientation": "any"
 }

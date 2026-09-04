@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 import packageJson from "../../package.json";
 
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
@@ -25,6 +26,14 @@ export default defineConfig({
     tailwindcss(),
     react(),
     babel({ presets: [reactCompilerPreset()] }),
+    VitePWA({
+      registerType: "autoUpdate",
+      manifest: false,
+      workbox: {
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api\//],
+      },
+    }),
     // Hidden when Sentry env vars are absent so local dev does not depend on it.
     ...(sentryAuthToken && sentryOrg && sentryProject
       ? [
