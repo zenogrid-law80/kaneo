@@ -8,6 +8,7 @@ import {
   workspaceUserTable,
 } from "../../database/schema";
 import { resolveStatisticsDateRange } from "./statistics-date-range";
+import { statisticsTaskOwner } from "./statistics-task-owner";
 
 async function getWorkspaceMemberStatistics(
   workspaceId: string,
@@ -41,7 +42,7 @@ async function getWorkspaceMemberStatistics(
         taskTable,
         and(
           eq(taskTable.projectId, projectTable.id),
-          eq(taskTable.userId, workspaceUserTable.userId),
+          eq(statisticsTaskOwner, workspaceUserTable.userId),
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
         ),
@@ -55,7 +56,7 @@ async function getWorkspaceMemberStatistics(
         id: taskTable.id,
         title: taskTable.title,
         projectId: taskTable.projectId,
-        userId: taskTable.userId,
+        userId: statisticsTaskOwner,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -67,7 +68,7 @@ async function getWorkspaceMemberStatistics(
           isNull(projectTable.archivedAt),
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
-          sql`${taskTable.userId} is not null`,
+          sql`${statisticsTaskOwner} is not null`,
           sql`${taskTable.dueDate} < now()`,
           sql`${taskTable.status} <> 'archived'`,
           sql`coalesce(${columnTable.isFinal}, false) = false`,

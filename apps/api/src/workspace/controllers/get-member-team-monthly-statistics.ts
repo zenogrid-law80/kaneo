@@ -14,6 +14,7 @@ import {
   getMonthKeys,
   resolveStatisticsDateRange,
 } from "./statistics-date-range";
+import { statisticsTaskOwner } from "./statistics-task-owner";
 
 type MonthlyCounts = { createdTasks: number; completedTasks: number };
 
@@ -62,7 +63,7 @@ async function getMemberTeamMonthlyStatistics(
       .where(eq(teamTable.workspaceId, workspaceId)),
     db
       .select({
-        userId: taskTable.userId,
+        userId: statisticsTaskOwner,
         month: taskMonth,
         count: count(),
       })
@@ -75,13 +76,13 @@ async function getMemberTeamMonthlyStatistics(
           isNull(projectTable.archivedAt),
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
-          sql`${taskTable.userId} is not null`,
+          sql`${statisticsTaskOwner} is not null`,
         ),
       )
-      .groupBy(taskTable.userId, taskMonth),
+      .groupBy(statisticsTaskOwner, taskMonth),
     db
       .select({
-        userId: taskTable.userId,
+        userId: statisticsTaskOwner,
         month: activityMonth,
         count: sql<number>`count(distinct ${taskTable.id})`,
       })
@@ -103,17 +104,17 @@ async function getMemberTeamMonthlyStatistics(
           eq(activityTable.type, "status_changed"),
           gte(activityTable.createdAt, range.start),
           lt(activityTable.createdAt, range.endExclusive),
-          sql`${taskTable.userId} is not null`,
+          sql`${statisticsTaskOwner} is not null`,
           sql`(${activityTable.eventData}->>'newStatus' = 'archived' or ${columnTable.isFinal} = true)`,
         ),
       )
-      .groupBy(taskTable.userId, activityMonth),
+      .groupBy(statisticsTaskOwner, activityMonth),
     db
       .select({
         id: taskTable.id,
         title: taskTable.title,
         projectId: taskTable.projectId,
-        userId: taskTable.userId,
+        userId: statisticsTaskOwner,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -123,7 +124,7 @@ async function getMemberTeamMonthlyStatistics(
           eq(projectTable.workspaceId, workspaceId),
           projectId ? eq(projectTable.id, projectId) : undefined,
           isNull(projectTable.archivedAt),
-          sql`${taskTable.userId} is not null`,
+          sql`${statisticsTaskOwner} is not null`,
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
           sql`${taskTable.dueDate} < now()`,

@@ -15,6 +15,96 @@ describe("API integration: workspace member statistics", () => {
     await resetTestDatabase();
   });
 
+  it("credits the latest member who started work, even when someone else completes it", async () => {
+    const member = await createWorkspaceMember({ role: "admin" });
+    const workerId = `user-${randomUUID()}`;
+    await db.insert(schema.userTable).values({
+      id: workerId,
+      email: `${workerId}@example.com`,
+      name: "Worker",
+      emailVerified: true,
+    });
+    await db.insert(schema.workspaceUserTable).values({
+      workspaceId: member.workspace.id,
+      userId: workerId,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    const project = await createProjectFixture({
+      workspaceId: member.workspace.id,
+    });
+    const [task] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: project.project.id,
+        userId: member.user.id,
+        number: 1,
+        title: "Started by worker",
+        createdAt: new Date("2026-06-15T12:00:00Z"),
+        status: project.columns.done.slug,
+        columnId: project.columns.done.id,
+      })
+      .returning();
+    await db.insert(schema.activityTable).values([
+      {
+        taskId: task.id,
+        userId: member.user.id,
+        type: "status_changed",
+        createdAt: new Date("2000-01-01"),
+        eventData: { newStatus: "in-progress" },
+      },
+      {
+        taskId: task.id,
+        userId: workerId,
+        type: "status_changed",
+        createdAt: new Date("2000-01-02"),
+        eventData: { newStatus: "in-progress" },
+      },
+      {
+        taskId: task.id,
+        userId: member.user.id,
+        type: "status_changed",
+        createdAt: new Date("2026-06-16T12:00:00Z"),
+        eventData: { oldStatus: "in-progress", newStatus: "done" },
+      },
+    ]);
+    mockAuthenticatedSession(member.user);
+    const app = createApp().app;
+    const response = await app.request(
+      `/api/workspace/${member.workspace.id}/member-statistics?startDate=2026-06-01&endDate=2026-06-30`,
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: workerId,
+          assignedTasks: 1,
+          completedTasks: 1,
+        }),
+        expect.objectContaining({
+          userId: member.user.id,
+          assignedTasks: 0,
+          completedTasks: 0,
+        }),
+      ]),
+    );
+    const monthly = await app.request(
+      `/api/workspace/${member.workspace.id}/member-team-monthly-statistics?startDate=2026-06-01&endDate=2026-06-30`,
+    );
+    expect(monthly.status).toBe(200);
+    const payload = await monthly.json();
+    expect(payload.members).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: workerId,
+          months: expect.arrayContaining([
+            expect.objectContaining({ createdTasks: 1, completedTasks: 1 }),
+          ]),
+        }),
+      ]),
+    );
+  });
+
   it("aggregates assigned tasks for every member and excludes archived projects", async () => {
     const member = await createWorkspaceMember({
       userName: "Alice",
