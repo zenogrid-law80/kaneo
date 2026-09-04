@@ -1376,6 +1376,7 @@
 			"overview": "Overview",
 			"projects": "Projects",
 			"members": "Members",
+			"statistics": "Statistics",
 			"invitations": "Invitations",
 			"more": "More",
 			"backToBoard": "Back to board"
@@ -2177,6 +2178,54 @@
 			"submit": "Create workspace",
 			"success": "Workspace created successfully",
 			"error": "Failed to create workspace"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Statistics",
+		"memberPerformance": "Member performance",
+		"description": "Task statistics across active projects in this workspace.",
+		"filters": {
+			"period": "Period",
+			"startDate": "Start date",
+			"endDate": "End date",
+			"team": "Team",
+			"project": "Project",
+			"member": "Member",
+			"schedule": "Schedule",
+			"last3Months": "Last 3 months",
+			"last6Months": "Last 6 months",
+			"last12Months": "Last 12 months",
+			"allTeams": "All teams",
+			"noTeam": "No team selected",
+			"allProjects": "All projects",
+			"allMembers": "All members",
+			"noMember": "No member selected",
+			"allSchedules": "All schedules",
+			"overdue": "Has overdue tasks",
+			"onTrack": "On track",
+			"noResults": "No statistics match the selected filters.",
+			"reset": "Reset filters"
+		},
+		"columns": {
+			"member": "Member",
+			"assigned": "Assigned",
+			"completed": "Completed",
+			"inProgress": "In progress",
+			"overdue": "Overdue",
+			"completionRate": "Completion rate"
+		},
+		"overdueCount": "{{count}} overdue",
+		"onTrack": "On track",
+		"monthly": {
+			"title": "Monthly project statistics",
+			"description": "Tasks created and completed during the last 12 months.",
+			"membersTitle": "Monthly member statistics",
+			"membersDescription": "Created and completed tasks currently assigned to each member.",
+			"teamsTitle": "Monthly team statistics",
+			"teamsDescription": "Member totals combined using the current team membership.",
+			"created": "Created",
+			"completed": "Completed",
+			"chartLabel": "Monthly created and completed task chart"
 		}
 	},
 	"team": {

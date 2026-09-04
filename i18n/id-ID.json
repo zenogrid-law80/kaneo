@@ -1375,6 +1375,7 @@
 			"overview": "Ringkasan",
 			"projects": "Proyek",
 			"members": "Anggota",
+			"statistics": "Statistik",
 			"invitations": "Undangan",
 			"more": "Lainnya",
 			"backToBoard": "Kembali ke papan"
@@ -2170,6 +2171,54 @@
 			"submit": "Buat ruang kerja",
 			"success": "Ruang kerja berhasil dibuat",
 			"error": "Gagal membuat ruang kerja"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Statistik",
+		"memberPerformance": "Kinerja anggota",
+		"description": "Statistik tugas pada proyek aktif di ruang kerja ini.",
+		"filters": {
+			"period": "Periode",
+			"startDate": "Tanggal mulai",
+			"endDate": "Tanggal selesai",
+			"team": "Tim",
+			"project": "Proyek",
+			"member": "Anggota",
+			"schedule": "Status jadwal",
+			"last3Months": "3 bulan terakhir",
+			"last6Months": "6 bulan terakhir",
+			"last12Months": "12 bulan terakhir",
+			"allTeams": "Semua tim",
+			"allProjects": "Semua proyek",
+			"allMembers": "Semua anggota",
+			"noMember": "Tidak ada anggota yang dipilih",
+			"allSchedules": "Semua jadwal",
+			"overdue": "Memiliki tugas terlambat",
+			"onTrack": "Sesuai jadwal",
+			"noResults": "Tidak ada statistik yang sesuai dengan filter pilihan.",
+			"reset": "Atur ulang filter",
+			"noTeam": "Tidak ada tim yang dipilih"
+		},
+		"columns": {
+			"member": "Anggota",
+			"assigned": "Ditugaskan",
+			"completed": "Selesai",
+			"inProgress": "Sedang berjalan",
+			"overdue": "Terlambat",
+			"completionRate": "Tingkat penyelesaian"
+		},
+		"overdueCount": "{{count}} terlambat",
+		"onTrack": "Sesuai jadwal",
+		"monthly": {
+			"title": "Statistik proyek bulanan",
+			"description": "Tugas yang dibuat dan diselesaikan selama 12 bulan terakhir.",
+			"membersTitle": "Statistik anggota bulanan",
+			"membersDescription": "Tugas yang dibuat dan diselesaikan yang saat ini ditugaskan kepada setiap anggota.",
+			"teamsTitle": "Statistik tim bulanan",
+			"teamsDescription": "Total gabungan berdasarkan keanggotaan tim saat ini.",
+			"created": "Dibuat",
+			"completed": "Selesai",
+			"chartLabel": "Grafik bulanan tugas yang dibuat dan diselesaikan"
 		}
 	},
 	"team": {

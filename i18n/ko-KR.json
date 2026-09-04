@@ -1374,6 +1374,7 @@
 			"overview": "개요",
 			"projects": "프로젝트",
 			"members": "멤버",
+			"statistics": "통계",
 			"invitations": "초대",
 			"more": "더 보기",
 			"backToBoard": "보드로 돌아가기"
@@ -2169,6 +2170,54 @@
 			"submit": "워크스페이스 만들기",
 			"success": "워크스페이스가 생성되었습니다",
 			"error": "워크스페이스 생성에 실패했습니다"
+		}
+	},
+	"statistics": {
+		"pageTitle": "통계",
+		"memberPerformance": "멤버별 작업 현황",
+		"description": "이 워크스페이스의 활성 프로젝트에 포함된 작업 통계입니다.",
+		"filters": {
+			"period": "기간",
+			"startDate": "시작일",
+			"endDate": "종료일",
+			"team": "팀",
+			"project": "프로젝트",
+			"member": "팀원",
+			"schedule": "일정 상태",
+			"last3Months": "최근 3개월",
+			"last6Months": "최근 6개월",
+			"last12Months": "최근 12개월",
+			"allTeams": "모든 팀",
+			"allProjects": "모든 프로젝트",
+			"allMembers": "모든 팀원",
+			"noMember": "팀원 선택 없음",
+			"allSchedules": "전체 일정",
+			"overdue": "일정 초과 있음",
+			"onTrack": "일정 정상",
+			"noResults": "선택한 필터와 일치하는 통계가 없습니다.",
+			"reset": "필터 초기화",
+			"noTeam": "팀 선택 없음"
+		},
+		"columns": {
+			"member": "멤버",
+			"assigned": "담당 작업",
+			"completed": "완료",
+			"inProgress": "진행 중",
+			"overdue": "일정 초과",
+			"completionRate": "완료율"
+		},
+		"overdueCount": "{{count}}건 초과",
+		"onTrack": "일정 정상",
+		"monthly": {
+			"title": "프로젝트별 월간 통계",
+			"description": "최근 12개월 동안 생성 및 완료된 작업입니다.",
+			"membersTitle": "멤버별 월간 통계",
+			"membersDescription": "각 멤버에게 현재 배정된 작업의 생성 및 완료 추이입니다.",
+			"teamsTitle": "팀별 월간 통계",
+			"teamsDescription": "현재 팀 구성원을 기준으로 멤버 통계를 합산합니다.",
+			"created": "생성",
+			"completed": "완료",
+			"chartLabel": "월별 생성 및 완료 작업 그래프"
 		}
 	},
 	"team": {

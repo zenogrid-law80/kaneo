@@ -1376,6 +1376,7 @@
 			"overview": "Übersicht",
 			"projects": "Projekte",
 			"members": "Mitglieder",
+			"statistics": "Statistiken",
 			"invitations": "Einladungen",
 			"more": "Mehr",
 			"backToBoard": "Zurück zum Board"
@@ -2177,6 +2178,54 @@
 			"submit": "Workspace erstellen",
 			"success": "Workspace erfolgreich erstellt",
 			"error": "Workspace konnte nicht erstellt werden"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Statistiken",
+		"memberPerformance": "Leistung der Mitglieder",
+		"description": "Aufgabenstatistiken für aktive Projekte in diesem Arbeitsbereich.",
+		"filters": {
+			"period": "Zeitraum",
+			"startDate": "Startdatum",
+			"endDate": "Enddatum",
+			"team": "Team",
+			"project": "Projekt",
+			"member": "Mitglied",
+			"schedule": "Terminstatus",
+			"last3Months": "Letzte 3 Monate",
+			"last6Months": "Letzte 6 Monate",
+			"last12Months": "Letzte 12 Monate",
+			"allTeams": "Alle Teams",
+			"allProjects": "Alle Projekte",
+			"allMembers": "Alle Mitglieder",
+			"noMember": "Kein Mitglied ausgewählt",
+			"allSchedules": "Alle Termine",
+			"overdue": "Mit überfälligen Aufgaben",
+			"onTrack": "Im Zeitplan",
+			"noResults": "Keine Statistiken entsprechen den ausgewählten Filtern.",
+			"reset": "Filter zurücksetzen",
+			"noTeam": "Kein Team ausgewählt"
+		},
+		"columns": {
+			"member": "Mitglied",
+			"assigned": "Zugewiesen",
+			"completed": "Abgeschlossen",
+			"inProgress": "In Bearbeitung",
+			"overdue": "Überfällig",
+			"completionRate": "Abschlussquote"
+		},
+		"overdueCount": "{{count}} überfällig",
+		"onTrack": "Im Zeitplan",
+		"monthly": {
+			"title": "Monatliche Projektstatistiken",
+			"description": "Erstellte und abgeschlossene Aufgaben der letzten 12 Monate.",
+			"membersTitle": "Monatliche Mitgliederstatistiken",
+			"membersDescription": "Erstellte und abgeschlossene Aufgaben, die derzeit den einzelnen Mitgliedern zugewiesen sind.",
+			"teamsTitle": "Monatliche Teamstatistiken",
+			"teamsDescription": "Zusammengefasste Werte der aktuellen Teammitglieder.",
+			"created": "Erstellt",
+			"completed": "Abgeschlossen",
+			"chartLabel": "Monatliches Diagramm erstellter und abgeschlossener Aufgaben"
 		}
 	},
 	"team": {

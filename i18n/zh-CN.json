@@ -1375,6 +1375,7 @@
 			"overview": "概览",
 			"projects": "项目",
 			"members": "成员",
+			"statistics": "统计",
 			"invitations": "邀请",
 			"more": "更多",
 			"backToBoard": "返回看板"
@@ -2170,6 +2171,54 @@
 			"submit": "创建工作区",
 			"success": "工作区创建成功",
 			"error": "工作区创建失败"
+		}
+	},
+	"statistics": {
+		"pageTitle": "统计",
+		"memberPerformance": "成员绩效",
+		"description": "此工作区中活跃项目的任务统计。",
+		"filters": {
+			"period": "时间范围",
+			"startDate": "开始日期",
+			"endDate": "结束日期",
+			"team": "团队",
+			"project": "项目",
+			"member": "成员",
+			"schedule": "进度状态",
+			"last3Months": "最近3个月",
+			"last6Months": "最近6个月",
+			"last12Months": "最近12个月",
+			"allTeams": "所有团队",
+			"allProjects": "所有项目",
+			"allMembers": "所有成员",
+			"noMember": "未选择成员",
+			"allSchedules": "所有进度",
+			"overdue": "有逾期任务",
+			"onTrack": "进度正常",
+			"noResults": "没有符合所选筛选条件的统计数据。",
+			"reset": "重置筛选",
+			"noTeam": "未选择团队"
+		},
+		"columns": {
+			"member": "成员",
+			"assigned": "已分配",
+			"completed": "已完成",
+			"inProgress": "进行中",
+			"overdue": "逾期",
+			"completionRate": "完成率"
+		},
+		"overdueCount": "逾期 {{count}} 项",
+		"onTrack": "进度正常",
+		"monthly": {
+			"title": "项目月度统计",
+			"description": "最近12个月创建和完成的任务。",
+			"membersTitle": "成员月度统计",
+			"membersDescription": "当前分配给每位成员的任务创建和完成情况。",
+			"teamsTitle": "团队月度统计",
+			"teamsDescription": "按当前团队成员汇总的数据。",
+			"created": "已创建",
+			"completed": "已完成",
+			"chartLabel": "月度任务创建和完成图表"
 		}
 	},
 	"team": {

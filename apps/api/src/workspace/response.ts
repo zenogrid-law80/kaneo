@@ -15,6 +15,67 @@ export const workspaceMemberSchema = z
 
 export const workspaceMemberListSchema = z.array(workspaceMemberSchema);
 
+export const workspaceMemberStatisticSchema = z
+  .object({
+    userId: z.string(),
+    name: z.string(),
+    email: z.string(),
+    image: z.string().nullable(),
+    assignedTasks: z.number().int().nonnegative(),
+    completedTasks: z.number().int().nonnegative(),
+    overdueTasks: z.number().int().nonnegative(),
+    inProgressTasks: z.number().int().nonnegative(),
+    completionRate: z.number().int().min(0).max(100),
+  })
+  .openapi("WorkspaceMemberStatistic");
+
+export const workspaceMemberStatisticListSchema = z.array(
+  workspaceMemberStatisticSchema,
+);
+
+const projectMonthlyStatisticPointSchema = z.object({
+  month: z.string().regex(/^\d{4}-\d{2}$/),
+  createdTasks: z.number().int().nonnegative(),
+  completedTasks: z.number().int().nonnegative(),
+});
+
+export const projectMonthlyStatisticSchema = z
+  .object({
+    projectId: z.string(),
+    projectName: z.string(),
+    overdueTasks: z.number().int().nonnegative(),
+    months: z.array(projectMonthlyStatisticPointSchema),
+  })
+  .openapi("ProjectMonthlyStatistic");
+
+export const projectMonthlyStatisticListSchema = z.array(
+  projectMonthlyStatisticSchema,
+);
+
+const memberMonthlyStatisticSchema = z.object({
+  userId: z.string(),
+  name: z.string(),
+  email: z.string(),
+  image: z.string().nullable(),
+  overdueTasks: z.number().int().nonnegative(),
+  months: z.array(projectMonthlyStatisticPointSchema),
+});
+
+const teamMonthlyStatisticSchema = z.object({
+  teamId: z.string(),
+  teamName: z.string(),
+  overdueTasks: z.number().int().nonnegative(),
+  userIds: z.array(z.string()),
+  months: z.array(projectMonthlyStatisticPointSchema),
+});
+
+export const memberTeamMonthlyStatisticsSchema = z
+  .object({
+    members: z.array(memberMonthlyStatisticSchema),
+    teams: z.array(teamMonthlyStatisticSchema),
+  })
+  .openapi("MemberTeamMonthlyStatistics");
+
 export const workspaceTeamSchema = z
   .object({
     id: z.string(),

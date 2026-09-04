@@ -1378,6 +1378,7 @@
 			"overview": "Vista general",
 			"projects": "Proyectos",
 			"members": "Miembros",
+			"statistics": "Estadísticas",
 			"invitations": "Invitaciones",
 			"more": "Más",
 			"backToBoard": "Volver al tablero"
@@ -2185,6 +2186,54 @@
 			"submit": "Crear espacio de trabajo",
 			"success": "Espacio de trabajo creado correctamente",
 			"error": "Error al crear espacio de trabajo"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Estadísticas",
+		"memberPerformance": "Rendimiento de los miembros",
+		"description": "Estadísticas de tareas de los proyectos activos de este espacio de trabajo.",
+		"filters": {
+			"period": "Período",
+			"startDate": "Fecha de inicio",
+			"endDate": "Fecha de fin",
+			"team": "Equipo",
+			"project": "Proyecto",
+			"member": "Miembro",
+			"schedule": "Estado del plazo",
+			"last3Months": "Últimos 3 meses",
+			"last6Months": "Últimos 6 meses",
+			"last12Months": "Últimos 12 meses",
+			"allTeams": "Todos los equipos",
+			"allProjects": "Todos los proyectos",
+			"allMembers": "Todos los miembros",
+			"noMember": "Ningún miembro seleccionado",
+			"allSchedules": "Todos los plazos",
+			"overdue": "Con tareas vencidas",
+			"onTrack": "En plazo",
+			"noResults": "Ninguna estadística coincide con los filtros seleccionados.",
+			"reset": "Restablecer filtros",
+			"noTeam": "Ningún equipo seleccionado"
+		},
+		"columns": {
+			"member": "Miembro",
+			"assigned": "Asignadas",
+			"completed": "Completadas",
+			"inProgress": "En curso",
+			"overdue": "Vencidas",
+			"completionRate": "Tasa de finalización"
+		},
+		"overdueCount": "{{count}} vencidas",
+		"onTrack": "En plazo",
+		"monthly": {
+			"title": "Estadísticas mensuales por proyecto",
+			"description": "Tareas creadas y completadas durante los últimos 12 meses.",
+			"membersTitle": "Estadísticas mensuales por miembro",
+			"membersDescription": "Tareas creadas y completadas asignadas actualmente a cada miembro.",
+			"teamsTitle": "Estadísticas mensuales por equipo",
+			"teamsDescription": "Totales combinados según los miembros actuales del equipo.",
+			"created": "Creadas",
+			"completed": "Completadas",
+			"chartLabel": "Gráfico mensual de tareas creadas y completadas"
 		}
 	},
 	"team": {

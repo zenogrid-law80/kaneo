@@ -1376,6 +1376,7 @@
 			"overview": "Overzicht",
 			"projects": "Projecten",
 			"members": "Leden",
+			"statistics": "Statistieken",
 			"invitations": "Uitnodigingen",
 			"more": "Meer",
 			"backToBoard": "Terug naar bord"
@@ -2177,6 +2178,54 @@
 			"submit": "Werkruimte maken",
 			"success": "Werkruimte succesvol aangemaakt",
 			"error": "Aanmaken werkruimte mislukt"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Statistieken",
+		"memberPerformance": "Prestaties van leden",
+		"description": "Taakstatistieken voor actieve projecten in deze werkruimte.",
+		"filters": {
+			"period": "Periode",
+			"startDate": "Startdatum",
+			"endDate": "Einddatum",
+			"team": "Team",
+			"project": "Project",
+			"member": "Lid",
+			"schedule": "Planningsstatus",
+			"last3Months": "Afgelopen 3 maanden",
+			"last6Months": "Afgelopen 6 maanden",
+			"last12Months": "Afgelopen 12 maanden",
+			"allTeams": "Alle teams",
+			"allProjects": "Alle projecten",
+			"allMembers": "Alle leden",
+			"noMember": "Geen lid geselecteerd",
+			"allSchedules": "Alle planningen",
+			"overdue": "Met achterstallige taken",
+			"onTrack": "Op schema",
+			"noResults": "Geen statistieken komen overeen met de geselecteerde filters.",
+			"reset": "Filters wissen",
+			"noTeam": "Geen team geselecteerd"
+		},
+		"columns": {
+			"member": "Lid",
+			"assigned": "Toegewezen",
+			"completed": "Voltooid",
+			"inProgress": "Bezig",
+			"overdue": "Achterstallig",
+			"completionRate": "Voltooiingspercentage"
+		},
+		"overdueCount": "{{count}} achterstallig",
+		"onTrack": "Op schema",
+		"monthly": {
+			"title": "Maandelijkse projectstatistieken",
+			"description": "Taken die in de afgelopen 12 maanden zijn aangemaakt en voltooid.",
+			"membersTitle": "Maandelijkse ledenstatistieken",
+			"membersDescription": "Aangemaakte en voltooide taken die momenteel aan elk lid zijn toegewezen.",
+			"teamsTitle": "Maandelijkse teamstatistieken",
+			"teamsDescription": "Gecombineerde totalen op basis van de huidige teamleden.",
+			"created": "Aangemaakt",
+			"completed": "Voltooid",
+			"chartLabel": "Maandgrafiek van aangemaakte en voltooide taken"
 		}
 	},
 	"team": {

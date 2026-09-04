@@ -1376,6 +1376,7 @@
 			"overview": "Genel Bakış",
 			"projects": "Projeler",
 			"members": "Üyeler",
+			"statistics": "İstatistikler",
 			"invitations": "Davetler",
 			"more": "Daha fazla",
 			"backToBoard": "Panoya dön"
@@ -2177,6 +2178,54 @@
 			"submit": "Çalışma alanı oluştur",
 			"success": "Çalışma alanı başarıyla oluşturuldu",
 			"error": "Çalışma alanı oluşturulamadı"
+		}
+	},
+	"statistics": {
+		"pageTitle": "İstatistikler",
+		"memberPerformance": "Üye performansı",
+		"description": "Bu çalışma alanındaki etkin projelerin görev istatistikleri.",
+		"filters": {
+			"period": "Dönem",
+			"startDate": "Başlangıç tarihi",
+			"endDate": "Bitiş tarihi",
+			"team": "Takım",
+			"project": "Proje",
+			"member": "Üye",
+			"schedule": "Takvim durumu",
+			"last3Months": "Son 3 ay",
+			"last6Months": "Son 6 ay",
+			"last12Months": "Son 12 ay",
+			"allTeams": "Tüm takımlar",
+			"allProjects": "Tüm projeler",
+			"allMembers": "Tüm üyeler",
+			"noMember": "Üye seçilmedi",
+			"allSchedules": "Tüm takvimler",
+			"overdue": "Gecikmiş görevi olanlar",
+			"onTrack": "Planlandığı gibi",
+			"noResults": "Seçilen filtrelerle eşleşen istatistik yok.",
+			"reset": "Filtreleri sıfırla",
+			"noTeam": "Ekip seçilmedi"
+		},
+		"columns": {
+			"member": "Üye",
+			"assigned": "Atanan",
+			"completed": "Tamamlanan",
+			"inProgress": "Devam eden",
+			"overdue": "Gecikmiş",
+			"completionRate": "Tamamlanma oranı"
+		},
+		"overdueCount": "{{count}} gecikmiş",
+		"onTrack": "Planlandığı gibi",
+		"monthly": {
+			"title": "Aylık proje istatistikleri",
+			"description": "Son 12 ayda oluşturulan ve tamamlanan görevler.",
+			"membersTitle": "Aylık üye istatistikleri",
+			"membersDescription": "Her üyeye şu anda atanmış oluşturulan ve tamamlanan görevler.",
+			"teamsTitle": "Aylık takım istatistikleri",
+			"teamsDescription": "Mevcut takım üyeliğine göre birleştirilmiş toplamlar.",
+			"created": "Oluşturulan",
+			"completed": "Tamamlanan",
+			"chartLabel": "Aylık oluşturulan ve tamamlanan görev grafiği"
 		}
 	},
 	"team": {

@@ -1378,6 +1378,7 @@
 			"overview": "Vue d'ensemble",
 			"projects": "Projets",
 			"members": "Membres",
+			"statistics": "Statistiques",
 			"invitations": "Invitations",
 			"more": "Plus",
 			"backToBoard": "Retour au tableau"
@@ -2185,6 +2186,54 @@
 			"submit": "Créer un workspace",
 			"success": "Workspace créé avec succès",
 			"error": "Échec de la création du workspace"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Statistiques",
+		"memberPerformance": "Performance des membres",
+		"description": "Statistiques des tâches des projets actifs de cet espace de travail.",
+		"filters": {
+			"period": "Période",
+			"startDate": "Date de début",
+			"endDate": "Date de fin",
+			"team": "Équipe",
+			"project": "Projet",
+			"member": "Membre",
+			"schedule": "État du calendrier",
+			"last3Months": "3 derniers mois",
+			"last6Months": "6 derniers mois",
+			"last12Months": "12 derniers mois",
+			"allTeams": "Toutes les équipes",
+			"allProjects": "Tous les projets",
+			"allMembers": "Tous les membres",
+			"noMember": "Aucun membre sélectionné",
+			"allSchedules": "Tous les calendriers",
+			"overdue": "Avec des tâches en retard",
+			"onTrack": "Dans les délais",
+			"noResults": "Aucune statistique ne correspond aux filtres sélectionnés.",
+			"reset": "Réinitialiser les filtres",
+			"noTeam": "Aucune équipe sélectionnée"
+		},
+		"columns": {
+			"member": "Membre",
+			"assigned": "Assignées",
+			"completed": "Terminées",
+			"inProgress": "En cours",
+			"overdue": "En retard",
+			"completionRate": "Taux d’achèvement"
+		},
+		"overdueCount": "{{count}} en retard",
+		"onTrack": "Dans les délais",
+		"monthly": {
+			"title": "Statistiques mensuelles par projet",
+			"description": "Tâches créées et terminées au cours des 12 derniers mois.",
+			"membersTitle": "Statistiques mensuelles par membre",
+			"membersDescription": "Tâches créées et terminées actuellement assignées à chaque membre.",
+			"teamsTitle": "Statistiques mensuelles par équipe",
+			"teamsDescription": "Totaux combinés selon la composition actuelle de l’équipe.",
+			"created": "Créées",
+			"completed": "Terminées",
+			"chartLabel": "Graphique mensuel des tâches créées et terminées"
 		}
 	},
 	"team": {

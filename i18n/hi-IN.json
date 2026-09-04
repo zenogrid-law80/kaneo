@@ -1376,6 +1376,7 @@
 			"overview": "अवलोकन",
 			"projects": "प्रोजेक्ट",
 			"members": "सदस्य",
+			"statistics": "आँकड़े",
 			"invitations": "निमंत्रण",
 			"more": "और",
 			"backToBoard": "बोर्ड पर वापस जाएँ"
@@ -2177,6 +2178,54 @@
 			"submit": "वर्कस्पेस बनाएँ",
 			"success": "वर्कस्पेस सफलतापूर्वक बनाया गया",
 			"error": "वर्कस्पेस बनाने में विफल"
+		}
+	},
+	"statistics": {
+		"pageTitle": "आँकड़े",
+		"memberPerformance": "सदस्य प्रदर्शन",
+		"description": "इस कार्यक्षेत्र के सक्रिय प्रोजेक्ट के कार्य आँकड़े।",
+		"filters": {
+			"period": "अवधि",
+			"startDate": "प्रारंभ तिथि",
+			"endDate": "समाप्ति तिथि",
+			"team": "टीम",
+			"project": "प्रोजेक्ट",
+			"member": "सदस्य",
+			"schedule": "समय-सारणी स्थिति",
+			"last3Months": "पिछले 3 महीने",
+			"last6Months": "पिछले 6 महीने",
+			"last12Months": "पिछले 12 महीने",
+			"allTeams": "सभी टीमें",
+			"allProjects": "सभी प्रोजेक्ट",
+			"allMembers": "सभी सदस्य",
+			"noMember": "कोई सदस्य चयनित नहीं",
+			"allSchedules": "सभी समय-सारणियाँ",
+			"overdue": "विलंबित कार्य हैं",
+			"onTrack": "समय पर",
+			"noResults": "चुने गए फ़िल्टर से कोई आँकड़ा मेल नहीं खाता।",
+			"reset": "फ़िल्टर रीसेट करें",
+			"noTeam": "कोई टीम चयनित नहीं"
+		},
+		"columns": {
+			"member": "सदस्य",
+			"assigned": "सौंपे गए",
+			"completed": "पूर्ण",
+			"inProgress": "प्रगति में",
+			"overdue": "विलंबित",
+			"completionRate": "पूर्णता दर"
+		},
+		"overdueCount": "{{count}} विलंबित",
+		"onTrack": "समय पर",
+		"monthly": {
+			"title": "मासिक प्रोजेक्ट आँकड़े",
+			"description": "पिछले 12 महीनों में बनाए और पूरे किए गए कार्य।",
+			"membersTitle": "मासिक सदस्य आँकड़े",
+			"membersDescription": "प्रत्येक सदस्य को वर्तमान में सौंपे गए बनाए और पूरे किए गए कार्य।",
+			"teamsTitle": "मासिक टीम आँकड़े",
+			"teamsDescription": "वर्तमान टीम सदस्यता के अनुसार संयुक्त योग।",
+			"created": "बनाए गए",
+			"completed": "पूर्ण",
+			"chartLabel": "मासिक बनाए और पूरे किए गए कार्यों का चार्ट"
 		}
 	},
 	"team": {

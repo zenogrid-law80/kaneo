@@ -1375,6 +1375,7 @@
 			"overview": "概要",
 			"projects": "プロジェクト",
 			"members": "メンバー",
+			"statistics": "統計",
 			"invitations": "招待",
 			"more": "その他",
 			"backToBoard": "ボードに戻る"
@@ -2170,6 +2171,54 @@
 			"submit": "ワークスペースを作成",
 			"success": "ワークスペースを作成しました",
 			"error": "ワークスペースの作成に失敗しました"
+		}
+	},
+	"statistics": {
+		"pageTitle": "統計",
+		"memberPerformance": "メンバーの実績",
+		"description": "このワークスペースのアクティブなプロジェクトにおけるタスク統計です。",
+		"filters": {
+			"period": "期間",
+			"startDate": "開始日",
+			"endDate": "終了日",
+			"team": "チーム",
+			"project": "プロジェクト",
+			"member": "メンバー",
+			"schedule": "期限状況",
+			"last3Months": "直近3か月",
+			"last6Months": "直近6か月",
+			"last12Months": "直近12か月",
+			"allTeams": "すべてのチーム",
+			"allProjects": "すべてのプロジェクト",
+			"allMembers": "すべてのメンバー",
+			"noMember": "メンバー未選択",
+			"allSchedules": "すべての期限状況",
+			"overdue": "期限超過タスクあり",
+			"onTrack": "予定どおり",
+			"noResults": "選択したフィルターに一致する統計はありません。",
+			"reset": "フィルターをリセット",
+			"noTeam": "チーム未選択"
+		},
+		"columns": {
+			"member": "メンバー",
+			"assigned": "担当",
+			"completed": "完了",
+			"inProgress": "進行中",
+			"overdue": "期限超過",
+			"completionRate": "完了率"
+		},
+		"overdueCount": "期限超過 {{count}}件",
+		"onTrack": "予定どおり",
+		"monthly": {
+			"title": "プロジェクト別月次統計",
+			"description": "直近12か月に作成・完了したタスクです。",
+			"membersTitle": "メンバー別月次統計",
+			"membersDescription": "各メンバーに現在割り当てられているタスクの作成・完了状況です。",
+			"teamsTitle": "チーム別月次統計",
+			"teamsDescription": "現在のチームメンバーの値を合計しています。",
+			"created": "作成",
+			"completed": "完了",
+			"chartLabel": "月別の作成・完了タスクグラフ"
 		}
 	},
 	"team": {

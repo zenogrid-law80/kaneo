@@ -1378,6 +1378,7 @@
 			"overview": "Panoramica",
 			"projects": "Progetti",
 			"members": "Membri",
+			"statistics": "Statistiche",
 			"invitations": "Inviti",
 			"more": "Altro",
 			"backToBoard": "Torna alla board"
@@ -2185,6 +2186,54 @@
 			"submit": "Crea workspace",
 			"success": "Workspace creato con successo",
 			"error": "Creazione workspace fallita"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Statistiche",
+		"memberPerformance": "Prestazioni dei membri",
+		"description": "Statistiche delle attività nei progetti attivi di questo spazio di lavoro.",
+		"filters": {
+			"period": "Periodo",
+			"startDate": "Data di inizio",
+			"endDate": "Data di fine",
+			"team": "Team",
+			"project": "Progetto",
+			"member": "Membro",
+			"schedule": "Stato scadenze",
+			"last3Months": "Ultimi 3 mesi",
+			"last6Months": "Ultimi 6 mesi",
+			"last12Months": "Ultimi 12 mesi",
+			"allTeams": "Tutti i team",
+			"allProjects": "Tutti i progetti",
+			"allMembers": "Tutti i membri",
+			"noMember": "Nessun membro selezionato",
+			"allSchedules": "Tutte le scadenze",
+			"overdue": "Con attività scadute",
+			"onTrack": "In linea",
+			"noResults": "Nessuna statistica corrisponde ai filtri selezionati.",
+			"reset": "Reimposta filtri",
+			"noTeam": "Nessun team selezionato"
+		},
+		"columns": {
+			"member": "Membro",
+			"assigned": "Assegnate",
+			"completed": "Completate",
+			"inProgress": "In corso",
+			"overdue": "Scadute",
+			"completionRate": "Tasso di completamento"
+		},
+		"overdueCount": "{{count}} scadute",
+		"onTrack": "In linea",
+		"monthly": {
+			"title": "Statistiche mensili per progetto",
+			"description": "Attività create e completate negli ultimi 12 mesi.",
+			"membersTitle": "Statistiche mensili per membro",
+			"membersDescription": "Attività create e completate attualmente assegnate a ciascun membro.",
+			"teamsTitle": "Statistiche mensili per team",
+			"teamsDescription": "Totali combinati in base ai membri attuali del team.",
+			"created": "Create",
+			"completed": "Completate",
+			"chartLabel": "Grafico mensile delle attività create e completate"
 		}
 	},
 	"team": {

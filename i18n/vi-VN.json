@@ -1375,6 +1375,7 @@
 			"overview": "Tổng quan",
 			"projects": "Dự án",
 			"members": "Thành viên",
+			"statistics": "Thống kê",
 			"invitations": "Lời mời",
 			"more": "Thêm",
 			"backToBoard": "Quay lại bảng"
@@ -2170,6 +2171,54 @@
 			"submit": "Tạo không gian làm việc",
 			"success": "Tạo không gian làm việc thành công",
 			"error": "Không thể tạo không gian làm việc"
+		}
+	},
+	"statistics": {
+		"pageTitle": "Thống kê",
+		"memberPerformance": "Hiệu suất thành viên",
+		"description": "Thống kê công việc của các dự án đang hoạt động trong không gian làm việc này.",
+		"filters": {
+			"period": "Khoảng thời gian",
+			"startDate": "Ngày bắt đầu",
+			"endDate": "Ngày kết thúc",
+			"team": "Nhóm",
+			"project": "Dự án",
+			"member": "Thành viên",
+			"schedule": "Trạng thái tiến độ",
+			"last3Months": "3 tháng gần đây",
+			"last6Months": "6 tháng gần đây",
+			"last12Months": "12 tháng gần đây",
+			"allTeams": "Tất cả nhóm",
+			"allProjects": "Tất cả dự án",
+			"allMembers": "Tất cả thành viên",
+			"noMember": "Chưa chọn thành viên",
+			"allSchedules": "Tất cả tiến độ",
+			"overdue": "Có công việc quá hạn",
+			"onTrack": "Đúng tiến độ",
+			"noResults": "Không có thống kê phù hợp với bộ lọc đã chọn.",
+			"reset": "Đặt lại bộ lọc",
+			"noTeam": "Chưa chọn nhóm"
+		},
+		"columns": {
+			"member": "Thành viên",
+			"assigned": "Được giao",
+			"completed": "Hoàn thành",
+			"inProgress": "Đang thực hiện",
+			"overdue": "Quá hạn",
+			"completionRate": "Tỷ lệ hoàn thành"
+		},
+		"overdueCount": "{{count}} quá hạn",
+		"onTrack": "Đúng tiến độ",
+		"monthly": {
+			"title": "Thống kê dự án theo tháng",
+			"description": "Công việc được tạo và hoàn thành trong 12 tháng gần đây.",
+			"membersTitle": "Thống kê thành viên theo tháng",
+			"membersDescription": "Công việc được tạo và hoàn thành hiện đang giao cho từng thành viên.",
+			"teamsTitle": "Thống kê nhóm theo tháng",
+			"teamsDescription": "Tổng hợp theo thành viên hiện tại của nhóm.",
+			"created": "Đã tạo",
+			"completed": "Hoàn thành",
+			"chartLabel": "Biểu đồ công việc được tạo và hoàn thành theo tháng"
 		}
 	},
 	"team": {
