@@ -1,4 +1,4 @@
-import { and, count, eq, gte, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, count, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   activityTable,
@@ -110,8 +110,10 @@ async function getMemberTeamMonthlyStatistics(
       .groupBy(taskTable.userId, activityMonth),
     db
       .select({
+        id: taskTable.id,
+        title: taskTable.title,
+        projectId: taskTable.projectId,
         userId: taskTable.userId,
-        count: count(),
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -129,14 +131,19 @@ async function getMemberTeamMonthlyStatistics(
           sql`coalesce(${columnTable.isFinal}, false) = false`,
         ),
       )
-      .groupBy(taskTable.userId),
+      .orderBy(asc(taskTable.dueDate), asc(taskTable.title), asc(taskTable.id)),
   ]);
 
-  const overdueByUser = new Map(
-    overdueRows.flatMap((row) =>
-      row.userId ? [[row.userId, Number(row.count)] as const] : [],
-    ),
-  );
+  const overdueByUser = new Map<
+    string,
+    Omit<(typeof overdueRows)[number], "userId">[]
+  >();
+  for (const { userId, ...task } of overdueRows) {
+    if (!userId) continue;
+    const items = overdueByUser.get(userId) ?? [];
+    items.push(task);
+    overdueByUser.set(userId, items);
+  }
 
   const countsByUserMonth = new Map<string, MonthlyCounts>();
   for (const row of createdRows) {
@@ -175,7 +182,8 @@ async function getMemberTeamMonthlyStatistics(
   return {
     members: members.map((member) => ({
       ...member,
-      overdueTasks: overdueByUser.get(member.userId) ?? 0,
+      overdueTasks: overdueByUser.get(member.userId)?.length ?? 0,
+      overdueTaskItems: overdueByUser.get(member.userId) ?? [],
       months: monthsForUsers([member.userId]),
     })),
     teams: teams.map((team) => ({
@@ -193,9 +201,12 @@ async function getMemberTeamMonthlyStatistics(
         .filter((membership) => membership.teamId === team.id)
         .reduce(
           (total, membership) =>
-            total + (overdueByUser.get(membership.userId) ?? 0),
+            total + (overdueByUser.get(membership.userId)?.length ?? 0),
           0,
         ),
+      overdueTaskItems: teamMemberships
+        .filter((membership) => membership.teamId === team.id)
+        .flatMap((membership) => overdueByUser.get(membership.userId) ?? []),
     })),
   };
 }

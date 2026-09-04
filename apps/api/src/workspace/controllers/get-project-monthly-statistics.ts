@@ -1,4 +1,4 @@
-import { and, count, eq, gte, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, count, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   activityTable,
@@ -87,8 +87,9 @@ async function getProjectMonthlyStatistics(
         .groupBy(taskTable.projectId, activityMonth),
       db
         .select({
+          id: taskTable.id,
+          title: taskTable.title,
           projectId: taskTable.projectId,
-          count: count(),
         })
         .from(taskTable)
         .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -105,7 +106,11 @@ async function getProjectMonthlyStatistics(
             sql`coalesce(${columnTable.isFinal}, false) = false`,
           ),
         )
-        .groupBy(taskTable.projectId),
+        .orderBy(
+          asc(taskTable.dueDate),
+          asc(taskTable.title),
+          asc(taskTable.id),
+        ),
     ],
   );
 
@@ -121,14 +126,18 @@ async function getProjectMonthlyStatistics(
       Number(row.count),
     ]),
   );
-  const overdueByProject = new Map(
-    overdueRows.map((row) => [row.projectId, Number(row.count)]),
-  );
+  const overdueByProject = new Map<string, typeof overdueRows>();
+  for (const row of overdueRows) {
+    const items = overdueByProject.get(row.projectId) ?? [];
+    items.push(row);
+    overdueByProject.set(row.projectId, items);
+  }
 
   return projects.map((project) => ({
     projectId: project.id,
     projectName: project.name,
-    overdueTasks: overdueByProject.get(project.id) ?? 0,
+    overdueTasks: overdueByProject.get(project.id)?.length ?? 0,
+    overdueTaskItems: overdueByProject.get(project.id) ?? [],
     months: monthKeys.map((month) => ({
       month,
       createdTasks: createdByProjectMonth.get(`${project.id}:${month}`) ?? 0,

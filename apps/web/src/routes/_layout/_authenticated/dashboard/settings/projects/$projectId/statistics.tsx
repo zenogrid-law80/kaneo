@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { RotateCcw } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -289,8 +289,13 @@ function RouteComponent() {
                         <TableCell className="text-right tabular-nums">
                           {member.inProgressTasks}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {member.overdueTasks}
+                        <TableCell>
+                          <OverdueTasks
+                            count={member.overdueTasks}
+                            tasks={member.overdueTaskItems}
+                            workspaceId={workspaceId}
+                            align="end"
+                          />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
@@ -323,10 +328,16 @@ function RouteComponent() {
                     key={project.projectId}
                     className="rounded-md border p-4"
                   >
-                    <h3 className="mb-4 text-sm font-medium">
-                      <span>{project.projectName}</span>
-                      <OverdueBadge count={project.overdueTasks} />
-                    </h3>
+                    <div className="mb-4 space-y-1.5">
+                      <h3 className="text-sm font-medium">
+                        {project.projectName}
+                      </h3>
+                      <OverdueTasks
+                        count={project.overdueTasks}
+                        tasks={project.overdueTaskItems}
+                        workspaceId={workspaceId}
+                      />
+                    </div>
                     <MonthlyTaskChart points={project.months} />
                   </section>
                 ))}
@@ -337,23 +348,27 @@ function RouteComponent() {
           <MonthlyStatisticsSection
             title={t("statistics:monthly.membersTitle")}
             description={t("statistics:monthly.membersDescription")}
+            workspaceId={workspaceId}
             isLoading={arePeopleLoading}
             items={visibleMembers.map((member) => ({
               id: member.userId,
               name: member.name,
               subtitle: member.email,
               overdueTasks: member.overdueTasks,
+              overdueTaskItems: member.overdueTaskItems,
               months: member.months,
             }))}
           />
           <MonthlyStatisticsSection
             title={t("statistics:monthly.teamsTitle")}
             description={t("statistics:monthly.teamsDescription")}
+            workspaceId={workspaceId}
             isLoading={arePeopleLoading}
             items={visibleTeams.map((team) => ({
               id: team.teamId,
               name: team.teamName,
               overdueTasks: team.overdueTasks,
+              overdueTaskItems: team.overdueTaskItems,
               months: team.months,
             }))}
           />
@@ -366,13 +381,54 @@ function RouteComponent() {
 function OverdueBadge({ count }: { count: number }) {
   const { t } = useTranslation();
   return count > 0 ? (
-    <Badge variant="destructive" className="ml-2">
+    <Badge variant="destructive">
       {t("statistics:overdueCount", { count })}
     </Badge>
   ) : (
-    <Badge variant="outline" className="ml-2 text-muted-foreground">
+    <Badge variant="outline" className="text-muted-foreground">
       {t("statistics:onTrack")}
     </Badge>
+  );
+}
+
+type OverdueTask = {
+  id: string;
+  title: string;
+  projectId: string;
+};
+
+function OverdueTasks({
+  count,
+  tasks,
+  workspaceId,
+  align = "start",
+}: {
+  count: number;
+  tasks: OverdueTask[];
+  workspaceId: string;
+  align?: "start" | "end";
+}) {
+  return (
+    <div
+      className={`flex flex-col gap-1.5 ${align === "end" ? "items-end" : "items-start"}`}
+    >
+      <OverdueBadge count={count} />
+      {tasks.map((task) => (
+        <Link
+          key={task.id}
+          to="/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId"
+          params={{
+            workspaceId,
+            projectId: task.projectId,
+            taskId: task.id,
+          }}
+          className="max-w-56 truncate text-xs font-normal text-primary underline-offset-4 hover:underline"
+          title={task.title}
+        >
+          {task.title}
+        </Link>
+      ))}
+    </div>
   );
 }
 
@@ -476,6 +532,7 @@ type MonthlyItem = {
   name: string;
   subtitle?: string;
   overdueTasks: number;
+  overdueTaskItems: OverdueTask[];
   months: Array<{
     month: string;
     createdTasks: number;
@@ -486,11 +543,13 @@ type MonthlyItem = {
 function MonthlyStatisticsSection({
   title,
   description,
+  workspaceId,
   items,
   isLoading,
 }: {
   title: string;
   description: string;
+  workspaceId: string;
   items: MonthlyItem[];
   isLoading: boolean;
 }) {
@@ -507,7 +566,11 @@ function MonthlyStatisticsSection({
         : items.map((item) => (
             <div key={item.id} className="rounded-md border p-4">
               <h3 className="text-sm font-medium">{item.name}</h3>
-              <OverdueBadge count={item.overdueTasks} />
+              <OverdueTasks
+                count={item.overdueTasks}
+                tasks={item.overdueTaskItems}
+                workspaceId={workspaceId}
+              />
               {item.subtitle ? (
                 <p className="mb-4 text-xs text-muted-foreground">
                   {item.subtitle}

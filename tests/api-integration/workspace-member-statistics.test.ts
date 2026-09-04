@@ -96,6 +96,13 @@ describe("API integration: workspace member statistics", () => {
         assignedTasks: 3,
         completedTasks: 2,
         overdueTasks: 1,
+        overdueTaskItems: [
+          {
+            id: expect.any(String),
+            title: "Active task",
+            projectId: active.project.id,
+          },
+        ],
         inProgressTasks: 1,
         completionRate: 67,
       },
@@ -107,6 +114,7 @@ describe("API integration: workspace member statistics", () => {
         assignedTasks: 0,
         completedTasks: 0,
         overdueTasks: 0,
+        overdueTaskItems: [],
         inProgressTasks: 0,
         completionRate: 0,
       },
@@ -159,6 +167,18 @@ describe("API integration: workspace member statistics", () => {
       type: "status_changed",
       eventData: { oldStatus: "in-progress", newStatus: "done" },
     });
+    const [overdueTask] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: project.project.id,
+        userId: member.user.id,
+        number: 2,
+        title: "Late roadmap task",
+        status: project.columns.inProgress.slug,
+        columnId: project.columns.inProgress.id,
+        dueDate: new Date("2020-01-01T00:00:00.000Z"),
+      })
+      .returning();
     await createProjectFixture({
       workspaceId: member.workspace.id,
       name: "Other project",
@@ -173,6 +193,12 @@ describe("API integration: workspace member statistics", () => {
     const payload = (await response.json()) as Array<{
       projectId: string;
       projectName: string;
+      overdueTasks: number;
+      overdueTaskItems: Array<{
+        id: string;
+        title: string;
+        projectId: string;
+      }>;
       months: Array<{
         month: string;
         createdTasks: number;
@@ -183,10 +209,18 @@ describe("API integration: workspace member statistics", () => {
     expect(payload[0]).toMatchObject({
       projectId: project.project.id,
       projectName: "Roadmap",
+      overdueTasks: 1,
+      overdueTaskItems: [
+        {
+          id: overdueTask.id,
+          title: "Late roadmap task",
+          projectId: project.project.id,
+        },
+      ],
     });
     expect(payload[0]?.months).toHaveLength(12);
     expect(payload[0]?.months.at(-1)).toMatchObject({
-      createdTasks: 1,
+      createdTasks: 2,
       completedTasks: 1,
     });
 
@@ -238,6 +272,18 @@ describe("API integration: workspace member statistics", () => {
       type: "status_changed",
       eventData: { oldStatus: "in-progress", newStatus: "done" },
     });
+    const [overdueTask] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: project.project.id,
+        userId: member.user.id,
+        number: 2,
+        title: "Late member task",
+        status: project.columns.inProgress.slug,
+        columnId: project.columns.inProgress.id,
+        dueDate: new Date("2020-01-01T00:00:00.000Z"),
+      })
+      .returning();
     const otherProject = await createProjectFixture({
       workspaceId: member.workspace.id,
       name: "Other project",
@@ -260,25 +306,39 @@ describe("API integration: workspace member statistics", () => {
     const payload = (await response.json()) as {
       members: Array<{
         userId: string;
+        overdueTaskItems: Array<{ id: string; title: string }>;
         months: Array<{ createdTasks: number; completedTasks: number }>;
       }>;
       teams: Array<{
         teamId: string;
         userIds: string[];
+        overdueTaskItems: Array<{ id: string; title: string }>;
         months: Array<{ createdTasks: number; completedTasks: number }>;
       }>;
     };
     expect(payload.members).toHaveLength(1);
     expect(payload.members[0]?.userId).toBe(member.user.id);
+    expect(payload.members[0]?.overdueTaskItems).toEqual([
+      expect.objectContaining({
+        id: overdueTask.id,
+        title: "Late member task",
+      }),
+    ]);
     expect(payload.members[0]?.months.at(-1)).toMatchObject({
-      createdTasks: 1,
+      createdTasks: 2,
       completedTasks: 1,
     });
     expect(payload.teams).toHaveLength(1);
     expect(payload.teams[0]?.teamId).toBe(teamId);
     expect(payload.teams[0]?.userIds).toEqual([member.user.id]);
+    expect(payload.teams[0]?.overdueTaskItems).toEqual([
+      expect.objectContaining({
+        id: overdueTask.id,
+        title: "Late member task",
+      }),
+    ]);
     expect(payload.teams[0]?.months.at(-1)).toMatchObject({
-      createdTasks: 1,
+      createdTasks: 2,
       completedTasks: 1,
     });
   });
