@@ -34,6 +34,41 @@ For development, you'll need at minimum:
 
 If your app uses a device client ID that is not included in the defaults, set `DEVICE_AUTH_CLIENT_IDS` to the full comma-separated list of allowed IDs (including any defaults you still need), so it includes the client ID your app sends to `/api/auth/device/code`.
 
+### Database timestamps and time zones
+
+The API opens every PostgreSQL connection with `timezone=UTC`. Most existing
+columns use `timestamp without time zone`, and Drizzle writes and reads those
+values as UTC. Database-generated values such as `DEFAULT now()` must use that
+same convention. The database server and operating system may still use a local
+time zone such as `Asia/Seoul`; no database-wide configuration change is needed.
+Restart the API after updating so all pool connections use the new setting.
+
+API timestamps serialize as ISO 8601 with `Z`. The web app displays them in the
+browser's time zone; language controls formatting, not the stored instant. Do not
+subtract nine hours in the UI. This convention covers comments, activity,
+notifications, task creation, authentication expiry, time entries, and scheduler
+deadlines. Raw SQL must send `Date` parameters as `toISOString()` when writing a
+timezone-less column; node-postgres otherwise serializes dates using Node's local
+time zone. Statistics date filters and monthly buckets currently use UTC days
+and months.
+
+If a deployment previously used a non-UTC database session, database-generated
+timestamps may already contain local wall-clock times incorrectly interpreted as
+UTC (nine hours ahead for Korea). Changing the connection prevents new incorrect
+values but does not repair those rows. Explicitly supplied dates and imported
+timestamps may already be correct, even in the same table. Before repairing old
+data, take a backup and identify the affected write paths, deployment period,
+and original time zone from independent records. Do not shift every timestamp
+or infer corruption merely from a future date: due dates and expiry dates can
+legitimately be in the future.
+
+To verify locally with the API process running in Korea time:
+
+```bash
+TZ=Asia/Seoul DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kaneo_test \
+  pnpm --filter @kaneo/api test:integration database-timezone workspace-member-statistics leader-lock
+```
+
 ### Development-Specific Variables
 
 For local development, the web app also supports:

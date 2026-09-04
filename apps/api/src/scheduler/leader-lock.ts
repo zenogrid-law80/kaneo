@@ -18,7 +18,7 @@ export async function withJobLease<T>(
 
   const claimed = await db.execute(sql`
     INSERT INTO job_lease ("name", "owner", "expires_at")
-    VALUES (${name}, ${INSTANCE_ID}, ${expiresAt})
+    VALUES (${name}, ${INSTANCE_ID}, ${expiresAt.toISOString()})
     ON CONFLICT ("name") DO UPDATE
       SET "owner" = EXCLUDED."owner", "expires_at" = EXCLUDED."expires_at"
       WHERE job_lease."expires_at" < now()

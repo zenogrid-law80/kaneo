@@ -72,6 +72,7 @@ import {
   workspaceTable,
   workspaceUserTable,
 } from "./schema";
+import { withUtcDatabaseSession } from "./utc-connection-string";
 
 config();
 
@@ -152,7 +153,9 @@ let dbInstance: DatabaseInstance | undefined;
 export function getDatabasePool(): Pool {
   if (!pool) {
     pool = new Pool({
-      connectionString: resolveDatabaseConnectionString(),
+      connectionString: withUtcDatabaseSession(
+        resolveDatabaseConnectionString(),
+      ),
       // Fail fast when Railway's internal network is slow rather than hanging
       // indefinitely and blocking every API request.
       connectionTimeoutMillis: 5_000,

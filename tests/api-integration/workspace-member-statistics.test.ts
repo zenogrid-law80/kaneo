@@ -235,6 +235,13 @@ describe("API integration: workspace member statistics", () => {
   });
 
   it("returns 12 months of created and completed task counts per project", async () => {
+    const now = new Date();
+    const startDate = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 11, 1),
+    )
+      .toISOString()
+      .slice(0, 10);
+    const endDate = now.toISOString().slice(0, 10);
     const member = await createWorkspaceMember({ role: "admin" });
     const project = await createProjectFixture({
       workspaceId: member.workspace.id,
@@ -276,7 +283,7 @@ describe("API integration: workspace member statistics", () => {
 
     mockAuthenticatedSession(member.user);
     const response = await createApp().app.request(
-      `/api/workspace/${member.workspace.id}/project-monthly-statistics?projectId=${project.project.id}`,
+      `/api/workspace/${member.workspace.id}/project-monthly-statistics?projectId=${project.project.id}&startDate=${startDate}&endDate=${endDate}`,
     );
 
     expect(response.status).toBe(200);
