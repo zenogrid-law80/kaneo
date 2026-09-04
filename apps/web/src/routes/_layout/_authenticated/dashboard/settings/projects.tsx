@@ -5,7 +5,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { BarChart3, Eye, GitBranch, Plug, Settings } from "lucide-react";
+import { Eye, GitBranch, Plug, Settings } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import SettingsSidebar from "@/components/SettingsSidebar";
@@ -37,7 +37,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { workspace, role, canManageWorkspace } = useWorkspacePermission();
+  const { workspace, role } = useWorkspacePermission();
   const location = useLocation();
   const navigate = useNavigate();
   const menuItems = [
@@ -61,15 +61,6 @@ function RouteComponent() {
       icon: GitBranch,
       segment: "workflow",
     },
-    ...(canManageWorkspace()
-      ? [
-          {
-            title: t("statistics:pageTitle"),
-            icon: BarChart3,
-            segment: "statistics",
-          },
-        ]
-      : []),
   ];
   const { data: projects } = useGetProjects({
     workspaceId: workspace?.id || "",

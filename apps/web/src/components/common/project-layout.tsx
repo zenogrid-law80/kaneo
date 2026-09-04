@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
+  BarChart3,
   CalendarDays,
   CalendarRange,
   Network,
@@ -25,6 +26,7 @@ import {
 import { shortcuts } from "@/constants/shortcuts";
 import useGetProject from "@/hooks/queries/project/use-get-project";
 import { useProjectWebSocket } from "@/hooks/use-project-websocket";
+import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 
 type ProjectLayoutProps = {
@@ -33,7 +35,13 @@ type ProjectLayoutProps = {
   headerActions?: ReactNode;
   children: ReactNode;
   showViewSwitcher?: boolean;
-  activeView?: "backlog" | "board" | "calendar" | "gantt" | "hierarchy";
+  activeView?:
+    | "backlog"
+    | "board"
+    | "calendar"
+    | "gantt"
+    | "hierarchy"
+    | "statistics";
 };
 
 export default function ProjectLayout({
@@ -48,6 +56,7 @@ export default function ProjectLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { canManageWorkspace } = useWorkspacePermission();
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
 
@@ -63,7 +72,9 @@ export default function ProjectLayout({
           ? "hierarchy"
           : location.pathname.includes("/gantt")
             ? "gantt"
-            : "board");
+            : location.pathname.includes("/statistics")
+              ? "statistics"
+              : "board");
 
   const handleNavigateToBacklog = () => {
     navigate({
@@ -97,6 +108,13 @@ export default function ProjectLayout({
     navigate({
       to: "/dashboard/workspace/$workspaceId/project/$projectId/hierarchy",
       params: { workspaceId, projectId },
+    });
+  };
+
+  const handleNavigateToStatistics = () => {
+    navigate({
+      to: "/dashboard/settings/projects/$projectId/statistics",
+      params: { projectId },
     });
   };
 
@@ -161,7 +179,9 @@ export default function ProjectLayout({
               <MobileProjectNav
                 workspaceId={workspaceId}
                 projectId={projectId}
-                activeView={resolvedView}
+                activeView={
+                  resolvedView === "statistics" ? "board" : resolvedView
+                }
                 onSelectBacklog={handleNavigateToBacklog}
                 onSelectBoard={handleNavigateToBoard}
                 onSelectCalendar={handleNavigateToCalendar}
@@ -234,6 +254,22 @@ export default function ProjectLayout({
                   <CalendarDays className="size-3.5" />
                   Gantt
                 </Button>
+                {canManageWorkspace() && (
+                  <Button
+                    variant={
+                      resolvedView === "statistics" ? "secondary" : "ghost"
+                    }
+                    size="xs"
+                    onClick={handleNavigateToStatistics}
+                    className={cn(
+                      "h-6 gap-1.5 rounded-md px-2 text-xs",
+                      resolvedView !== "statistics" && "text-muted-foreground",
+                    )}
+                  >
+                    <BarChart3 className="size-3.5" />
+                    {t("statistics:pageTitle")}
+                  </Button>
+                )}
               </div>
             )}
           </div>
