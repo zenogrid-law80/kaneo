@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   CalendarDays,
   CalendarRange,
   Check,
@@ -21,11 +22,18 @@ import { cn } from "@/lib/cn";
 type MobileProjectNavProps = {
   workspaceId: string;
   projectId: string;
-  activeView: "backlog" | "board" | "calendar" | "gantt" | "hierarchy";
+  activeView:
+    | "backlog"
+    | "board"
+    | "calendar"
+    | "gantt"
+    | "hierarchy"
+    | "statistics";
   onSelectBoard: () => void;
   onSelectBacklog: () => void;
   onSelectCalendar: () => void;
   onSelectGantt: () => void;
+  onSelectStatistics?: () => void;
   onSelectHierarchy: () => void;
   onSelectProject: (projectId: string) => void;
   onAddProject: () => void;
@@ -39,6 +47,7 @@ export default function MobileProjectNav({
   onSelectBacklog,
   onSelectCalendar,
   onSelectGantt,
+  onSelectStatistics,
   onSelectHierarchy,
   onSelectProject,
   onAddProject,
@@ -130,6 +139,21 @@ export default function MobileProjectNav({
                 <CalendarDays className="size-3.5" />
                 Gantt
               </button>
+              {onSelectStatistics ? (
+                <button
+                  type="button"
+                  onClick={onSelectStatistics}
+                  className={cn(
+                    "flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                    activeView === "statistics"
+                      ? "border-border bg-secondary text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-accent",
+                  )}
+                >
+                  <BarChart3 className="size-3.5" />
+                  {t("statistics:pageTitle")}
+                </button>
+              ) : null}
             </div>
           </div>
 

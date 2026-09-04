@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { RotateCcw } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
+import ProjectLayout from "@/components/common/project-layout";
 import PageTitle from "@/components/page-title";
 import MonthlyTaskChart from "@/components/statistics/monthly-task-chart";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,16 +33,16 @@ import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getInitials } from "@/lib/get-initials";
 
 export const Route = createFileRoute(
-  "/_layout/_authenticated/dashboard/settings/projects/$projectId/statistics",
+  "/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/statistics",
 )({ component: RouteComponent });
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { workspace, canManageWorkspace, isCheckingPermissions } =
+  const { canManageWorkspace, isCheckingPermissions } =
     useWorkspacePermission();
-  const { projectId } = Route.useParams();
+  const { workspaceId: routeWorkspaceId, projectId } = Route.useParams();
   const canViewStatistics = canManageWorkspace();
-  const workspaceId = canViewStatistics ? (workspace?.id ?? "") : "";
+  const workspaceId = canViewStatistics ? routeWorkspaceId : "";
   const [initialRange] = useState(getDefaultDateRange);
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
@@ -107,21 +108,39 @@ function RouteComponent() {
   };
 
   if (isCheckingPermissions) {
-    return <Skeleton className="mx-auto h-96 w-full max-w-6xl" />;
+    return (
+      <ProjectLayout
+        projectId={projectId}
+        workspaceId={routeWorkspaceId}
+        activeView="statistics"
+      >
+        <Skeleton className="mx-auto h-96 w-full max-w-6xl" />
+      </ProjectLayout>
+    );
   }
 
   if (!canViewStatistics) {
     return (
-      <div className="mx-auto max-w-6xl rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-        {t("settings:workspaceRoles.noAccess", {
-          defaultValue: "You do not have access to workspace statistics.",
-        })}
-      </div>
+      <ProjectLayout
+        projectId={projectId}
+        workspaceId={routeWorkspaceId}
+        activeView="statistics"
+      >
+        <div className="mx-auto max-w-6xl rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+          {t("settings:workspaceRoles.noAccess", {
+            defaultValue: "You do not have access to workspace statistics.",
+          })}
+        </div>
+      </ProjectLayout>
     );
   }
 
   return (
-    <>
+    <ProjectLayout
+      projectId={projectId}
+      workspaceId={routeWorkspaceId}
+      activeView="statistics"
+    >
       <PageTitle title={t("statistics:pageTitle")} />
       <div className="mx-auto max-w-6xl space-y-6">
         <div className="space-y-2">
@@ -374,7 +393,7 @@ function RouteComponent() {
           />
         </div>
       </div>
-    </>
+    </ProjectLayout>
   );
 }
 

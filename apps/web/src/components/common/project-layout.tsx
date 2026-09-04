@@ -113,8 +113,8 @@ export default function ProjectLayout({
 
   const handleNavigateToStatistics = () => {
     navigate({
-      to: "/dashboard/settings/projects/$projectId/statistics",
-      params: { projectId },
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/statistics",
+      params: { workspaceId, projectId },
     });
   };
 
@@ -127,9 +127,11 @@ export default function ProjectLayout({
             ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
             : resolvedView === "gantt"
               ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
-              : resolvedView === "hierarchy"
-                ? "/dashboard/workspace/$workspaceId/project/$projectId/hierarchy"
-                : "/dashboard/workspace/$workspaceId/project/$projectId/board",
+              : resolvedView === "statistics"
+                ? "/dashboard/workspace/$workspaceId/project/$projectId/statistics"
+                : resolvedView === "hierarchy"
+                  ? "/dashboard/workspace/$workspaceId/project/$projectId/hierarchy"
+                  : "/dashboard/workspace/$workspaceId/project/$projectId/board",
       params: {
         workspaceId,
         projectId: nextProjectId,
@@ -179,13 +181,14 @@ export default function ProjectLayout({
               <MobileProjectNav
                 workspaceId={workspaceId}
                 projectId={projectId}
-                activeView={
-                  resolvedView === "statistics" ? "board" : resolvedView
-                }
+                activeView={resolvedView}
                 onSelectBacklog={handleNavigateToBacklog}
                 onSelectBoard={handleNavigateToBoard}
                 onSelectCalendar={handleNavigateToCalendar}
                 onSelectGantt={handleNavigateToGantt}
+                onSelectStatistics={
+                  canManageWorkspace() ? handleNavigateToStatistics : undefined
+                }
                 onSelectHierarchy={handleNavigateToHierarchy}
                 onSelectProject={handleProjectSwitch}
                 onAddProject={() => setIsCreateProjectModalOpen(true)}
