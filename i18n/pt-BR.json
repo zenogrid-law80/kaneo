@@ -1392,7 +1392,12 @@
 			"deleteConfirmTitle": "Excluir projeto?",
 			"deleteConfirmDescription": "Isso removerá permanentemente o projeto e todos os seus dados. Você não pode desfazer esta ação.",
 			"deletedToast": "Projeto excluído",
-			"deleteProject": "Excluir projeto"
+			"deleteProject": "Excluir projeto",
+			"favorites": "Favorites",
+			"addFavorite": "Add to favorites",
+			"removeFavorite": "Remove from favorites",
+			"removeFavoriteNamed": "Remove {{name}} from favorites",
+			"favoritesLocal": "Your favorites saved in this browser"
 		},
 		"search": {
 			"inputPlaceholder": "Buscar tarefas, projetos, comentários...",
@@ -1662,6 +1667,8 @@
 		},
 		"boardSearchPlaceholder": "Buscar tickets...",
 		"view": {
+			"backlog": "Backlog",
+			"gantt": "Gantt",
 			"board": "Quadro",
 			"list": "Lista"
 		},
@@ -2186,6 +2193,22 @@
 			"submit": "Criar espaço de trabalho",
 			"success": "Espaço de trabalho criado com sucesso",
 			"error": "Falha ao criar espaço de trabalho"
+		},
+		"myTasks": {
+			"title": "My tasks",
+			"description": "Open tasks assigned to you, ordered by due date.",
+			"overdue": "Overdue",
+			"today": "Due today",
+			"upcoming": "Upcoming",
+			"undated": "No due date",
+			"empty": "No open tasks on this page.",
+			"error": "Could not load your tasks.",
+			"retry": "Try again",
+			"previous": "Previous",
+			"next": "Next",
+			"all": "All",
+			"removeFilter": "Remove {{name}} filter",
+			"noResults": "No assigned tasks match this filter."
 		}
 	},
 	"statistics": {

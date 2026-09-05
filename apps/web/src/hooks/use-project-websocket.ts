@@ -65,6 +65,7 @@ export function useProjectWebSocket(projectId: string) {
             message.type === "TASK_RELATION_UPDATED" ||
             message.type === "COMMENT_UPDATED"
           ) {
+            queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
             queryClient.invalidateQueries({
               queryKey: ["tasks", message.projectId],
             });

@@ -5563,6 +5563,9 @@
 						"members": {
 							"type": "string"
 						},
+						"statistics": {
+							"type": "string"
+						},
 						"invitations": {
 							"type": "string"
 						},
@@ -5577,6 +5580,7 @@
 						"overview",
 						"projects",
 						"members",
+						"statistics",
 						"invitations",
 						"more",
 						"backToBoard"
@@ -5612,6 +5616,21 @@
 						},
 						"deleteProject": {
 							"type": "string"
+						},
+						"favorites": {
+							"type": "string"
+						},
+						"addFavorite": {
+							"type": "string"
+						},
+						"removeFavorite": {
+							"type": "string"
+						},
+						"removeFavoriteNamed": {
+							"type": "string"
+						},
+						"favoritesLocal": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -5623,7 +5642,12 @@
 						"deleteConfirmTitle",
 						"deleteConfirmDescription",
 						"deletedToast",
-						"deleteProject"
+						"deleteProject",
+						"favorites",
+						"addFavorite",
+						"removeFavorite",
+						"removeFavoriteNamed",
+						"favoritesLocal"
 					]
 				},
 				"search": {
@@ -6710,6 +6734,12 @@
 					"type": "object",
 					"additionalProperties": false,
 					"properties": {
+						"backlog": {
+							"type": "string"
+						},
+						"gantt": {
+							"type": "string"
+						},
 						"board": {
 							"type": "string"
 						},
@@ -6717,7 +6747,7 @@
 							"type": "string"
 						}
 					},
-					"required": ["board", "list"]
+					"required": ["backlog", "gantt", "board", "list"]
 				},
 				"hierarchy": {
 					"type": "object",
@@ -9047,9 +9077,382 @@
 						"success",
 						"error"
 					]
+				},
+				"myTasks": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"overdue": {
+							"type": "string"
+						},
+						"today": {
+							"type": "string"
+						},
+						"upcoming": {
+							"type": "string"
+						},
+						"undated": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"error": {
+							"type": "string"
+						},
+						"retry": {
+							"type": "string"
+						},
+						"previous": {
+							"type": "string"
+						},
+						"next": {
+							"type": "string"
+						},
+						"all": {
+							"type": "string"
+						},
+						"removeFilter": {
+							"type": "string"
+						},
+						"noResults": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"overdue",
+						"today",
+						"upcoming",
+						"undated",
+						"empty",
+						"error",
+						"retry",
+						"previous",
+						"next",
+						"all",
+						"removeFilter",
+						"noResults"
+					]
 				}
 			},
-			"required": ["projects", "search", "create"]
+			"required": ["projects", "search", "create", "myTasks"]
+		},
+		"statistics": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"renewal": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"description": {
+							"type": "string"
+						},
+						"filters": {
+							"type": "string"
+						},
+						"recent": {
+							"type": "string"
+						},
+						"thisMonth": {
+							"type": "string"
+						},
+						"lastMonth": {
+							"type": "string"
+						},
+						"open": {
+							"type": "string"
+						},
+						"scheduleMembers": {
+							"type": "string"
+						},
+						"hasOverdue": {
+							"type": "string"
+						},
+						"noOverdue": {
+							"type": "string"
+						},
+						"summaryBasis": {
+							"type": "string"
+						},
+						"trendBasis": {
+							"type": "string"
+						},
+						"teamBasis": {
+							"type": "string"
+						},
+						"overview": {
+							"type": "string"
+						},
+						"trend": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"selectDetail": {
+							"type": "string"
+						},
+						"noneSelected": {
+							"type": "string"
+						},
+						"noOverdueTasks": {
+							"type": "string"
+						},
+						"error": {
+							"type": "string"
+						},
+						"retry": {
+							"type": "string"
+						},
+						"loading": {
+							"type": "string"
+						},
+						"unavailable": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"description",
+						"filters",
+						"recent",
+						"thisMonth",
+						"lastMonth",
+						"open",
+						"scheduleMembers",
+						"hasOverdue",
+						"noOverdue",
+						"summaryBasis",
+						"trendBasis",
+						"teamBasis",
+						"overview",
+						"trend",
+						"name",
+						"selectDetail",
+						"noneSelected",
+						"noOverdueTasks",
+						"error",
+						"retry",
+						"loading",
+						"unavailable"
+					]
+				},
+				"pageTitle": {
+					"type": "string"
+				},
+				"memberPerformance": {
+					"type": "string"
+				},
+				"description": {
+					"type": "string"
+				},
+				"filters": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"period": {
+							"type": "string"
+						},
+						"startDate": {
+							"type": "string"
+						},
+						"endDate": {
+							"type": "string"
+						},
+						"team": {
+							"type": "string"
+						},
+						"project": {
+							"type": "string"
+						},
+						"member": {
+							"type": "string"
+						},
+						"schedule": {
+							"type": "string"
+						},
+						"last3Months": {
+							"type": "string"
+						},
+						"last6Months": {
+							"type": "string"
+						},
+						"last12Months": {
+							"type": "string"
+						},
+						"allTeams": {
+							"type": "string"
+						},
+						"noTeam": {
+							"type": "string"
+						},
+						"allProjects": {
+							"type": "string"
+						},
+						"allMembers": {
+							"type": "string"
+						},
+						"noMember": {
+							"type": "string"
+						},
+						"allSchedules": {
+							"type": "string"
+						},
+						"overdue": {
+							"type": "string"
+						},
+						"onTrack": {
+							"type": "string"
+						},
+						"noResults": {
+							"type": "string"
+						},
+						"reset": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"period",
+						"startDate",
+						"endDate",
+						"team",
+						"project",
+						"member",
+						"schedule",
+						"last3Months",
+						"last6Months",
+						"last12Months",
+						"allTeams",
+						"noTeam",
+						"allProjects",
+						"allMembers",
+						"noMember",
+						"allSchedules",
+						"overdue",
+						"onTrack",
+						"noResults",
+						"reset"
+					]
+				},
+				"columns": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"member": {
+							"type": "string"
+						},
+						"assigned": {
+							"type": "string"
+						},
+						"completed": {
+							"type": "string"
+						},
+						"inProgress": {
+							"type": "string"
+						},
+						"overdue": {
+							"type": "string"
+						},
+						"completionRate": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"member",
+						"assigned",
+						"completed",
+						"inProgress",
+						"overdue",
+						"completionRate"
+					]
+				},
+				"overdueCount": {
+					"type": "string"
+				},
+				"overdueCount_zero": {
+					"type": "string"
+				},
+				"overdueCount_one": {
+					"type": "string"
+				},
+				"overdueCount_two": {
+					"type": "string"
+				},
+				"overdueCount_few": {
+					"type": "string"
+				},
+				"overdueCount_many": {
+					"type": "string"
+				},
+				"overdueCount_other": {
+					"type": "string"
+				},
+				"onTrack": {
+					"type": "string"
+				},
+				"monthly": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"membersTitle": {
+							"type": "string"
+						},
+						"membersDescription": {
+							"type": "string"
+						},
+						"teamsTitle": {
+							"type": "string"
+						},
+						"teamsDescription": {
+							"type": "string"
+						},
+						"created": {
+							"type": "string"
+						},
+						"completed": {
+							"type": "string"
+						},
+						"chartLabel": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"description",
+						"membersTitle",
+						"membersDescription",
+						"teamsTitle",
+						"teamsDescription",
+						"created",
+						"completed",
+						"chartLabel"
+					]
+				}
+			},
+			"required": [
+				"renewal",
+				"pageTitle",
+				"memberPerformance",
+				"description",
+				"filters",
+				"columns",
+				"onTrack",
+				"monthly"
+			]
 		},
 		"team": {
 			"type": "object",
@@ -9428,6 +9831,7 @@
 		"tasks",
 		"invitations",
 		"workspace",
+		"statistics",
 		"team",
 		"publicProject"
 	]

@@ -8,18 +8,20 @@ import {
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import getMemberTeamMonthlyStatisticsCtrl from "./controllers/get-member-team-monthly-statistics";
+import getMyTasks from "./controllers/get-my-tasks";
 import getProjectMonthlyStatisticsCtrl from "./controllers/get-project-monthly-statistics";
 import getWorkspaceMemberStatisticsCtrl from "./controllers/get-workspace-member-statistics";
 import getWorkspaceMembersCtrl from "./controllers/get-workspace-members";
 import getWorkspaceTeamsCtrl from "./controllers/get-workspace-teams";
 import {
   memberTeamMonthlyStatisticsSchema,
+  myTasksSchema,
   projectMonthlyStatisticListSchema,
   workspaceMemberListSchema,
   workspaceMemberStatisticListSchema,
   workspaceTeamListSchema,
 } from "./response";
-import { statisticsQuery, workspaceIdParam } from "./schema";
+import { myTasksQuery, statisticsQuery, workspaceIdParam } from "./schema";
 
 const getWorkspaceMembersRoute = createRoute({
   method: "get",
@@ -123,7 +125,41 @@ const getMemberTeamMonthlyStatisticsRoute = createRoute({
   },
 });
 
+const getMyTasksRoute = createRoute({
+  method: "get",
+  operationId: "getMyTasks",
+  path: "/{workspaceId}/my-tasks",
+  tags: ["Workspaces"],
+  summary: "Get my open tasks",
+  description:
+    "Get 12 open tasks assigned to the authenticated user in this workspace, ordered by due date (undated tasks last). Excludes archived projects and final columns. Date filters are applied before pagination using the supplied local-day boundaries.",
+  middleware: [
+    workspaceAccess.fromParam("workspaceId"),
+    requireWorkspacePermission({ task: ["read"] }),
+  ] as const,
+  request: { params: workspaceIdParam, query: myTasksQuery },
+  responses: {
+    200: jsonResponse("My open tasks", myTasksSchema),
+    400: errorResponse("Invalid page or workspace"),
+    401: errorResponse("Unauthorized"),
+    403: errorResponse("No access to tasks in this workspace"),
+  },
+});
+
 const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
+  .openapi(getMyTasksRoute, async (c) =>
+    c.json(
+      await getMyTasks(
+        c.get("workspaceId"),
+        c.get("userId"),
+        c.req.valid("query").page,
+        c.req.valid("query").due,
+        c.req.valid("query").dayStart,
+        c.req.valid("query").dayEnd,
+      ),
+      200,
+    ),
+  )
   .openapi(getWorkspaceMembersRoute, async (c) =>
     c.json(await getWorkspaceMembersCtrl(c.get("workspaceId")), 200),
   )

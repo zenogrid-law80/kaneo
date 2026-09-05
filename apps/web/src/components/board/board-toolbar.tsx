@@ -98,6 +98,7 @@ function ActiveFilterChip({
   value,
   onClear,
 }: ActiveFilterChipProps) {
+  const { t } = useTranslation();
   return (
     <div className="inline-flex h-7 items-center rounded-md border border-border bg-background text-xs shadow-xs">
       <span className="px-2 font-medium text-foreground">{subject}</span>
@@ -108,6 +109,7 @@ function ActiveFilterChip({
       <span className="h-full w-px bg-border" />
       <button
         className="inline-flex h-full w-7 items-center justify-center rounded-r-md text-foreground/70 hover:bg-accent/70 hover:text-foreground"
+        aria-label={t("workspace:myTasks.removeFilter", { name: subject })}
         onClick={onClear}
         type="button"
       >
@@ -640,6 +642,15 @@ export default function BoardToolbar({
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="h-7 rounded-md px-2 text-xs text-muted-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                {t("common:actions.clearAllFilters")}
+              </button>
+            )}
             <SortControl sort={sort} onSortChange={onSortChange} />
 
             {selectedStatusIds.length > 0 && (

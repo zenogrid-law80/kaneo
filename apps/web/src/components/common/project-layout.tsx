@@ -141,8 +141,8 @@ export default function ProjectLayout({
 
   return (
     <Layout>
-      <Layout.Header className="h-11 border-border/80 px-2">
-        <div className="flex w-full items-center justify-between gap-2">
+      <Layout.Header className="h-auto flex-col gap-0 border-border/80 p-0 transition-none group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-auto">
+        <div className="flex min-h-12 w-full items-center justify-between gap-2 px-3">
           <div className="flex min-w-0 items-center gap-2">
             <TooltipProvider>
               <Tooltip>
@@ -151,7 +151,7 @@ export default function ProjectLayout({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="flex items-center gap-2 text-[10px]">
-                    Toggle sidebar
+                    {t("common:a11y.toggleSidebar")}
                     <KbdSequence
                       keys={[
                         shortcuts.sidebar.prefix,
@@ -194,93 +194,98 @@ export default function ProjectLayout({
                 onAddProject={() => setIsCreateProjectModalOpen(true)}
               />
             </div>
-
-            {showViewSwitcher && (
-              <div className="hidden h-8 items-center gap-0.5 rounded-lg border border-border/80 bg-background p-0.5 sm:inline-flex">
-                <Button
-                  variant={resolvedView === "backlog" ? "secondary" : "ghost"}
-                  size="xs"
-                  onClick={handleNavigateToBacklog}
-                  className={cn(
-                    "h-6 gap-1.5 rounded-md px-2 text-xs",
-                    resolvedView !== "backlog" && "text-muted-foreground",
-                  )}
-                >
-                  <SquircleDashed className="size-3.5" />
-                  Backlog
-                </Button>
-                <Button
-                  variant={resolvedView === "board" ? "secondary" : "ghost"}
-                  size="xs"
-                  onClick={handleNavigateToBoard}
-                  className={cn(
-                    "h-6 gap-1.5 rounded-md px-2 text-xs",
-                    resolvedView !== "board" && "text-muted-foreground",
-                  )}
-                >
-                  <SquareKanban className="size-3.5" />
-                  Tasks
-                </Button>
-                <Button
-                  variant={resolvedView === "hierarchy" ? "secondary" : "ghost"}
-                  size="xs"
-                  onClick={handleNavigateToHierarchy}
-                  className={cn(
-                    "h-6 gap-1.5 rounded-md px-2 text-xs",
-                    resolvedView !== "hierarchy" && "text-muted-foreground",
-                  )}
-                >
-                  <Network className="size-3.5" />
-                  {t("tasks:hierarchy.title")}
-                </Button>
-                <Button
-                  variant={resolvedView === "calendar" ? "secondary" : "ghost"}
-                  size="xs"
-                  onClick={handleNavigateToCalendar}
-                  className={cn(
-                    "h-6 gap-1.5 rounded-md px-2 text-xs",
-                    resolvedView !== "calendar" && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarRange className="size-3.5" />
-                  {t("tasks:calendar.title")}
-                </Button>
-                <Button
-                  variant={resolvedView === "gantt" ? "secondary" : "ghost"}
-                  size="xs"
-                  onClick={handleNavigateToGantt}
-                  className={cn(
-                    "h-6 gap-1.5 rounded-md px-2 text-xs",
-                    resolvedView !== "gantt" && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarDays className="size-3.5" />
-                  Gantt
-                </Button>
-                {canManageWorkspace() && (
-                  <Button
-                    variant={
-                      resolvedView === "statistics" ? "secondary" : "ghost"
-                    }
-                    size="xs"
-                    onClick={handleNavigateToStatistics}
-                    className={cn(
-                      "h-6 gap-1.5 rounded-md px-2 text-xs",
-                      resolvedView !== "statistics" && "text-muted-foreground",
-                    )}
-                  >
-                    <BarChart3 className="size-3.5" />
-                    {t("statistics:pageTitle")}
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
             {headerActions}
           </div>
         </div>
+        {showViewSwitcher && (
+          <div className="hidden min-w-0 items-center gap-1 overflow-x-auto border-t border-border/60 bg-muted/20 px-3 py-2 md:flex">
+            <Button
+              variant={resolvedView === "backlog" ? "secondary" : "ghost"}
+              size="xs"
+              aria-current={resolvedView === "backlog" ? "page" : undefined}
+              onClick={handleNavigateToBacklog}
+              className={cn(
+                "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                resolvedView !== "backlog" && "text-muted-foreground",
+              )}
+            >
+              <SquircleDashed className="size-3.5" />
+              {t("tasks:view.backlog")}
+            </Button>
+            <Button
+              variant={resolvedView === "board" ? "secondary" : "ghost"}
+              size="xs"
+              aria-current={resolvedView === "board" ? "page" : undefined}
+              onClick={handleNavigateToBoard}
+              className={cn(
+                "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                resolvedView !== "board" && "text-muted-foreground",
+              )}
+            >
+              <SquareKanban className="size-3.5" />
+              {t("tasks:view.board")}
+            </Button>
+            <Button
+              variant={resolvedView === "hierarchy" ? "secondary" : "ghost"}
+              size="xs"
+              aria-current={resolvedView === "hierarchy" ? "page" : undefined}
+              onClick={handleNavigateToHierarchy}
+              className={cn(
+                "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                resolvedView !== "hierarchy" && "text-muted-foreground",
+              )}
+            >
+              <Network className="size-3.5" />
+              {t("tasks:hierarchy.title")}
+            </Button>
+            <Button
+              variant={resolvedView === "calendar" ? "secondary" : "ghost"}
+              size="xs"
+              aria-current={resolvedView === "calendar" ? "page" : undefined}
+              onClick={handleNavigateToCalendar}
+              className={cn(
+                "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                resolvedView !== "calendar" && "text-muted-foreground",
+              )}
+            >
+              <CalendarRange className="size-3.5" />
+              {t("tasks:calendar.title")}
+            </Button>
+            <Button
+              variant={resolvedView === "gantt" ? "secondary" : "ghost"}
+              size="xs"
+              aria-current={resolvedView === "gantt" ? "page" : undefined}
+              onClick={handleNavigateToGantt}
+              className={cn(
+                "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                resolvedView !== "gantt" && "text-muted-foreground",
+              )}
+            >
+              <CalendarDays className="size-3.5" />
+              {t("tasks:view.gantt")}
+            </Button>
+            {canManageWorkspace() && (
+              <Button
+                variant={resolvedView === "statistics" ? "secondary" : "ghost"}
+                size="xs"
+                aria-current={
+                  resolvedView === "statistics" ? "page" : undefined
+                }
+                onClick={handleNavigateToStatistics}
+                className={cn(
+                  "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                  resolvedView !== "statistics" && "text-muted-foreground",
+                )}
+              >
+                <BarChart3 className="size-3.5" />
+                {t("statistics:pageTitle")}
+              </Button>
+            )}
+          </div>
+        )}
       </Layout.Header>
 
       <Layout.Content>{children}</Layout.Content>

@@ -1,7 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
 import {
   Calendar,
   CalendarClock,
@@ -34,7 +33,9 @@ import {
   getDueDateStatus,
   isTaskCompleted,
 } from "@/lib/due-date-status";
+import { formatDateShort } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
+import { getPriorityLabel } from "@/lib/i18n/domain";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import queryClient from "@/query-client";
@@ -185,7 +186,7 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
           {/** biome-ignore lint/a11y/noStaticElementInteractions: false positive for onClick and onKeyDown */}
           <div
             onClick={handleTaskCardClick}
-            className={`group relative rounded-lg border bg-background p-3 shadow-xs/5 transition-[background-color,border-color,box-shadow,scale] duration-150 ease-out active:scale-[0.98] ${
+            className={`group relative rounded-xl border bg-card p-3.5 shadow-xs/5 transition-[background-color,border-color,box-shadow] duration-150 motion-reduce:transition-none ${
               disableDragDrop ? "cursor-default" : "cursor-move"
             } ${
               isDragging
@@ -204,40 +205,41 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
               }
             }}
           >
-            {showTaskNumbers && (
-              <div className="mb-2 text-[10px] font-mono text-muted-foreground/90">
-                {project?.slug}-{task.number}
-              </div>
-            )}
+            <div className="mb-2.5 flex min-h-5 items-center justify-between gap-2">
+              {showTaskNumbers && (
+                <div className="min-w-0 truncate text-[11px] font-mono text-muted-foreground">
+                  {project?.slug}-{task.number}
+                </div>
+              )}
 
-            {showAssignees && (
-              <div className="absolute top-3 right-3">
-                {task.userId ? (
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage
-                      src={assignee?.user?.image ?? ""}
-                      alt={assignee?.user?.name || ""}
-                    />
-                    <AvatarFallback className="text-xs font-medium border border-border/30">
-                      {getInitials(assignee?.user?.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <div
-                    className="flex h-5 w-5 items-center justify-center rounded-full border border-border bg-muted"
-                    title={t("tasks:assignee.unassigned")}
-                  >
-                    <span className="text-[10px] font-medium text-muted-foreground">
-                      ?
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="mb-2.5 pr-6">
+              {showAssignees && (
+                <div className="ml-auto shrink-0">
+                  {task.userId ? (
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage
+                        src={assignee?.user?.image ?? ""}
+                        alt={assignee?.user?.name || ""}
+                      />
+                      <AvatarFallback className="text-xs font-medium border border-border/30">
+                        {getInitials(assignee?.user?.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div
+                      className="flex h-5 w-5 items-center justify-center rounded-full border border-border bg-muted"
+                      title={t("tasks:assignee.unassigned")}
+                    >
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        ?
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="mb-3">
               <div
-                className="overflow-hidden break-words leading-5 font-medium text-foreground/95 text-[15px]"
+                className="overflow-hidden break-words leading-5 font-medium text-foreground text-sm"
                 style={{
                   display: "-webkit-box",
                   WebkitLineClamp: 3,
@@ -250,16 +252,17 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
               </div>
             </div>
 
-            {showLabels && (
+            {showLabels && !!task.labels?.length && (
               <div className="mb-2.5">
                 <TaskLabels labels={task.labels ?? []} />
               </div>
             )}
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               {showPriority && (
                 <span className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground">
                   {getPriorityIcon(task.priority ?? "")}
+                  <span>{getPriorityLabel(task.priority ?? "")}</span>
                 </span>
               )}
 
@@ -275,7 +278,7 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
                     "far-future" ||
                     getDueDateStatus(task.dueDate, taskIsCompleted) ===
                       "no-due-date") && <Calendar className="w-3 h-3" />}
-                  <span>{format(new Date(task.dueDate), "MMM d")}</span>
+                  <span>{formatDateShort(task.dueDate)}</span>
                 </div>
               )}
 

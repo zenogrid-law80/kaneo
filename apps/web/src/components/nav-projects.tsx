@@ -28,6 +28,7 @@ import {
   Forward,
   MoreHorizontal,
   Settings,
+  Star,
   Trash2,
 } from "lucide-react";
 import { type CSSProperties, type ReactNode, useState } from "react";
@@ -59,7 +60,9 @@ import useReorderProjects from "@/hooks/mutations/project/use-reorder-projects";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
+import { authClient } from "@/lib/auth-client";
 import { toast } from "@/lib/toast";
+import { favoriteScope, useProjectFavorites } from "@/store/project-favorites";
 import type { ProjectWithTasks } from "@/types/project";
 import CreateProjectModal from "./shared/modals/create-project-modal";
 import {
@@ -120,6 +123,14 @@ export function NavProjects() {
   const { data: projects } = useGetProjects({
     workspaceId: workspace?.id || "",
   });
+  const { data: session } = authClient.useSession();
+  const userId = session?.user.id ?? "";
+  const favorites = useProjectFavorites(
+    (state) => state.byScope[favoriteScope(userId, workspace?.id ?? "")],
+  );
+  const toggleFavorite = useProjectFavorites((state) => state.toggle);
+  const favoriteProjects =
+    projects?.filter((project) => favorites?.includes(project.id)) ?? [];
   const queryClient = useQueryClient();
   const { mutateAsync: deleteProject } = useDeleteProject();
   const reorderProjects = useReorderProjects();
@@ -213,6 +224,42 @@ export function NavProjects() {
 
   return (
     <>
+      {favoriteProjects.length > 0 && (
+        <SidebarGroup className="p-2 pt-1">
+          <SidebarGroupLabel title={t("navigation:projectList.favoritesLocal")}>
+            {t("navigation:projectList.favorites")}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {favoriteProjects.map((project) => (
+                <SidebarMenuItem key={project.id}>
+                  <SidebarMenuButton
+                    className="h-8 pr-9"
+                    isActive={isCurrentProject(project.id)}
+                    onClick={() => handleProjectClick(project)}
+                  >
+                    <Star className="size-3.5 fill-current" />
+                    <span>{project.name}</span>
+                  </SidebarMenuButton>
+                  <button
+                    type="button"
+                    className="absolute right-1 top-1 flex size-6 items-center justify-center rounded hover:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-ring"
+                    aria-label={t(
+                      "navigation:projectList.removeFavoriteNamed",
+                      { name: project.name },
+                    )}
+                    onClick={() =>
+                      toggleFavorite(userId, workspace.id, project.id)
+                    }
+                  >
+                    <Star className="size-3.5 fill-current" />
+                  </button>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup className="group-data-[collapsible=icon]:hidden gap-1 p-2 pt-1">
           <CollapsibleTrigger
@@ -255,6 +302,9 @@ export function NavProjects() {
                             className="h-8 gap-0 ps-3.5 text-sm hover:bg-transparent hover:text-sidebar-accent-foreground active:bg-transparent"
                             onClick={() => handleProjectClick(project)}
                           >
+                            {favorites?.includes(project.id) && (
+                              <Star className="mr-1.5 size-3 shrink-0 fill-current" />
+                            )}
                             <span>{project.name}</span>
                           </SidebarMenuButton>
 
@@ -282,6 +332,27 @@ export function NavProjects() {
                               side={isMobile ? "bottom" : "right"}
                               align={isMobile ? "end" : "start"}
                             >
+                              <DropdownMenuItem
+                                disabled={!userId}
+                                onClick={() =>
+                                  toggleFavorite(
+                                    userId,
+                                    workspace.id,
+                                    project.id,
+                                  )
+                                }
+                              >
+                                <Star
+                                  className={
+                                    favorites?.includes(project.id)
+                                      ? "fill-current"
+                                      : undefined
+                                  }
+                                />
+                                {favorites?.includes(project.id)
+                                  ? t("navigation:projectList.removeFavorite")
+                                  : t("navigation:projectList.addFavorite")}
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="h-7 items-start cursor-pointer text-sm"
                                 onClick={() => handleProjectClick(project)}

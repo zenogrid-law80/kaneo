@@ -1388,7 +1388,12 @@
 			"deleteConfirmTitle": "프로젝트를 삭제하시겠습니까?",
 			"deleteConfirmDescription": "프로젝트와 모든 데이터가 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
 			"deletedToast": "프로젝트가 삭제되었습니다",
-			"deleteProject": "프로젝트 삭제"
+			"deleteProject": "프로젝트 삭제",
+			"favorites": "즐겨찾기",
+			"addFavorite": "즐겨찾기 추가",
+			"removeFavorite": "즐겨찾기 해제",
+			"removeFavoriteNamed": "{{name}} 즐겨찾기 해제",
+			"favoritesLocal": "이 브라우저에 저장된 내 즐겨찾기"
 		},
 		"search": {
 			"inputPlaceholder": "작업, 프로젝트, 댓글 검색...",
@@ -1650,11 +1655,13 @@
 		},
 		"boardSearchPlaceholder": "티켓 검색...",
 		"view": {
+			"backlog": "백로그",
+			"gantt": "간트",
 			"board": "보드",
 			"list": "목록"
 		},
 		"hierarchy": {
-			"title": "Hierarchy",
+			"title": "계층",
 			"empty": "아직 작업 Hierarchy가 없습니다",
 			"emptyDescription": "작업을 하위 작업으로 연결하면 여기에서 상위 및 하위 구조를 확인할 수 있습니다.",
 			"expandTask": "{{title}} 펼치기",
@@ -2170,6 +2177,22 @@
 			"submit": "워크스페이스 만들기",
 			"success": "워크스페이스가 생성되었습니다",
 			"error": "워크스페이스 생성에 실패했습니다"
+		},
+		"myTasks": {
+			"title": "내 담당 업무",
+			"description": "내게 배정된 미완료 업무를 마감일순으로 확인하세요.",
+			"overdue": "마감 지남",
+			"today": "오늘 마감",
+			"upcoming": "예정",
+			"undated": "마감일 없음",
+			"empty": "이 페이지에 미완료 업무가 없습니다.",
+			"error": "담당 업무를 불러오지 못했습니다.",
+			"retry": "다시 시도",
+			"previous": "이전",
+			"next": "다음",
+			"all": "전체",
+			"removeFilter": "{{name}} 필터 해제",
+			"noResults": "선택한 조건에 맞는 담당 업무가 없습니다."
 		}
 	},
 	"statistics": {

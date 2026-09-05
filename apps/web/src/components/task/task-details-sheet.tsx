@@ -3,7 +3,7 @@ import { Maximize2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
   Tooltip,
   TooltipContent,
@@ -68,11 +68,13 @@ export default function TaskDetailsSheet({
         side="right"
         className="w-full max-w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl p-0 gap-0 [&>button]:hidden"
       >
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-background shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">
-              {project?.slug}-{task?.number}
-            </span>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-background shrink-0">
+          <div className="flex min-w-0 items-center gap-2">
+            <SheetTitle className="truncate font-mono text-xs font-medium text-muted-foreground">
+              {task && project
+                ? `${project.slug}-${task.number}`
+                : t("common:empty.loading")}
+            </SheetTitle>
           </div>
           <div className="flex items-center gap-1">
             <TooltipProvider>
@@ -81,6 +83,8 @@ export default function TaskDetailsSheet({
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label={t("tasks:detail.openInFullPage")}
+                    disabled={!task}
                     onClick={handleOpenFullPage}
                     className="text-foreground"
                   >
@@ -95,6 +99,7 @@ export default function TaskDetailsSheet({
             <Button
               variant="ghost"
               size="sm"
+              aria-label={t("common:actions.close")}
               onClick={onClose}
               className="text-foreground"
             >
@@ -111,12 +116,12 @@ export default function TaskDetailsSheet({
             taskId={currentTaskId}
             projectId={projectId}
             workspaceId={workspaceId}
-            className="w-full bg-sidebar border-b border-border flex flex-col gap-0 overflow-y-auto shrink-0"
+            className="w-full bg-muted/20 border-b border-border flex flex-col gap-0 overflow-y-auto shrink-0"
             compact={true}
           />
 
           <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="px-4 py-4">
+            <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8 sm:py-8">
               <TaskDetailsContent
                 taskId={currentTaskId}
                 projectId={projectId}

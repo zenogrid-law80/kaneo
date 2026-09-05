@@ -1,4 +1,4 @@
-import { z } from "../openapi";
+import { nullableResponseTimestamp, z } from "../openapi";
 
 export const workspaceMemberSchema = z
   .object({
@@ -95,3 +95,23 @@ export const workspaceTeamSchema = z
   .openapi("WorkspaceTeam");
 
 export const workspaceTeamListSchema = z.array(workspaceTeamSchema);
+
+export const myTasksSchema = z
+  .object({
+    items: z.array(
+      z
+        .object({
+          id: z.string(),
+          title: z.string(),
+          number: z.number().nullable(),
+          priority: z.string().nullable(),
+          dueDate: nullableResponseTimestamp,
+          projectId: z.string(),
+          projectName: z.string(),
+          projectSlug: z.string(),
+        })
+        .openapi("MyTask"),
+    ),
+    hasMore: z.boolean(),
+  })
+  .openapi("MyTasks");
