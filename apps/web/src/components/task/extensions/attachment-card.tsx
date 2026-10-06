@@ -58,7 +58,7 @@ function AttachmentCardView({ node }: NodeViewProps) {
   if (url && isEmbeddableVideoAttachment(mimeType, filename, url)) {
     return (
       <NodeViewWrapper as="div" className="kaneo-video-attachment">
-        {/* biome-ignore lint/a11y/useMediaCaption: uploaded attachments do not include a separate captions track. */}
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption -- Uploaded attachments do not include a separate captions track. */}
         <video className="kaneo-video-player" controls preload="metadata">
           <source src={url} type={mimeType || "video/mp4"} />
           <a href={url} target="_blank" rel="noopener noreferrer">

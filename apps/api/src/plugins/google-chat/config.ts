@@ -60,7 +60,7 @@ export function normalizeGoogleChatConfig(
     channelName: config.channelName?.trim() || undefined,
     events: {
       ...defaultGoogleChatEvents,
-      ...(config.events ?? {}),
+      ...config.events,
     },
   };
 }

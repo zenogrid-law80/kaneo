@@ -2,9 +2,15 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { Calendar, CalendarClock, CalendarX } from "lucide-react";
-import { type CSSProperties, useMemo, useState } from "react";
+import {
+  Calendar,
+  CalendarClock,
+  CalendarX,
+  SlidersHorizontal,
+} from "lucide-react";
+import { type CSSProperties, memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { TaskProgressBadges } from "@/components/task/task-progress-badges";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -16,7 +22,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/preview-card";
 import { useDeleteTask } from "@/hooks/mutations/task/use-delete-task";
+import useGetCustomFieldValuesByProject from "@/hooks/queries/custom-field/use-get-custom-field-values-by-project";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { cn } from "@/lib/cn";
@@ -28,7 +40,6 @@ import {
 import { getInitials } from "@/lib/get-initials";
 import { getPriorityIcon } from "@/lib/priority";
 import { toast } from "@/lib/toast";
-import queryClient from "@/query-client";
 import useBacklogBulkSelectionStore from "@/store/backlog-bulk-selection";
 import useProjectStore from "@/store/project";
 import { useUserPreferencesStore } from "@/store/user-preferences";
@@ -41,7 +52,9 @@ type BacklogTaskRowProps = {
   task: Task;
 };
 
-export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
+const BacklogTaskRow = memo(function BacklogTaskRow({
+  task,
+}: BacklogTaskRowProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const {
@@ -53,8 +66,10 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
     isDragging,
   } = useSortable({ id: task.id });
 
-  const { project } = useProjectStore();
-  const taskIsCompleted = isTaskCompleted(task.status, project?.columns);
+  const projectId = useProjectStore((state) => state.project?.id);
+  const projectSlug = useProjectStore((state) => state.project?.slug);
+  const projectColumns = useProjectStore((state) => state.project?.columns);
+  const taskIsCompleted = isTaskCompleted(task.status, projectColumns);
   const { data: workspace } = useActiveWorkspace();
   const {
     showAssignees,
@@ -65,10 +80,21 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
   } = useUserPreferencesStore();
   const [isDeleteTaskModalOpen, setIsDeleteTaskModalOpen] = useState(false);
   const { mutateAsync: deleteTask } = useDeleteTask();
-  const { toggleSelection, isSelected, isFocused } =
-    useBacklogBulkSelectionStore();
-  const isTaskSelected = isSelected(task.id);
-  const isTaskFocused = isFocused(task.id);
+  const toggleSelection = useBacklogBulkSelectionStore(
+    (state) => state.toggleSelection,
+  );
+  const selectRange = useBacklogBulkSelectionStore(
+    (state) => state.selectRange,
+  );
+  const setSelectionAnchor = useBacklogBulkSelectionStore(
+    (state) => state.setSelectionAnchor,
+  );
+  const isTaskSelected = useBacklogBulkSelectionStore((state) =>
+    state.selectedTaskIds.has(task.id),
+  );
+  const isTaskFocused = useBacklogBulkSelectionStore(
+    (state) => state.focusedTaskId === task.id,
+  );
 
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
     workspace?.id ?? "",
@@ -80,15 +106,37 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
     );
   }, [workspaceUsers, task.userId]);
 
+  const { data: projectCustomFieldValues = [] } =
+    useGetCustomFieldValuesByProject(task.projectId);
+
+  const customFieldValues = useMemo(
+    () => projectCustomFieldValues.filter((field) => field.taskId === task.id),
+    [projectCustomFieldValues, task.id],
+  );
+
+  const activeCustomFieldValues = useMemo(
+    () =>
+      customFieldValues.filter(
+        (field) => field.value !== null && field.value !== "",
+      ),
+    [customFieldValues],
+  );
+
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition || "transform 200ms cubic-bezier(0.23, 1, 0.32, 1)",
     touchAction: isDragging ? "none" : "auto",
   };
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (!project || !task) return;
+  const handleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (!projectId || !task) return;
     if (e.defaultPrevented) return;
+
+    if (e.shiftKey) {
+      e.preventDefault();
+      selectRange(task.id);
+      return;
+    }
 
     if (e.metaKey || e.ctrlKey) {
       e.preventDefault();
@@ -96,6 +144,7 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
       return;
     }
 
+    setSelectionAnchor(task.id);
     const currentParams = new URLSearchParams(window.location.search);
     const currentTaskId = currentParams.get("taskId");
 
@@ -112,24 +161,24 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.defaultPrevented || e.target !== e.currentTarget) return;
     if (e.key === "Enter") {
-      handleClick(e as unknown as React.MouseEvent);
+      handleClick(e);
+      e.preventDefault();
+    } else {
+      listeners?.onKeyDown?.(e);
     }
   };
 
   const handleDeleteTask = async () => {
     try {
       await deleteTask(task.id);
-      queryClient.invalidateQueries({
-        queryKey: ["tasks", project?.id],
-      });
+      toast.success(t("tasks:delete.success"));
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : t("tasks:delete.error"),
       );
-    } finally {
-      toast.success(t("tasks:delete.success"));
     }
   };
 
@@ -147,16 +196,16 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
     >
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: false positive for onClick and onKeyDown */}
+          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- false positive for onClick and onKeyDown */}
           <div
             onClick={handleClick}
-            onKeyDown={handleKeyDown}
             className={cn(
               "group relative flex items-center gap-3 px-4 py-1.5 transition-colors cursor-pointer",
               isTaskSelected ? "bg-accent/45" : "hover:bg-accent/60",
             )}
             {...attributes}
             {...listeners}
+            onKeyDown={handleKeyDown}
           >
             {showPriority && (
               <div className="flex-shrink-0 first:[&_svg]:h-4 first:[&_svg]:w-4">
@@ -165,7 +214,7 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
             )}
             {showTaskNumbers && (
               <div className="text-xs font-mono text-muted-foreground flex-shrink-0">
-                {project?.slug}-{task.number}
+                {projectSlug}-{task.number}
               </div>
             )}
 
@@ -174,11 +223,10 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
                 <span className="text-sm text-foreground truncate">
                   {task.title}
                 </span>
-                {showLabels && (
-                  <div className="flex items-center gap-1">
-                    <TaskLabels labels={task.labels ?? []} />
-                  </div>
-                )}
+                <div className="flex items-center gap-1">
+                  <TaskProgressBadges task={task} />
+                  {showLabels && <TaskLabels labels={task.labels ?? []} />}
+                </div>
               </div>
             </div>
 
@@ -196,6 +244,53 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
                     "no-due-date") && <Calendar className="w-3 h-3" />}
                 <span>{format(new Date(task.dueDate), "MMM d")}</span>
               </div>
+            )}
+
+            {activeCustomFieldValues.length > 0 && (
+              <HoverCard openDelay={200} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground cursor-default focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    aria-label={t("tasks:customFields.ariaLabel", {
+                      count: activeCustomFieldValues.length,
+                    })}
+                  >
+                    <SlidersHorizontal className="w-3 h-3" />
+                    <span>{activeCustomFieldValues.length}</span>
+                  </button>
+                </HoverCardTrigger>
+                <HoverCardContent
+                  className="w-fit p-2.5"
+                  side="bottom"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <div className="space-y-1.5">
+                    {activeCustomFieldValues.map((field) => (
+                      <div
+                        key={field.id}
+                        className="flex items-center justify-between gap-2 text-xs"
+                      >
+                        <span className="font-medium text-muted-foreground truncate">
+                          {field.fieldName}
+                        </span>
+                        <span className="text-foreground truncate max-w-24">
+                          {field.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             )}
 
             {showAssignees && (
@@ -225,12 +320,13 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
           </div>
         </ContextMenuTrigger>
 
-        {project && workspace && (
+        {projectId && workspace && (
           <TaskCardContextMenuContent
             task={task}
             taskCardContext={{
-              projectId: project.id,
+              projectId,
               worskpaceId: workspace.id,
+              workspaceSlug: workspace.slug,
             }}
             onDeleteClick={() => setIsDeleteTaskModalOpen(true)}
           />
@@ -268,4 +364,6 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
       </AlertDialog>
     </div>
   );
-}
+});
+
+export default BacklogTaskRow;

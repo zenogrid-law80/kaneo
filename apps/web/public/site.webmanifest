@@ -1,26 +1,26 @@
 {
-	"name": "Kaneo",
-	"short_name": "Kaneo",
-	"description": "Open source project management that works for you, not against you.",
-	"id": "/",
-	"start_url": "/",
-	"scope": "/",
-	"icons": [
-		{
-			"src": "/web-app-manifest-192x192.png",
-			"sizes": "192x192",
-			"type": "image/png",
-			"purpose": "any maskable"
-		},
-		{
-			"src": "/web-app-manifest-512x512.png",
-			"sizes": "512x512",
-			"type": "image/png",
-			"purpose": "any maskable"
-		}
-	],
-	"theme_color": "#141414",
-	"background_color": "#141414",
-	"display": "standalone",
-	"orientation": "any"
+  "name": "Kaneo",
+  "short_name": "Kaneo",
+  "description": "Open source project management that works for you, not against you.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#141414",
+  "background_color": "#141414",
+  "display": "standalone",
+  "orientation": "any"
 }

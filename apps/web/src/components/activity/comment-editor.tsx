@@ -1,53 +1,37 @@
+import {
+  richTextCommands,
+  type SlashCommand,
+  type SlashRange,
+} from "@/components/editor/slash-commands";
+import { TableToolbar } from "@/components/editor/table-toolbar";
+import { createEditorExtensions } from "@/components/editor/extensions";
+import { insertUploadedAsset as insertEditorAsset } from "@/components/editor/insert-uploaded-asset";
+import { useEditorHighlighter } from "@/components/editor/use-editor-highlighter";
 import type { Editor } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
-import Placeholder from "@tiptap/extension-placeholder";
-import { Table } from "@tiptap/extension-table";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
-import TaskList from "@tiptap/extension-task-list";
-import { Markdown } from "@tiptap/markdown";
-import { Fragment, Slice } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
-import StarterKit from "@tiptap/starter-kit";
 import {
-  BetweenHorizontalEnd,
-  BetweenHorizontalStart,
-  BetweenVerticalEnd,
-  BetweenVerticalStart,
   Bold,
   Check,
   ChevronDown,
-  Columns3,
   Copy,
-  Grid2x2X,
   Italic,
   Link2,
   List,
   ListOrdered,
   ListTodo,
   Paperclip,
-  Rows3,
   UnderlineIcon,
 } from "lucide-react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { bundledLanguages, type Highlighter } from "shiki";
-import { AttachmentCard } from "@/components/task/extensions/attachment-card";
-import { EmbedBlock } from "@/components/task/extensions/embed-block";
-import { KaneoIssueLink } from "@/components/task/extensions/kaneo-issue-link";
 import { KaneoMention } from "@/components/task/extensions/kaneo-mention";
 import type { MentionMember } from "@/components/task/extensions/mention-list";
 import { MentionSuggestion } from "@/components/task/extensions/mention-suggestion";
-import { MermaidBlock } from "@/components/task/extensions/mermaid-block";
-import {
-  SHIKI_CODEBLOCK_REFRESH_META,
-  ShikiCodeBlock,
-} from "@/components/task/extensions/shiki-code-block";
-import { TaskItemWithCheckbox } from "@/components/task/extensions/task-item-with-checkbox";
+import { SHIKI_CODEBLOCK_REFRESH_META } from "@/components/task/extensions/shiki-code-block";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogPopup } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -62,7 +46,6 @@ import {
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { cn } from "@/lib/cn";
-import { parseTaskListMarkdownToNodes } from "@/lib/editor-task-list-paste";
 import {
   extractIssueKeyFromUrl,
   extractTaskIdFromUrl,
@@ -70,7 +53,8 @@ import {
   normalizeUrl,
 } from "@/lib/editor-url-utils";
 import { isInCodeBlockLanguagePicker } from "@/lib/is-in-codeblock-language-picker";
-import { getSharedShikiHighlighter } from "@/lib/shiki-highlighter";
+import { normalizeCommentMarkdown } from "@/lib/normalize-comment-markdown";
+import { pasteMarkdown } from "@/lib/paste-markdown";
 import { toast } from "@/lib/toast";
 import { uploadTaskImage } from "@/lib/upload-task-image";
 
@@ -91,19 +75,11 @@ type CommentEditorProps = {
   taskId?: string;
   uploadSurface?: "description" | "comment";
   ensureTaskId?: () => Promise<string | null>;
+  uploadAsset?: (
+    file: File,
+  ) => Promise<Awaited<ReturnType<typeof uploadTaskImage>>>;
   showQuickAttachButton?: boolean;
   onAttachActionChange?: (attach: (() => void) | null) => void;
-};
-
-type SlashRange = { from: number; to: number };
-
-type SlashCommand = {
-  id: string;
-  label: string;
-  group: "text" | "lists" | "insert";
-  shortcut?: string;
-  search: string;
-  run: (editor: Editor, range: SlashRange) => void;
 };
 
 type SlashMenuState = {
@@ -150,15 +126,6 @@ const COMMENT_SHIKI_LANGUAGE_ALIASES: Record<string, string> = {
   plaintext: "text",
 };
 
-function normalizeMarkdown(markdown: string) {
-  return markdown
-    .replace(/\r\n/g, "\n")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\u00A0/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/\n{2,}$/g, "\n");
-}
-
 type EmbedComposerState = {
   mode: "choice" | "input";
   url: string;
@@ -185,6 +152,7 @@ export default function CommentEditor({
   taskId,
   uploadSurface = "comment",
   ensureTaskId,
+  uploadAsset,
   showQuickAttachButton = true,
   onAttachActionChange,
 }: CommentEditorProps) {
@@ -210,10 +178,19 @@ export default function CommentEditor({
   const dragDepthRef = useRef(0);
   const isSyncingRef = useRef(false);
   const hasHydratedRef = useRef(false);
-  const latestValueRef = useRef(normalizeMarkdown(value || ""));
+  const latestValueRef = useRef(normalizeCommentMarkdown(value || ""));
   const lastEditorRef = useRef<Editor | null>(null);
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   const taskIdRef = useRef(taskId);
   const ensureTaskIdRef = useRef(ensureTaskId);
+  const uploadAssetRef = useRef(uploadAsset);
+  uploadAssetRef.current = uploadAsset;
   const uploadSurfaceRef = useRef(uploadSurface);
   const onSubmitShortcutRef = useRef(onSubmitShortcut);
   const onCancelShortcutRef = useRef(onCancelShortcut);
@@ -226,10 +203,11 @@ export default function CommentEditor({
     range?: SlashRange;
   } | null>(null);
   const [slashMenu, setSlashMenu] = useState<SlashMenuState | null>(null);
-  const [shikiHighlighter, setShikiHighlighter] = useState<Highlighter | null>(
-    null,
-  );
-  const shikiHighlighterRef = useRef<Highlighter | null>(null);
+  const {
+    highlighter: shikiHighlighter,
+    highlighterRef: shikiHighlighterRef,
+    languages: availableShikiLanguages,
+  } = useEditorHighlighter();
   const [hoveredCodeBlock, setHoveredCodeBlock] =
     useState<HoveredCodeBlock | null>(null);
   const hoveredCodeBlockElementRef = useRef<HTMLElement | null>(null);
@@ -254,10 +232,6 @@ export default function CommentEditor({
         label: t(`activity:comment.editor.codeLang.${value}`),
       })),
     [t],
-  );
-  const availableShikiLanguages = useMemo(
-    () => new Set(Object.keys(bundledLanguages)),
-    [],
   );
   const toShikiLanguage = useCallback(
     (language: string) => {
@@ -294,56 +268,28 @@ export default function CommentEditor({
 
   const insertUploadedAsset = useCallback(
     (
-      activeEditor: Editor,
+      editor: Editor,
       asset: Awaited<ReturnType<typeof uploadTaskImage>>,
       range?: SlashRange,
     ) => {
-      const chain = activeEditor.chain().focus();
-
-      if (range) {
-        chain.deleteRange(range);
-      } else {
-        const { selection } = activeEditor.state;
-        if (!selection.empty) {
-          chain.setTextSelection(selection.to);
-        }
-      }
-
-      if (asset.kind === "image") {
-        chain
-          .setImage({
-            src: asset.url,
-            alt: asset.alt,
-          })
-          .run();
-        return;
-      }
-
-      chain
-        .insertContent([
-          {
-            type: "attachmentCard",
-            attrs: {
-              url: asset.url,
-              filename: asset.filename,
-              mimeType: asset.mimeType,
-              size: asset.size,
-            },
-          },
-          { type: "paragraph" },
-        ])
-        .run();
+      insertEditorAsset(
+        editor,
+        asset,
+        t("activity:comment.editor.failedToUploadFile"),
+        range,
+      );
     },
-    [],
+    [t],
   );
 
   const handleAssetFileUpload = useCallback(
     async (file: File, targetEditor?: Editor | null, range?: SlashRange) => {
       const activeEditor = targetEditor || lastEditorRef.current;
+      const initialTaskId = taskIdRef.current;
       const resolvedTaskId =
-        taskIdRef.current ?? (await ensureTaskIdRef.current?.());
+        initialTaskId ?? (await ensureTaskIdRef.current?.());
 
-      if (!activeEditor || !resolvedTaskId) {
+      if (!activeEditor || (!resolvedTaskId && !uploadAssetRef.current)) {
         toast.error(t("activity:comment.editor.uploadsOnlyOnSavedTasks"));
         return;
       }
@@ -353,12 +299,35 @@ export default function CommentEditor({
       );
 
       try {
-        const uploadedAsset = await uploadTaskImage({
-          taskId: resolvedTaskId,
-          surface: uploadSurfaceRef.current,
-          file,
-        });
-        insertUploadedAsset(activeEditor, uploadedAsset, range);
+        const uploadedAsset = uploadAssetRef.current
+          ? await uploadAssetRef.current(file)
+          : await uploadTaskImage({
+              taskId: resolvedTaskId!,
+              surface: uploadSurfaceRef.current,
+              file,
+            });
+
+        // Reuse a replacement editor only while it still belongs to the task
+        // that owns the uploaded asset.
+        const currentEditor = !activeEditor.isDestroyed
+          ? activeEditor
+          : lastEditorRef.current;
+        const taskChanged =
+          initialTaskId === undefined
+            ? taskIdRef.current !== undefined &&
+              taskIdRef.current !== resolvedTaskId
+            : taskIdRef.current !== initialTaskId;
+        if (!isMountedRef.current || taskChanged) {
+          toast.dismiss(loadingToast);
+          return;
+        }
+        if (!currentEditor || currentEditor.isDestroyed) {
+          throw new Error(t("activity:comment.editor.failedToUploadFile"));
+        }
+
+        // Only report success when the image actually landed in the document;
+        // insertUploadedAsset throws otherwise and the catch below reports it.
+        insertUploadedAsset(currentEditor, uploadedAsset, range);
 
         toast.dismiss(loadingToast);
         toast.success(
@@ -378,7 +347,7 @@ export default function CommentEditor({
     [insertUploadedAsset, t],
   );
 
-  const canUploadFiles = Boolean(taskId || ensureTaskId);
+  const canUploadFiles = Boolean(taskId || ensureTaskId || uploadAsset);
 
   const openImagePicker = useCallback(
     (activeEditor?: Editor | null, range?: SlashRange) => {
@@ -454,9 +423,8 @@ export default function CommentEditor({
         label: t("activity:comment.editor.slashParagraph"),
         group: "text",
         search: t("activity:comment.editor.searchParagraph"),
-        run: (activeEditor, range) => {
-          activeEditor.chain().focus().deleteRange(range).setParagraph().run();
-        },
+        run: richTextCommands.find((command) => command.id === "paragraph")!
+          .run,
       },
       {
         id: "heading-2",
@@ -464,14 +432,8 @@ export default function CommentEditor({
         group: "text",
         shortcut: "Ctrl Alt 2",
         search: t("activity:comment.editor.searchHeading"),
-        run: (activeEditor, range) => {
-          activeEditor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .toggleHeading({ level: 2 })
-            .run();
-        },
+        run: richTextCommands.find((command) => command.id === "heading-2")!
+          .run,
       },
       {
         id: "bullet-list",
@@ -479,28 +441,16 @@ export default function CommentEditor({
         group: "lists",
         shortcut: "Ctrl Alt 8",
         search: t("activity:comment.editor.searchBulletList"),
-        run: (activeEditor, range) => {
-          activeEditor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .toggleBulletList()
-            .run();
-        },
+        run: richTextCommands.find((command) => command.id === "bullet-list")!
+          .run,
       },
       {
         id: "task-list",
         label: t("activity:comment.editor.slashTaskList"),
         group: "lists",
         search: t("activity:comment.editor.searchTaskList"),
-        run: (activeEditor, range) => {
-          activeEditor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .toggleTaskList()
-            .run();
-        },
+        run: richTextCommands.find((command) => command.id === "task-list")!
+          .run,
       },
       {
         id: "ordered-list",
@@ -508,28 +458,16 @@ export default function CommentEditor({
         group: "lists",
         shortcut: "Ctrl Alt 9",
         search: t("activity:comment.editor.searchOrderedList"),
-        run: (activeEditor, range) => {
-          activeEditor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .toggleOrderedList()
-            .run();
-        },
+        run: richTextCommands.find((command) => command.id === "ordered-list")!
+          .run,
       },
       {
         id: "blockquote",
         label: t("activity:comment.editor.slashQuote"),
         group: "insert",
         search: t("activity:comment.editor.searchQuote"),
-        run: (activeEditor, range) => {
-          activeEditor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .toggleBlockquote()
-            .run();
-        },
+        run: richTextCommands.find((command) => command.id === "blockquote")!
+          .run,
       },
       {
         id: "code-block",
@@ -537,28 +475,15 @@ export default function CommentEditor({
         group: "insert",
         shortcut: "Ctrl Alt \\",
         search: t("activity:comment.editor.searchCodeBlock"),
-        run: (activeEditor, range) => {
-          activeEditor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .toggleCodeBlock()
-            .run();
-        },
+        run: richTextCommands.find((command) => command.id === "code-block")!
+          .run,
       },
       {
         id: "table",
         label: t("activity:comment.editor.slashTable"),
         group: "insert",
         search: t("activity:comment.editor.searchTable"),
-        run: (activeEditor, range) => {
-          activeEditor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .insertTable({ cols: 3, rows: 3 })
-            .run();
-        },
+        run: richTextCommands.find((command) => command.id === "table")!.run,
       },
       {
         id: "file",
@@ -574,26 +499,6 @@ export default function CommentEditor({
     [openImagePicker, t],
   );
 
-  useEffect(() => {
-    let mounted = true;
-
-    void getSharedShikiHighlighter()
-      .then((instance) => {
-        if (!mounted) return;
-        shikiHighlighterRef.current = instance;
-        setShikiHighlighter(instance);
-      })
-      .catch((err) => {
-        // Shared initializer resets its cached promise on rejection so a
-        // later attempt can retry. If this attempt also fails, swallow it
-        // and render without syntax highlighting.
-        console.error("Failed to initialize Shiki highlighter:", err);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
   const filteredSlashCommands = useMemo(() => {
     const query = slashMenu?.query.trim().toLowerCase() || "";
     if (!query) return slashCommands;
@@ -609,56 +514,19 @@ export default function CommentEditor({
       immediatelyRender: false,
       autofocus: autoFocus,
       editable: !readOnly && !disabled,
-      extensions: [
-        StarterKit.configure({
-          heading: { levels: [1, 2, 3] },
-          trailingNode: {},
-          codeBlock: {
-            HTMLAttributes: { class: "kaneo-tiptap-codeblock" },
-          },
-        }),
-        Markdown.configure({
-          markedOptions: {
-            breaks: true,
-            gfm: true,
-          },
-        }),
-        ShikiCodeBlock.configure({
-          highlighter: () => shikiHighlighterRef.current,
-          resolveLanguage: toShikiLanguage,
-          themeDark: "github-dark",
-          themeLight: "github-light",
-        }),
-        MermaidBlock.configure({
-          errorKey: "activity:comment.editor.mermaid.renderFailed",
-        }),
-        EmbedBlock,
-        AttachmentCard,
-        KaneoIssueLink,
-        KaneoMention,
-        MentionSuggestion.configure({
-          getMembers: () => mentionMembersRef.current,
-        }),
-        TaskList,
-        Image.configure({
-          HTMLAttributes: {
-            class: "kaneo-editor-image",
-            loading: "lazy",
-          },
-        }),
-        TaskItemWithCheckbox.configure({
-          nested: true,
-        }),
-        Placeholder.configure({
-          placeholder: resolvedPlaceholder,
-        }),
-        Table.configure({
-          resizable: true,
-        }),
-        TableRow,
-        TableHeader,
-        TableCell,
-      ],
+      extensions: createEditorExtensions({
+        placeholder: resolvedPlaceholder,
+        highlighter: () => shikiHighlighterRef.current,
+        resolveLanguage: toShikiLanguage,
+        image: Image,
+        mermaidErrorKey: "activity:comment.editor.mermaid.renderFailed",
+        extra: [
+          KaneoMention,
+          MentionSuggestion.configure({
+            getMembers: () => mentionMembersRef.current,
+          }),
+        ],
+      }),
       editorProps: {
         attributes: {
           class: cn(
@@ -679,20 +547,7 @@ export default function CommentEditor({
           }
 
           const plainText = event.clipboardData?.getData("text/plain") || "";
-          const taskListNodes = parseTaskListMarkdownToNodes(plainText);
-          if (taskListNodes) {
-            event.preventDefault();
-            const nodes = taskListNodes.map((node) =>
-              view.state.schema.nodeFromJSON(node),
-            );
-            const fragment = Fragment.fromArray(nodes);
-            view.dispatch(
-              view.state.tr
-                .replaceSelection(new Slice(fragment, 0, 0))
-                .scrollIntoView(),
-            );
-            return true;
-          }
+          if (editor && pasteMarkdown(editor, event)) return true;
 
           const pastedText = plainText.trim();
           if (!pastedText || /\s/.test(pastedText)) return false;
@@ -906,7 +761,7 @@ export default function CommentEditor({
       },
       onUpdate: ({ editor: activeEditor }) => {
         if (readOnly || disabled || !onChange || isSyncingRef.current) return;
-        const markdown = normalizeMarkdown(activeEditor.getMarkdown());
+        const markdown = normalizeCommentMarkdown(activeEditor.getMarkdown());
         latestValueRef.current = markdown;
         onChange(markdown);
       },
@@ -957,7 +812,10 @@ export default function CommentEditor({
   }, [editor]);
 
   useEffect(() => {
-    if (!editor) return;
+    // The editor instance can be destroyed and replaced while effects are
+    // flushing (e.g. Shiki resolving recreates it via useEditor deps). The
+    // next run attaches to the replacement instance.
+    if (!editor || editor.isDestroyed) return;
 
     const handleImagePreviewClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
@@ -1056,7 +914,7 @@ export default function CommentEditor({
       lastEditorRef.current = editor;
     }
 
-    const incoming = normalizeMarkdown(value || "");
+    const incoming = normalizeCommentMarkdown(value || "");
     if (!hasHydratedRef.current) {
       isSyncingRef.current = true;
       latestValueRef.current = incoming;
@@ -1671,101 +1529,35 @@ export default function CommentEditor({
             activeEditor.isActive("table") && from === to
           }
         >
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
+          <TableToolbar
+            editor={editor}
             className="kaneo-comment-editor-bubble-btn"
-            title={t("activity:comment.editor.table.addColumnBefore", {
-              defaultValue: "Insert column left",
-            })}
-            onClick={() => editor.chain().focus().addColumnBefore().run()}
-          >
-            <BetweenVerticalStart className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="kaneo-comment-editor-bubble-btn"
-            title={t("activity:comment.editor.table.addColumnAfter", {
-              defaultValue: "Insert column right",
-            })}
-            onClick={() => editor.chain().focus().addColumnAfter().run()}
-          >
-            <BetweenVerticalEnd className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className={cn(
-              "kaneo-comment-editor-bubble-btn",
-              "text-destructive",
-            )}
-            title={t("activity:comment.editor.table.deleteColumn", {
-              defaultValue: "Delete column",
-            })}
-            onClick={() => editor.chain().focus().deleteColumn().run()}
-          >
-            <Columns3 className="size-3.5" />
-          </Button>
-          <span className="kaneo-tiptap-bubble-separator" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="kaneo-comment-editor-bubble-btn"
-            title={t("activity:comment.editor.table.addRowBefore", {
-              defaultValue: "Insert row above",
-            })}
-            onClick={() => editor.chain().focus().addRowBefore().run()}
-          >
-            <BetweenHorizontalStart className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="kaneo-comment-editor-bubble-btn"
-            title={t("activity:comment.editor.table.addRowAfter", {
-              defaultValue: "Insert row below",
-            })}
-            onClick={() => editor.chain().focus().addRowAfter().run()}
-          >
-            <BetweenHorizontalEnd className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className={cn(
-              "kaneo-comment-editor-bubble-btn",
-              "text-destructive",
-            )}
-            title={t("activity:comment.editor.table.deleteRow", {
-              defaultValue: "Delete row",
-            })}
-            onClick={() => editor.chain().focus().deleteRow().run()}
-          >
-            <Rows3 className="size-3.5" />
-          </Button>
-          <span className="kaneo-tiptap-bubble-separator" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className={cn(
-              "kaneo-comment-editor-bubble-btn",
-              "text-destructive",
-            )}
-            title={t("activity:comment.editor.table.deleteTable", {
-              defaultValue: "Delete table",
-            })}
-            onClick={() => editor.chain().focus().deleteTable().run()}
-          >
-            <Grid2x2X className="size-3.5" />
-          </Button>
+            labels={{
+              addColumnBefore: t(
+                "activity:comment.editor.table.addColumnBefore",
+                { defaultValue: "Insert column left" },
+              ),
+              addColumnAfter: t(
+                "activity:comment.editor.table.addColumnAfter",
+                { defaultValue: "Insert column right" },
+              ),
+              deleteColumn: t("activity:comment.editor.table.deleteColumn", {
+                defaultValue: "Delete column",
+              }),
+              addRowBefore: t("activity:comment.editor.table.addRowBefore", {
+                defaultValue: "Insert row above",
+              }),
+              addRowAfter: t("activity:comment.editor.table.addRowAfter", {
+                defaultValue: "Insert row below",
+              }),
+              deleteRow: t("activity:comment.editor.table.deleteRow", {
+                defaultValue: "Delete row",
+              }),
+              deleteTable: t("activity:comment.editor.table.deleteTable", {
+                defaultValue: "Delete table",
+              }),
+            }}
+          />
         </BubbleMenu>
       )}
       {slashMenu && !readOnly && !disabled && (

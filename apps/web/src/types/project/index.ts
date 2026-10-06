@@ -16,8 +16,14 @@ type ProjectWithTasksRaw = TasksApiResponse["data"];
 
 export type ProjectWithTasks = Omit<
   ProjectWithTasksRaw,
-  "archivedTasks" | "columns" | "plannedTasks" | "subtaskRelations"
+  | "archivedTasks"
+  | "backgroundVersion"
+  | "columns"
+  | "plannedTasks"
+  | "subtaskRelations"
 > & {
+  // Older cache fixtures and persisted query data predate board backgrounds.
+  backgroundVersion?: string | null;
   archivedTasks: Task[];
   columns: Array<
     Omit<ProjectWithTasksRaw["columns"][number], "tasks"> & {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { favoriteScope, useProjectFavorites } from "./project-favorites";
 
 // Node 26 exposes an unavailable localStorage getter in this test runtime.

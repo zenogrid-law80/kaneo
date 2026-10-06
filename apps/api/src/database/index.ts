@@ -8,6 +8,8 @@ import {
   assetTableRelations,
   columnTableRelations,
   commentTableRelations,
+  customFieldDefinitionTableRelations,
+  customFieldValueTableRelations,
   externalLinkTableRelations,
   githubIntegrationTableRelations,
   integrationTableRelations,
@@ -34,16 +36,22 @@ import {
 } from "./relations";
 import { resolveDatabaseConnectionString } from "./resolve-database-url";
 import {
+  dataMigrationTable,
+  storageCleanupTable,
   accountTable,
   activityTable,
   apikeyTable,
   assetTable,
   billingEventTable,
   billingReminderSentTable,
+  calendarFeedTable,
   columnTable,
   commentTable,
+  customFieldDefinitionTable,
+  customFieldValueTable,
   deviceCodeTable,
   externalLinkTable,
+  githubImportTable,
   githubIntegrationTable,
   integrationTable,
   invitationTable,
@@ -77,18 +85,22 @@ import { withUtcDatabaseSession } from "./utc-connection-string";
 config();
 
 export const schema = {
+  dataMigrationTable,
+  storageCleanupTable,
   accountTable,
   assetTable,
   activityTable,
   apikeyTable,
   billingReminderSentTable,
   billingEventTable,
+  calendarFeedTable,
   workspaceBillingTable,
   columnTable,
   commentTable,
   deviceCodeTable,
   externalLinkTable,
   githubIntegrationTable,
+  githubImportTable,
   integrationTable,
   invitationTable,
   jobLeaseTable,
@@ -143,6 +155,10 @@ export const schema = {
   workspaceRoleTableRelations,
   workspaceTableRelations,
   workspaceUserTableRelations,
+  customFieldDefinitionTable,
+  customFieldValueTable,
+  customFieldDefinitionTableRelations,
+  customFieldValueTableRelations,
 };
 
 type DatabaseInstance = ReturnType<typeof drizzle<typeof schema>>;

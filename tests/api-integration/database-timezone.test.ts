@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { Client } from "pg";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 import db, { getDatabasePool, schema } from "../../apps/api/src/database";
 import { withUtcDatabaseSession } from "../../apps/api/src/database/utc-connection-string";
 import { createApp } from "../../apps/api/src/index";

@@ -63,6 +63,7 @@ export default function MobileProjectNav({
             variant="ghost"
             size="icon-xs"
             className="size-7 border border-transparent"
+            aria-label={t("navigation:keyboardShortcuts.categories.views")}
           />
         }
       >
@@ -72,7 +73,7 @@ export default function MobileProjectNav({
         <div className="space-y-3">
           <div className="space-y-1">
             <p className="px-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-              View
+              {t("navigation:keyboardShortcuts.categories.views")}
             </p>
             <div className="grid grid-cols-2 gap-1">
               <button
@@ -85,7 +86,7 @@ export default function MobileProjectNav({
                     : "border-transparent text-muted-foreground hover:bg-accent",
                 )}
               >
-                Backlog
+                {t("tasks:view.backlog")}
               </button>
               <button
                 type="button"
@@ -98,7 +99,7 @@ export default function MobileProjectNav({
                 )}
               >
                 <SquareKanban className="size-3.5" />
-                Board
+                {t("tasks:view.board")}
               </button>
               <button
                 type="button"
@@ -137,7 +138,7 @@ export default function MobileProjectNav({
                 )}
               >
                 <CalendarDays className="size-3.5" />
-                Gantt
+                {t("tasks:view.gantt")}
               </button>
               {onSelectStatistics ? (
                 <button
@@ -159,7 +160,7 @@ export default function MobileProjectNav({
 
           <div className="space-y-1">
             <p className="px-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-              Projects
+              {t("navigation:sidebar.projects")}
             </p>
             <div className="max-h-56 space-y-0.5 overflow-y-auto">
               {(projects ?? []).map((project) => {
@@ -194,7 +195,7 @@ export default function MobileProjectNav({
             className="flex w-full items-center gap-2 rounded-md border border-border px-2 py-1.5 text-left text-sm text-foreground transition-colors hover:bg-accent"
           >
             <Plus className="size-3.5" />
-            Add project
+            {t("navigation:projectList.addProject")}
           </button>
         </div>
       </PopoverContent>

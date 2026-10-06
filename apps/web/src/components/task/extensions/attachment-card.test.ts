@@ -1,7 +1,7 @@
 import { Editor } from "@tiptap/core";
 import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import {
   AttachmentCard,
   isEmbeddableVideoAttachment,
@@ -42,7 +42,7 @@ describe("AttachmentCard", () => {
       "attachmentCard",
       "paragraph",
     ]);
-    expect(editor.view.dom.children[1]?.tagName).toBe("KANEO-ATTACHMENT");
+    expect(editor.getHTML()).toContain("<kaneo-attachment");
     editor.destroy();
   });
 

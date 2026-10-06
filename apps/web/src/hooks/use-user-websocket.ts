@@ -1,7 +1,12 @@
 import { windowId } from "@kaneo/libs";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { getApiUrl } from "@/fetchers/get-api-url";
+import {
+  evictInaccessibleWorkspaceCache,
+  evictWorkspaceCache,
+} from "@/lib/evict-workspace-cache";
 import { authClient } from "@/lib/auth-client";
 
 export function getUserWsUrl() {
@@ -10,7 +15,7 @@ export function getUserWsUrl() {
   return `${wsBase}/user?windowId=${encodeURIComponent(windowId)}`;
 }
 
-const MAX_RETRIES = 5;
+const MAX_RETRY_DELAY = 30_000;
 const BASE_DELAY = 1000;
 const WS_PING_INTERVAL_MS = 30_000;
 
@@ -21,33 +26,65 @@ const WS_PING_INTERVAL_MS = 30_000;
  */
 export function useUserWebSocket() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
   const { data: session } = authClient.useSession();
-  const wsRef = useRef<WebSocket | null>(null);
-  const retriesRef = useRef(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+  const activeWorkspaceRef = useRef(session?.session?.activeOrganizationId);
+  activeWorkspaceRef.current = session?.session?.activeOrganizationId;
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    retriesRef.current = 0;
+    // A previous session's delayed socket events must not control this session.
+    let disposed = false;
+    let userRevoked = false;
+    let activeSocket: WebSocket | null = null;
+    let retryDelay = BASE_DELAY;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    let pingInterval: ReturnType<typeof setInterval> | null = null;
 
     function clearPing() {
-      if (pingIntervalRef.current) {
-        clearInterval(pingIntervalRef.current);
-        pingIntervalRef.current = null;
+      if (pingInterval !== null) {
+        clearInterval(pingInterval);
+        pingInterval = null;
       }
     }
 
+    function refreshOrganizationState() {
+      for (const signal of [
+        "$listOrg",
+        "$activeOrgSignal",
+        "$activeMemberRoleSignal",
+        "$sessionSignal",
+      ])
+        authClient.$store.notify(signal);
+    }
+
+    function revokeUserAccess() {
+      if (userRevoked) return;
+      userRevoked = true;
+      clearPing();
+      queryClient.clear();
+      refreshOrganizationState();
+      void authClient
+        .signOut()
+        .finally(() => navigate({ to: "/auth/sign-in" }))
+        .catch(() => {});
+    }
+
     function connect() {
+      if (disposed) return;
+      retryTimeout = null;
       const url = getUserWsUrl();
       const ws = new WebSocket(url);
-      wsRef.current = ws;
+      activeSocket = ws;
 
       ws.onopen = () => {
-        retriesRef.current = 0;
+        if (disposed || activeSocket !== ws) return;
+        retryDelay = BASE_DELAY;
         clearPing();
-        pingIntervalRef.current = setInterval(() => {
+        pingInterval = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "ping" }));
           }
@@ -55,10 +92,46 @@ export function useUserWebSocket() {
       };
 
       ws.onmessage = (event) => {
+        if (disposed || activeSocket !== ws) return;
         try {
           const message = JSON.parse(event.data as string) as {
             type?: string;
+            workspaceId?: string;
+            workspaceIds?: string[] | null;
           };
+          if (message.type === "USER_ACCESS_REVOKED") {
+            revokeUserAccess();
+            return;
+          }
+          if (
+            message.type === "WORKSPACE_ACCESS_SYNC" &&
+            Array.isArray(message.workspaceIds) &&
+            message.workspaceIds.every((id) => typeof id === "string")
+          ) {
+            evictInaccessibleWorkspaceCache(queryClient, message.workspaceIds);
+            refreshOrganizationState();
+            const path = pathnameRef.current;
+            const current =
+              /^\/dashboard\/settings\/(workspace|projects)(\/|$)/.test(path)
+                ? activeWorkspaceRef.current
+                : path.match(/^\/dashboard\/workspace\/([^/]+)/)?.[1];
+            if (current && !message.workspaceIds.includes(current))
+              void navigate({ to: "/dashboard" });
+          }
+          if (
+            message.type === "WORKSPACE_ACCESS_REVOKED" &&
+            message.workspaceId
+          ) {
+            evictWorkspaceCache(queryClient, message.workspaceId);
+            refreshOrganizationState();
+            const path = pathnameRef.current;
+            const current =
+              /^\/dashboard\/settings\/(workspace|projects)(\/|$)/.test(path)
+                ? activeWorkspaceRef.current
+                : path.match(/^\/dashboard\/workspace\/([^/]+)/)?.[1];
+            if (current === message.workspaceId)
+              void navigate({ to: "/dashboard" });
+          }
           if (message.type === "NOTIFICATION_CREATED") {
             queryClient.invalidateQueries({ queryKey: ["notifications"] });
           }
@@ -67,27 +140,28 @@ export function useUserWebSocket() {
         }
       };
 
-      ws.onclose = () => {
+      ws.onclose = (event) => {
+        if (disposed || activeSocket !== ws) return;
         clearPing();
-        wsRef.current = null;
+        activeSocket = null;
+        if (event?.code === 1008) revokeUserAccess();
+        if (userRevoked) return;
 
-        if (retriesRef.current < MAX_RETRIES) {
-          const delay = BASE_DELAY * 2 ** retriesRef.current;
-          retriesRef.current += 1;
-          timeoutRef.current = setTimeout(connect, delay);
-        }
+        const delay = retryDelay;
+        retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY);
+        retryTimeout = setTimeout(connect, delay);
       };
     }
 
     connect();
 
     return () => {
-      retriesRef.current = MAX_RETRIES; // prevent reconnect after unmount
+      disposed = true;
       clearPing();
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      if (retryTimeout !== null) {
+        clearTimeout(retryTimeout);
       }
-      wsRef.current?.close();
+      activeSocket?.close();
     };
-  }, [session?.user?.id, queryClient]);
+  }, [session?.user?.id, queryClient, navigate]);
 }

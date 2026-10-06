@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { withUtcDatabaseSession } from "../../../apps/api/src/database/utc-connection-string";
 
 describe("UTC database sessions", () => {

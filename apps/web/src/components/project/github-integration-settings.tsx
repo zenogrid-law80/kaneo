@@ -1,4 +1,5 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CheckCircle,
@@ -29,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import getGitHubAppInfo from "@/fetchers/github-integration/get-app-info";
 import type { VerifyGithubInstallationResponse } from "@/fetchers/github-integration/verify-github-installation";
 import {
   useCreateGithubIntegration,
@@ -38,6 +40,8 @@ import {
 import useImportGithubIssues from "@/hooks/mutations/github-integration/use-import-github-issues";
 import { useUpdateGithubIntegration } from "@/hooks/mutations/github-integration/use-update-github-integration";
 import useGetGithubIntegration from "@/hooks/queries/github-integration/use-get-github-integration";
+import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 
@@ -52,6 +56,33 @@ export function GitHubIntegrationSettings({
   projectId: string;
 }) {
   const { t } = useTranslation();
+  const { canCreateTasks, canUpdateTasks } = useWorkspacePermission();
+  const hasImportPermission = canCreateTasks() && canUpdateTasks();
+  const { data: session } = authClient.useSession();
+  const { data: appInfo } = useQuery({
+    queryKey: ["github-app-info", session?.user.id],
+    queryFn: getGitHubAppInfo,
+    enabled: Boolean(session?.user.id),
+  });
+  const [isLinkingAccount, setIsLinkingAccount] = React.useState(false);
+  const linkAccount = async () => {
+    setIsLinkingAccount(true);
+    try {
+      const result = await authClient.linkSocial({
+        provider: "github",
+        callbackURL: window.location.href,
+      });
+      if (result.error) throw new Error(result.error.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings:githubIntegration.toast.updateError"),
+      );
+    } finally {
+      setIsLinkingAccount(false);
+    }
+  };
   const githubIntegrationSchema = React.useMemo(
     () =>
       z.object({
@@ -146,10 +177,16 @@ export function GitHubIntegrationSettings({
   );
 
   React.useEffect(() => {
-    if (repositoryOwner && repositoryName && form.formState.isValid) {
+    if (
+      appInfo?.accountConnected &&
+      repositoryOwner &&
+      repositoryName &&
+      form.formState.isValid
+    ) {
       handleVerifyInstallation({ repositoryOwner, repositoryName }, false);
     }
   }, [
+    appInfo?.accountConnected,
     repositoryOwner,
     repositoryName,
     form.formState.isValid,
@@ -223,9 +260,17 @@ export function GitHubIntegrationSettings({
   };
 
   const handleImportIssues = async () => {
+    if (!hasImportPermission) return;
     try {
-      await importIssues({ projectId });
-      toast.success(t("settings:githubIntegration.toast.issuesImported"));
+      const result = await importIssues({
+        projectId,
+        ...(integration?.importProgress?.pending
+          ? { runId: integration.importProgress.runId }
+          : {}),
+      });
+      toast.success(t("settings:githubIntegration.toast.issuesImported"), {
+        description: t("settings:githubIntegration.importSummary", result),
+      });
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -238,14 +283,14 @@ export function GitHubIntegrationSettings({
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="space-y-4 border border-border rounded-md p-4 bg-sidebar">
+        <div className="space-y-4 rounded-xl border border-border bg-card p-4">
           <div className="space-y-4">
             <div className="h-4 bg-muted rounded animate-pulse w-40" />
             <div className="h-4 bg-muted rounded animate-pulse w-full" />
             <div className="h-10 bg-muted rounded animate-pulse w-full" />
           </div>
         </div>
-        <div className="space-y-4 border border-border rounded-md p-4 bg-sidebar">
+        <div className="space-y-4 rounded-xl border border-border bg-card p-4">
           <div className="space-y-4">
             <div className="h-4 bg-muted rounded animate-pulse w-40" />
             <div className="h-10 bg-muted rounded animate-pulse w-full" />
@@ -257,14 +302,44 @@ export function GitHubIntegrationSettings({
   }
 
   const isConnected = !!integration && integration.isActive;
+  // The saved binding is verified again by each import request. Resuming must
+  // also work after refresh, without a new administrator-only account check.
   const canImport =
-    isConnected &&
-    verificationResult?.isInstalled &&
-    verificationResult?.hasRequiredPermissions;
+    hasImportPermission && isConnected && !integration.requiresVerification;
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 border border-border rounded-md p-4 bg-sidebar">
+      {appInfo && !appInfo.accountConnected && (
+        <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+          <p className="text-sm">
+            {t("settings:githubIntegration.accountVerificationHint")}
+          </p>
+          {appInfo.accountLinkingAvailable ? (
+            <Button
+              type="button"
+              variant="outline"
+              loading={isLinkingAccount}
+              onClick={linkAccount}
+            >
+              <GithubIcon aria-hidden="true" />
+              {t("settings:githubIntegration.connect")} GitHub
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("settings:githubIntegration.enableGithubSignInHint")}
+            </p>
+          )}
+        </div>
+      )}
+      {integration?.requiresVerification && (
+        <p
+          role="status"
+          className="rounded-md border border-border p-4 text-sm"
+        >
+          {t("settings:githubIntegration.reverifyHint")}
+        </p>
+      )}
+      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <p className="text-sm font-medium">
@@ -407,7 +482,7 @@ export function GitHubIntegrationSettings({
           </>
         )}
       </div>
-      <div className="space-y-4 border border-border rounded-md p-4 bg-sidebar">
+      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -489,6 +564,7 @@ export function GitHubIntegrationSettings({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowRepositoryBrowser(true)}
+                  disabled={!appInfo?.accountConnected}
                   className="gap-2"
                 >
                   <GitBranch className="size-3" />
@@ -500,7 +576,11 @@ export function GitHubIntegrationSettings({
                   variant="outline"
                   size="sm"
                   onClick={() => handleVerifyInstallation(form.getValues())}
-                  disabled={isVerifying || !form.formState.isValid}
+                  disabled={
+                    !appInfo?.accountConnected ||
+                    isVerifying ||
+                    !form.formState.isValid
+                  }
                   className="gap-2"
                 >
                   <RefreshCw
@@ -513,6 +593,7 @@ export function GitHubIntegrationSettings({
                   type="submit"
                   size="sm"
                   disabled={
+                    !appInfo?.accountConnected ||
                     isCreating ||
                     isDeleting ||
                     !form.formState.isValid ||
@@ -529,7 +610,7 @@ export function GitHubIntegrationSettings({
                     : t("settings:githubIntegration.connect")}
                 </Button>
 
-                {isConnected && (
+                {integration && (
                   <Button
                     type="button"
                     variant="destructive"
@@ -640,7 +721,7 @@ export function GitHubIntegrationSettings({
       </div>
 
       {isConnected && (
-        <div className="space-y-4 border border-border rounded-md p-4 bg-sidebar">
+        <div className="space-y-4 rounded-xl border border-border bg-card p-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <p className="text-sm font-medium">
@@ -665,15 +746,28 @@ export function GitHubIntegrationSettings({
                 )}
                 {isImporting
                   ? t("settings:githubIntegration.importing")
-                  : t("settings:githubIntegration.importIssues")}
+                  : integration?.importProgress?.pending
+                    ? t("settings:githubIntegration.resumeImport")
+                    : t("settings:githubIntegration.importIssues")}
               </Button>
             </div>
           </div>
+          {integration?.importProgress?.pending && !isImporting && (
+            <p role="status" className="text-xs text-muted-foreground">
+              {t("settings:githubIntegration.importPaused")}{" "}
+              {t(
+                "settings:githubIntegration.importSummary",
+                integration.importProgress,
+              )}
+            </p>
+          )}
           {!canImport && (
             <>
               <Separator />
               <p className="text-xs text-muted-foreground">
-                {t("settings:githubIntegration.importDisabledHint")}
+                {hasImportPermission
+                  ? t("settings:githubIntegration.importDisabledHint")
+                  : t("settings:gitlabIntegration.importPermissionHint")}
               </p>
             </>
           )}
