@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import updateTaskStatus from "@/fetchers/task/update-task-status";
+import { invalidateMilestones } from "@/lib/milestone-cache";
 import type Task from "@/types/task";
 
 export function useUpdateTaskStatus() {
@@ -8,6 +9,7 @@ export function useUpdateTaskStatus() {
   return useMutation({
     mutationFn: (task: Task) => updateTaskStatus(task.id, task),
     onSuccess: (_, variables) => {
+      invalidateMilestones(queryClient);
       queryClient.invalidateQueries({
         queryKey: ["task", variables.id],
       });

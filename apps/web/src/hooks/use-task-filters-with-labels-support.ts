@@ -1,8 +1,15 @@
 import { addWeeks, endOfWeek, isWithinInterval, startOfWeek } from "date-fns";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
 import type Task from "@/types/task";
+import { useMilestoneFilter } from "./use-milestone-filter";
 import {
   type BoardFilters,
   DUE_DATE_FILTER_VALUES,
@@ -10,6 +17,7 @@ import {
 } from "./use-task-filters";
 
 const DEFAULT_FILTERS: BoardFilters = {
+  milestone: null,
   status: null,
   priority: null,
   assignee: null,
@@ -18,6 +26,7 @@ const DEFAULT_FILTERS: BoardFilters = {
 };
 
 const FILTER_KEYS: Array<keyof BoardFilters> = [
+  "milestone",
   "status",
   "priority",
   "assignee",
@@ -51,7 +60,15 @@ export function useTaskFiltersWithLabelsSupport(
 ) {
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
   const storageKey = projectId ? `kaneo:board-filters:${projectId}` : null;
-  const [filters, setFilters] = useState<BoardFilters>(DEFAULT_FILTERS);
+  const [localFilters, setLocalFilters] =
+    useState<BoardFilters>(DEFAULT_FILTERS);
+  const { milestoneId, setMilestoneId } = useMilestoneFilter(
+    projectId ?? project?.id ?? "",
+  );
+  const filters = useMemo(
+    () => ({ ...localFilters, milestone: milestoneId ? [milestoneId] : null }),
+    [localFilters, milestoneId],
+  );
 
   useEffect(() => {
     if (!storageKey || typeof window === "undefined") return;
@@ -59,14 +76,14 @@ export function useTaskFiltersWithLabelsSupport(
     try {
       const stored = window.localStorage.getItem(storageKey);
       if (!stored) {
-        setFilters(DEFAULT_FILTERS);
+        setLocalFilters(DEFAULT_FILTERS);
         return;
       }
 
       const parsed = JSON.parse(stored) as unknown;
-      setFilters(normalizeFilters(parsed));
+      setLocalFilters(normalizeFilters(parsed));
     } catch {
-      setFilters(DEFAULT_FILTERS);
+      setLocalFilters(DEFAULT_FILTERS);
     }
   }, [storageKey]);
 
@@ -100,6 +117,12 @@ export function useTaskFiltersWithLabelsSupport(
             return false;
           }
         }
+
+        if (
+          filters.milestone?.length &&
+          !filters.milestone.includes(task.milestoneId ?? "none")
+        )
+          return false;
 
         if (
           filters.status &&
@@ -207,18 +230,23 @@ export function useTaskFiltersWithLabelsSupport(
   );
 
   const clearFilters = () => {
-    setFilters(DEFAULT_FILTERS);
+    setMilestoneId(null);
+    setLocalFilters(DEFAULT_FILTERS);
   };
 
   const updateFilter = (
     key: keyof BoardFilters,
     value: BoardFilters[keyof BoardFilters],
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    if (key === "milestone") {
+      setMilestoneId(value?.[0] ?? null);
+      return;
+    }
+    setLocalFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const updateLabelFilter = (labelId: string) => {
-    setFilters((prev) => {
+    setLocalFilters((prev) => {
       const currentLabels = prev.labels || [];
       const isSelected = currentLabels.includes(labelId);
 
@@ -232,6 +260,12 @@ export function useTaskFiltersWithLabelsSupport(
 
       return { ...prev, labels: newLabels };
     });
+  };
+
+  const setFilters = (value: SetStateAction<BoardFilters>) => {
+    const next = typeof value === "function" ? value(filters) : value;
+    setMilestoneId(next.milestone?.[0] ?? null);
+    setLocalFilters(next);
   };
 
   return {

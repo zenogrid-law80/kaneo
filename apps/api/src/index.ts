@@ -37,6 +37,7 @@ import invitation from "./invitation";
 import label from "./label";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
 import { migrateColumns } from "./migrations/column-migration";
+import milestone from "./milestone";
 import notification from "./notification";
 import notificationPreferences from "./notification-preferences";
 import oauth from "./oauth";
@@ -580,6 +581,7 @@ export function createApp() {
   const billingApi = api.route("/billing", billing);
   const projectApi = api.route("/project", project);
   const taskApi = api.route("/task", task);
+  const milestoneApi = api.route("/milestone", milestone);
   const columnApi = api.route("/column", column);
   const activityApi = api.route("/activity", activity);
   const commentApi = api.route("/comment", comment);
@@ -779,6 +781,7 @@ export function createApp() {
     searchApi,
     slackIntegrationApi,
     taskApi,
+    milestoneApi,
     taskRelationApi,
     telegramIntegrationApi,
     timeEntryApi,
@@ -898,6 +901,7 @@ const {
   searchApi,
   slackIntegrationApi,
   taskApi,
+  milestoneApi,
   taskRelationApi,
   telegramIntegrationApi,
   timeEntryApi,
@@ -922,6 +926,7 @@ export type AppType =
   | typeof configApi
   | typeof projectApi
   | typeof taskApi
+  | typeof milestoneApi
   | typeof columnApi
   | typeof activityApi
   | typeof commentApi

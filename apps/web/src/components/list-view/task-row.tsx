@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { type CSSProperties, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import MilestoneBadge from "@/components/milestone/milestone-badge";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -217,6 +218,13 @@ function TaskRow({ task, projectSlug }: TaskRowProps) {
               <div className="flex items-center gap-2 justify-between w-full">
                 <span className="text-sm text-foreground truncate">
                   {task.title}
+                  {task.milestoneId && workspace && (
+                    <MilestoneBadge
+                      id={task.milestoneId}
+                      projectId={task.projectId}
+                      workspaceId={workspace.id}
+                    />
+                  )}
                 </span>
                 <div className="flex items-center gap-1">
                   {showLabels && <TaskLabels labels={task.labels ?? []} />}

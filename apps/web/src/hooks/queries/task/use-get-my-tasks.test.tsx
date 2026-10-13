@@ -27,6 +27,7 @@ describe("my tasks cache", () => {
           dueDate: null,
           projectId: "project",
           projectName: "Project",
+          milestoneId: null,
           projectSlug: "PRO",
         },
       ],

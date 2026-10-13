@@ -4,10 +4,15 @@ import db from "../../database";
 import {
   assetTable,
   columnTable,
+  milestoneTable,
   projectTable,
   taskTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
+import {
+  lockMilestoneProjects,
+  publishMilestoneAssignment,
+} from "../../milestone/controllers/milestones";
 import { claimTaskNumber } from "./claim-task-numbers";
 
 type DbOrTx = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -133,7 +138,27 @@ async function moveTask({
     destinationStatus,
   );
 
-  const movedTask = await db.transaction(async (tx) => {
+  const moved = await db.transaction(async (tx) => {
+    await lockMilestoneProjects(tx, [
+      existingTask.projectId,
+      destinationProjectId,
+    ]);
+    const [current] = await tx
+      .select()
+      .from(taskTable)
+      .where(eq(taskTable.id, taskId))
+      .for("update");
+    if (!current || current.projectId !== existingTask.projectId)
+      throw new HTTPException(409, {
+        message: "Task changed projects; retry the move",
+      });
+    const [oldMilestone] = current.milestoneId
+      ? await tx
+          .select()
+          .from(milestoneTable)
+          .where(eq(milestoneTable.id, current.milestoneId))
+      : [];
+
     const [nextTaskNumber, nextPosition] = await Promise.all([
       claimTaskNumber(destinationProjectId, tx),
       getNextTaskPosition(
@@ -148,6 +173,7 @@ async function moveTask({
       .update(taskTable)
       .set({
         projectId: destinationProjectId,
+        milestoneId: null,
         status: resolvedColumn.slug,
         columnId: resolvedColumn.id,
         number: nextTaskNumber,
@@ -167,8 +193,17 @@ async function moveTask({
       .set({ projectId: destinationProjectId })
       .where(eq(assetTable.taskId, taskId));
 
-    return updatedTask;
+    return { updatedTask, oldMilestone };
   });
+
+  const movedTask = moved.updatedTask;
+  if (moved.oldMilestone)
+    await publishMilestoneAssignment(
+      { id: taskId, projectId: sourceProject.id },
+      currentUserId,
+      moved.oldMilestone,
+      null,
+    );
 
   await publishEvent("task.moved", {
     taskId,

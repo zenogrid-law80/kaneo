@@ -1,11 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import bulkOperation from "@/fetchers/task/bulk-operation";
 import deleteTask from "@/fetchers/task/delete-task";
+import { invalidateMilestones } from "@/lib/milestone-cache";
 
 export function useBulkOperations() {
   const queryClientRef = useQueryClient();
 
   const invalidateCommon = () => {
+    invalidateMilestones(queryClientRef);
+    void queryClientRef.invalidateQueries({
+      queryKey: ["milestone-candidates"],
+    });
     queryClientRef.invalidateQueries({ queryKey: ["tasks"] });
     queryClientRef.invalidateQueries({ queryKey: ["projects"] });
   };
@@ -144,7 +149,27 @@ export function useBulkOperations() {
     onSuccess: invalidateCommon,
   });
 
+  const bulkMilestone = useMutation({
+    mutationFn: ({
+      taskIds,
+      milestoneId,
+    }: {
+      taskIds: string[];
+      milestoneId: string | null;
+    }) =>
+      bulkOperation({
+        taskIds,
+        operation: "updateMilestone",
+        value: milestoneId,
+      }),
+    onSuccess: () => {
+      invalidateCommon();
+      for (const key of ["task", "activities", "my-tasks"])
+        void queryClientRef.invalidateQueries({ queryKey: [key] });
+    },
+  });
   return {
+    bulkMilestone: bulkMilestone.mutateAsync,
     bulkDelete: bulkDelete.mutateAsync,
     bulkArchive: bulkArchive.mutateAsync,
     bulkChangeStatus: bulkChangeStatus.mutateAsync,

@@ -10,6 +10,7 @@ import {
   workspaceUserTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
+import { setTaskMilestones } from "../../milestone/controllers/milestones";
 import { removeLabelFromGitea } from "../../plugins/gitea/utils/sync-label-to-gitea";
 import { removeLabelFromGitHub } from "../../plugins/github/utils/sync-label-to-github";
 import { assertAssignableUser } from "../../utils/assert-assignable-user";
@@ -25,6 +26,7 @@ type BulkOperation =
   | "delete"
   | "addLabel"
   | "removeLabel"
+  | "updateMilestone"
   | "updateDueDate";
 
 async function bulkUpdateTasks({
@@ -94,6 +96,15 @@ async function bulkUpdateTasks({
   let updatedCount = 0;
 
   switch (operation) {
+    case "updateMilestone": {
+      if (value === undefined || value === "")
+        throw new HTTPException(400, {
+          message: "Milestone ID or null is required",
+        });
+      const updated = await setTaskMilestones(taskIds, value, userId);
+      updatedCount = updated.length;
+      break;
+    }
     case "updateStatus": {
       if (!value) {
         throw new HTTPException(400, { message: "Status value is required" });

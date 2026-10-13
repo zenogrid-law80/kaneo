@@ -267,6 +267,7 @@ type TaskEvent = {
 const taskUpdateEvents = [
   "task.created",
   "task.updated",
+  "task.milestone_changed",
   "task.deleted",
   "task.status_changed",
   "task.priority_changed",
@@ -388,4 +389,24 @@ for (const eventName of taskUpdateEvents) {
       initiatorId,
     );
   });
+}
+
+for (const name of [
+  "milestone.created",
+  "milestone.updated",
+  "milestone.deleted",
+  "column.updated",
+  "column.created",
+  "column.deleted",
+]) {
+  subscribeToEvent<{ projectId: string; initiatorId?: string }>(
+    name,
+    async (data) => {
+      broadcastToProject(
+        data.projectId,
+        { type: "MILESTONES_UPDATED", projectId: data.projectId },
+        data.initiatorId,
+      );
+    },
+  );
 }

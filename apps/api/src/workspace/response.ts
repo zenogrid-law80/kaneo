@@ -109,6 +109,7 @@ export const myTasksSchema = z
           projectId: z.string(),
           projectName: z.string(),
           projectSlug: z.string(),
+          milestoneId: z.string().nullable(),
         })
         .openapi("MyTask"),
     ),

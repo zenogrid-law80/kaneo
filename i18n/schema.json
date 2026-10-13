@@ -8700,6 +8700,202 @@
 						}
 					},
 					"required": ["table"]
+				},
+				"milestones": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"none": {
+							"type": "string"
+						},
+						"all": {
+							"type": "string"
+						},
+						"closedName": {
+							"type": "string"
+						},
+						"create": {
+							"type": "string"
+						},
+						"edit": {
+							"type": "string"
+						},
+						"formDescription": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"dueDate": {
+							"type": "string"
+						},
+						"open": {
+							"type": "string"
+						},
+						"closed": {
+							"type": "string"
+						},
+						"close": {
+							"type": "string"
+						},
+						"reopen": {
+							"type": "string"
+						},
+						"delete": {
+							"type": "string"
+						},
+						"deleteDescription": {
+							"type": "string"
+						},
+						"progress": {
+							"type": "string"
+						},
+						"progressLabel": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"emptyDescription": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"saveError": {
+							"type": "string"
+						},
+						"retry": {
+							"type": "string"
+						},
+						"noDate": {
+							"type": "string"
+						},
+						"overdue": {
+							"type": "string"
+						},
+						"noTasks": {
+							"type": "string"
+						},
+						"previous": {
+							"type": "string"
+						},
+						"next": {
+							"type": "string"
+						},
+						"back": {
+							"type": "string"
+						},
+						"notFound": {
+							"type": "string"
+						},
+						"tasks": {
+							"type": "string"
+						},
+						"linkTask": {
+							"type": "string"
+						},
+						"linkDescription": {
+							"type": "string"
+						},
+						"searchTasks": {
+							"type": "string"
+						},
+						"noMatchingTasks": {
+							"type": "string"
+						},
+						"newTask": {
+							"type": "string"
+						},
+						"addTask": {
+							"type": "string"
+						},
+						"unlink": {
+							"type": "string"
+						},
+						"archivedTasks": {
+							"type": "string"
+						},
+						"activeTasks": {
+							"type": "string"
+						},
+						"archivedExcluded": {
+							"type": "string"
+						},
+						"remaining": {
+							"type": "string"
+						},
+						"activity": {
+							"type": "string"
+						},
+						"bulk": {
+							"type": "string"
+						},
+						"bulkSuccess": {
+							"type": "string"
+						},
+						"filter": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"none",
+						"all",
+						"closedName",
+						"create",
+						"edit",
+						"formDescription",
+						"name",
+						"description",
+						"dueDate",
+						"open",
+						"closed",
+						"close",
+						"reopen",
+						"delete",
+						"deleteDescription",
+						"progress",
+						"progressLabel",
+						"empty",
+						"emptyDescription",
+						"loadError",
+						"saveError",
+						"retry",
+						"noDate",
+						"overdue",
+						"noTasks",
+						"previous",
+						"next",
+						"back",
+						"notFound",
+						"tasks",
+						"linkTask",
+						"linkDescription",
+						"searchTasks",
+						"noMatchingTasks",
+						"newTask",
+						"addTask",
+						"unlink",
+						"archivedTasks",
+						"activeTasks",
+						"archivedExcluded",
+						"remaining",
+						"activity",
+						"bulk",
+						"bulkSuccess",
+						"filter",
+						"save"
+					]
 				}
 			},
 			"required": [
@@ -8733,7 +8929,8 @@
 				"contextMenu",
 				"actions",
 				"bulk",
-				"editor"
+				"editor",
+				"milestones"
 			]
 		},
 		"invitations": {

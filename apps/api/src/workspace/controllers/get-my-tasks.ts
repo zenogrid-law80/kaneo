@@ -26,6 +26,7 @@ export default async function getMyTasks(
   const rows = await db
     .select({
       id: taskTable.id,
+      milestoneId: taskTable.milestoneId,
       title: taskTable.title,
       number: taskTable.number,
       priority: taskTable.priority,

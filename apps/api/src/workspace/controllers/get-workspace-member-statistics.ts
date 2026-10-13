@@ -8,6 +8,7 @@ import {
   workspaceUserTable,
 } from "../../database/schema";
 import { resolveStatisticsDateRange } from "./statistics-date-range";
+import { statisticsMilestoneFilter } from "./statistics-milestone-filter";
 import { statisticsTaskOwner } from "./statistics-task-owner";
 
 async function getWorkspaceMemberStatistics(
@@ -15,6 +16,7 @@ async function getWorkspaceMemberStatistics(
   projectId?: string,
   startDate?: string,
   endDate?: string,
+  milestoneId?: string,
 ) {
   const range = resolveStatisticsDateRange(startDate, endDate);
   const [rows, overdueRows] = await Promise.all([
@@ -45,6 +47,7 @@ async function getWorkspaceMemberStatistics(
           eq(statisticsTaskOwner, workspaceUserTable.userId),
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
+          statisticsMilestoneFilter(milestoneId),
         ),
       )
       .leftJoin(columnTable, eq(taskTable.columnId, columnTable.id))
@@ -68,6 +71,7 @@ async function getWorkspaceMemberStatistics(
           isNull(projectTable.archivedAt),
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
+          statisticsMilestoneFilter(milestoneId),
           sql`${statisticsTaskOwner} is not null`,
           sql`${taskTable.dueDate} < now()`,
           sql`${taskTable.status} <> 'archived'`,

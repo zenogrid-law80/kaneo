@@ -14,6 +14,7 @@ import {
   getMonthKeys,
   resolveStatisticsDateRange,
 } from "./statistics-date-range";
+import { statisticsMilestoneFilter } from "./statistics-milestone-filter";
 import { statisticsTaskOwner } from "./statistics-task-owner";
 
 type MonthlyCounts = { createdTasks: number; completedTasks: number };
@@ -23,6 +24,7 @@ async function getMemberTeamMonthlyStatistics(
   projectId?: string,
   startDate?: string,
   endDate?: string,
+  milestoneId?: string,
 ) {
   const range = resolveStatisticsDateRange(startDate, endDate);
   const monthKeys = getMonthKeys(range.start, range.endExclusive);
@@ -76,6 +78,7 @@ async function getMemberTeamMonthlyStatistics(
           isNull(projectTable.archivedAt),
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
+          statisticsMilestoneFilter(milestoneId),
           sql`${statisticsTaskOwner} is not null`,
         ),
       )
@@ -104,6 +107,7 @@ async function getMemberTeamMonthlyStatistics(
           eq(activityTable.type, "status_changed"),
           gte(activityTable.createdAt, range.start),
           lt(activityTable.createdAt, range.endExclusive),
+          statisticsMilestoneFilter(milestoneId),
           sql`${statisticsTaskOwner} is not null`,
           sql`(${activityTable.eventData}->>'newStatus' = 'archived' or ${columnTable.isFinal} = true)`,
         ),
@@ -127,6 +131,7 @@ async function getMemberTeamMonthlyStatistics(
           sql`${statisticsTaskOwner} is not null`,
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
+          statisticsMilestoneFilter(milestoneId),
           sql`${taskTable.dueDate} < now()`,
           sql`${taskTable.status} <> 'archived'`,
           sql`coalesce(${columnTable.isFinal}, false) = false`,
