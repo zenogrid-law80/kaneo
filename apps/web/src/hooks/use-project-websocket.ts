@@ -19,6 +19,10 @@ import {
   hasSyncTaskSample,
   patchSyncTaskTitles,
 } from "@/lib/patch-sync-task-titles";
+import {
+  invalidateMilestones,
+  invalidateMilestoneTasks,
+} from "@/lib/milestone-cache";
 
 export function getWsUrl(projectId: string) {
   const base = getApiUrl("ws");
@@ -45,6 +49,24 @@ export function useProjectWebSocket(projectId: string) {
     // or session must not alter the next effect's connection or reconnect it.
     let disposed = false;
     let needsReconcile = false;
+    let milestonesDirty = false;
+    let milestoneRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+    function queueMilestoneRefresh() {
+      milestonesDirty = true;
+      if (milestoneRefreshTimer !== null) clearTimeout(milestoneRefreshTimer);
+      milestoneRefreshTimer = setTimeout(() => {
+        milestoneRefreshTimer = null;
+        if (
+          disposed ||
+          queryClient.getQueryState(["tasks", projectId])?.fetchStatus ===
+            "fetching"
+        )
+          return;
+        milestonesDirty = false;
+        invalidateMilestones(queryClient, projectId);
+      }, 200);
+    }
+
     let flushQueued = false;
     const taskVersions = new Map<string, number>();
     const titleVersions = new Map<string, number>();
@@ -162,6 +184,7 @@ export function useProjectWebSocket(projectId: string) {
 
       ws.onopen = () => {
         if (disposed || activeSocket !== ws) return;
+        queueMilestoneRefresh();
         needsReconcile = true;
         flushPending();
         if (healthyTimeout !== null) clearTimeout(healthyTimeout);
@@ -187,6 +210,21 @@ export function useProjectWebSocket(projectId: string) {
         if (disposed || activeSocket !== ws) return;
         try {
           const message = JSON.parse(event.data);
+          if (
+            message.type.startsWith("TASK") ||
+            message.type === "PROJECT_UPDATED"
+          ) {
+            queueMilestoneRefresh();
+          }
+
+          if (message.type === "MILESTONES_UPDATED") {
+            invalidateMilestoneTasks(queryClient, projectId);
+            void queryClient.invalidateQueries({ queryKey: ["project"] });
+            void queryClient.invalidateQueries({
+              queryKey: ["columns", projectId],
+            });
+          }
+
           if (
             [
               "TASK_UPDATED",
@@ -579,6 +617,8 @@ export function useProjectWebSocket(projectId: string) {
             "fetching"
         )
           return;
+        if (milestonesDirty && milestoneRefreshTimer === null)
+          queueMilestoneRefresh();
         if (needsReconcile) {
           needsReconcile = false;
           markBoardCacheChanged(queryClient, projectId);
@@ -617,6 +657,7 @@ export function useProjectWebSocket(projectId: string) {
       if (healthyTimeout !== null) clearTimeout(healthyTimeout);
       pendingMessages.clear();
       if (burstReconcileTimer !== null) clearTimeout(burstReconcileTimer);
+      if (milestoneRefreshTimer !== null) clearTimeout(milestoneRefreshTimer);
       disposed = true;
       clearPing();
       if (fallbackInterval !== null) clearInterval(fallbackInterval);

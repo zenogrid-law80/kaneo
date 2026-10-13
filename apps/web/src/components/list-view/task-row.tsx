@@ -7,6 +7,7 @@ import { type CSSProperties, useMemo, useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { TaskProgressBadges } from "@/components/task/task-progress-badges";
 import { TaskPullRequests } from "@/components/task/task-pull-requests";
+import MilestoneBadge from "@/components/milestone/milestone-badge";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -198,6 +199,13 @@ function TaskRow({ task, projectSlug }: TaskRowProps) {
               <div className="flex items-center gap-2 justify-between w-full">
                 <span className="text-sm text-foreground truncate">
                   {task.title}
+                  {task.milestoneId && workspace && (
+                    <MilestoneBadge
+                      id={task.milestoneId}
+                      projectId={task.projectId}
+                      workspaceId={workspace.id}
+                    />
+                  )}
                 </span>
                 <div className="flex items-center gap-1">
                   <TaskProgressBadges task={task} />

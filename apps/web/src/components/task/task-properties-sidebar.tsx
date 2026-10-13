@@ -7,9 +7,11 @@ import {
   Plus,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useSetTaskMilestone } from "@/hooks/mutations/milestone/use-milestone-mutations";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import useGetGiteaIntegration from "@/hooks/queries/gitea-integration/use-get-gitea-integration";
 import useGetGithubIntegration from "@/hooks/queries/github-integration/use-get-github-integration";
@@ -21,6 +23,7 @@ import useGetTask from "@/hooks/queries/task/use-get-task";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { useTaskCopyShortcuts } from "@/hooks/use-task-copy-shortcuts";
+import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
 import {
   dueDateStatusColors,
@@ -85,6 +88,8 @@ export default function TaskPropertiesSidebar({
   shortcutsEnabled = true,
 }: TaskPropertiesSidebarProps) {
   const { t } = useTranslation();
+  const milestoneMutation = useSetTaskMilestone(projectId);
+  const { canUpdateTasks } = useWorkspacePermission();
   const { data: task } = useGetTask(taskId ?? "");
   const { data: project } = useGetProject({ id: projectId, workspaceId });
   const { data: workspace } = useActiveWorkspace();
@@ -161,6 +166,24 @@ export default function TaskPropertiesSidebar({
 
   return (
     <div className={className}>
+      {task && (
+        <div className="space-y-1 px-3 py-2">
+          <p className="text-xs text-muted-foreground">
+            {t("tasks:milestones.title")}
+          </p>
+          <MilestoneSelect
+            projectId={projectId}
+            value={task.milestoneId ?? null}
+            disabled={!canUpdateTasks() || milestoneMutation.isPending}
+            onChange={(milestoneId) => {
+              milestoneMutation.mutate(
+                { taskId: task.id, milestoneId },
+                { onError: (error) => toast.error(error.message) },
+              );
+            }}
+          />
+        </div>
+      )}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
         {/* Compact mode: properties + icons in one row */}
         {compact && (

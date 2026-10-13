@@ -52,6 +52,7 @@ async function updateColumn(
 
   await publishEvent("project.updated", { projectId: updated.projectId });
 
+  await publishEvent("column.updated", { projectId: updated.projectId });
   return updated;
 }
 

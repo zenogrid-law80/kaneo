@@ -616,6 +616,7 @@ subscribeToEvent<{ projects: { projectId: string }[] }>(
 const taskUpdateEvents = [
   "task.created",
   "task.updated",
+  "task.milestone_changed",
   "task.deleted",
   "task.status_changed",
   "task.priority_changed",
@@ -812,3 +813,22 @@ subscribeToEvent<{
     tasks: data.tasks,
   });
 });
+for (const name of [
+  "milestone.created",
+  "milestone.updated",
+  "milestone.deleted",
+  "column.updated",
+  "column.created",
+  "column.deleted",
+]) {
+  subscribeToEvent<{ projectId: string; initiatorId?: string }>(
+    name,
+    async (data) => {
+      broadcastToProject(
+        data.projectId,
+        { type: "MILESTONES_UPDATED", projectId: data.projectId },
+        data.initiatorId,
+      );
+    },
+  );
+}

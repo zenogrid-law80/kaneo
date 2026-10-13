@@ -227,3 +227,34 @@ describe("MCP tool catalog", () => {
     expect(result.content[0].text).toContain("Task not found");
   });
 });
+
+describe("MCP milestones", () => {
+  it("uses authenticated milestone routes and a date-only body", async () => {
+    await call("create_milestone", {
+      projectId: "project 1",
+      name: "Beta",
+      dueDate: "2026-10-31",
+    });
+    expect(lastRequest()).toMatchObject({
+      url: "http://api.test/api/milestone/project/project%201",
+      method: "POST",
+      auth: "Bearer test-token",
+      body: { name: "Beta", dueDate: "2026-10-31" },
+    });
+    await call("set_task_milestone", { taskId: "task 1", milestoneId: null });
+    expect(lastRequest()).toMatchObject({
+      url: "http://api.test/api/task/task%201/milestone",
+      method: "PATCH",
+      body: { milestoneId: null },
+    });
+  });
+  it("rejects invalid dates before sending requests", async () => {
+    const result = await call("create_milestone", {
+      projectId: "p1",
+      name: "Beta",
+      dueDate: "2026-02-29",
+    });
+    expect(result.isError).toBe(true);
+    expect(apiFetch).not.toHaveBeenCalled();
+  });
+});

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { projectTable } from "../../database/schema";
+import { publicBoardSchema } from "../../task/response";
 import getTasks, {
   type GetTasksOptions,
 } from "../../task/controllers/get-tasks";
@@ -42,5 +43,8 @@ export async function getPublicProject(
     });
   }
 
-  return { ...result.data, pagination: result.pagination };
+  return publicBoardSchema.parse({
+    ...result.data,
+    pagination: result.pagination,
+  });
 }

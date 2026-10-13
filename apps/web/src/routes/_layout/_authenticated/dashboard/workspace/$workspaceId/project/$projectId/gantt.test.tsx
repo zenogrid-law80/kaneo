@@ -34,6 +34,10 @@ const navigate = vi.fn();
 // do retroactively.
 const routeParams = { workspaceId: "workspace-1", projectId: "project-1" };
 
+vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
+  useMilestoneOptions: () => ({ data: { pages: [{ data: [] }] } }),
+  useMilestone: () => ({}),
+}));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => ({
     ...(options as Record<string, unknown>),

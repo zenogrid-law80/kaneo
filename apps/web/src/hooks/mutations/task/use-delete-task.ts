@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invalidateMilestoneTasks } from "@/lib/milestone-cache";
 import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import deleteTask from "@/fetchers/task/delete-task";
 import useProjectStore from "@/store/project";
@@ -11,6 +12,7 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: deleteTask,
     onSuccess: (deletedTask) => {
+      invalidateMilestoneTasks(queryClient, deletedTask.projectId);
       invalidateMyWork(queryClient);
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.setQueryData<ProjectWithTasks | undefined>(

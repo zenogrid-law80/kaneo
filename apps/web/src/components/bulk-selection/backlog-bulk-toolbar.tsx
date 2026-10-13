@@ -16,6 +16,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -96,6 +97,7 @@ function BacklogBulkToolbar() {
     bulkPriority,
     bulkAddLabel,
     bulkDueDate,
+    bulkMilestone,
   } = useBulkOperations();
   const { data: workspace } = useActiveWorkspace();
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
@@ -113,6 +115,7 @@ function BacklogBulkToolbar() {
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
+  const [milestonePending, setMilestonePending] = useState(false);
   const selectedCount = selectedTaskIds.size;
 
   const uniqueLabels = useMemo(() => {
@@ -384,6 +387,35 @@ function BacklogBulkToolbar() {
           </span>
         </ToolbarGroup>
 
+        {canEdit && project && (
+          <ToolbarGroup>
+            <MilestoneSelect
+              projectId={project.id}
+              bulk
+              value={null}
+              disabled={milestonePending}
+              onChange={async (milestoneId) => {
+                setMilestonePending(true);
+                try {
+                  await bulkMilestone({
+                    taskIds: Array.from(selectedTaskIds),
+                    milestoneId,
+                  });
+                  clearSelection();
+                  toast.success(t("tasks:milestones.bulkSuccess"));
+                } catch (error) {
+                  toast.error(
+                    error instanceof Error
+                      ? error.message
+                      : t("tasks:milestones.saveError"),
+                  );
+                } finally {
+                  setMilestonePending(false);
+                }
+              }}
+            />
+          </ToolbarGroup>
+        )}
         {canEdit && (
           <>
             <ToolbarSeparator orientation="vertical" className="my-1 h-5" />

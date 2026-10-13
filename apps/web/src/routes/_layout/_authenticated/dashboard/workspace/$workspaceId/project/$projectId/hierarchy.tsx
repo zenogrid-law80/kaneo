@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import SortControl from "@/components/common/sort-control";
 import HierarchyView from "@/components/hierarchy-view";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-wor
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import useWorkspaceTeams from "@/hooks/queries/workspace/use-workspace-teams";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import { useMilestoneFilter } from "@/hooks/use-milestone-filter";
 import {
   DUE_DATE_FILTER_VALUES,
   UNASSIGNED_FILTER_VALUE,
@@ -58,6 +60,7 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
+  const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
   const navigate = useNavigate();
   const { data } = useGetTasks(projectId);
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(workspaceId);
@@ -90,6 +93,9 @@ function RouteComponent() {
       ...project.plannedTasks,
       ...project.columns.flatMap((column) => column.tasks),
     ].filter((task) => {
+      if (milestoneId && (task.milestoneId ?? "none") !== milestoneId) {
+        return false;
+      }
       if (completionFilter !== "all") {
         const completed = isTaskCompleted(task.status, project.columns);
         if (completionFilter === "completed" ? !completed : completed) {
@@ -143,6 +149,7 @@ function RouteComponent() {
     completionFilter,
     dueDateFilter,
     labelFilters,
+    milestoneId,
     project,
     sort,
     weekStartsOn,
@@ -195,7 +202,14 @@ function RouteComponent() {
             count: activeFilterCount,
           });
   const hierarchyToolbar = (
-    <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border/80 bg-background px-3 sm:px-4">
+    <div className="flex min-h-10 shrink-0 flex-wrap items-center gap-2 border-b border-border/80 bg-background px-3 py-1.5 sm:px-4">
+      <MilestoneSelect
+        projectId={projectId}
+        value={milestoneId}
+        onChange={setMilestoneId}
+        filter
+        includeClosed
+      />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={

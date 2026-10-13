@@ -12,6 +12,11 @@ import {
 } from "../../apps/api/src/mcp/oauth-store";
 import { resetTestDatabase } from "./helpers/database";
 
+// Exercise legacy non-UTC pool connections as well as the normal UTC startup
+// path covered by database-timezone.test.ts.
+vi.mock("../../apps/api/src/database/utc-connection-string", () => ({
+  withUtcDatabaseSession: (connectionString: string) => connectionString,
+}));
 // Set this before the lazy database pool opens any connections, including in CI.
 vi.stubEnv("PGOPTIONS", "-c timezone=Europe/Paris");
 afterAll(() => vi.unstubAllEnvs());

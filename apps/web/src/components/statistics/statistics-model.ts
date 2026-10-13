@@ -3,6 +3,7 @@ export type StatisticsSearch = {
   endDate?: string;
   member?: string;
   team?: string;
+  milestone?: string;
   schedule?: "all" | "overdue" | "onTrack";
   view?: "overview" | "members" | "teams";
 };
@@ -52,6 +53,10 @@ export function validateStatisticsSearch(
     endDate,
     member: typeof search.member === "string" ? search.member : undefined,
     team: typeof search.team === "string" ? search.team : undefined,
+    milestone:
+      typeof search.milestone === "string" && search.milestone.length > 0
+        ? search.milestone
+        : undefined,
     schedule:
       search.schedule === "overdue" || search.schedule === "onTrack"
         ? search.schedule

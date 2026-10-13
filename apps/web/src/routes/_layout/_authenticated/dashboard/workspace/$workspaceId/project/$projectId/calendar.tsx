@@ -6,11 +6,13 @@ import CalendarToolbar from "@/components/calendar/calendar-toolbar";
 import MonthGrid from "@/components/calendar/month-grid";
 import { buildMonthWeeks } from "@/components/calendar/month-grid-model";
 import ProjectLayout from "@/components/common/project-layout";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { shortcuts } from "@/constants/shortcuts";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useMilestoneFilter } from "@/hooks/use-milestone-filter";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toScheduledTasks } from "@/lib/task-schedule";
 import { useUserPreferencesStore } from "@/store/user-preferences";
@@ -37,6 +39,7 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
+  const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
   const navigate = useNavigate();
   const { data: project, isLoading, isError } = useGetTasks(projectId);
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
@@ -46,7 +49,13 @@ function RouteComponent() {
     startOfMonth(new Date()),
   );
 
-  const scheduledTasks = useMemo(() => toScheduledTasks(project), [project]);
+  const scheduledTasks = useMemo(
+    () =>
+      toScheduledTasks(project).filter(
+        (task) => !milestoneId || (task.milestoneId ?? "none") === milestoneId,
+      ),
+    [project, milestoneId],
+  );
 
   const weeks = useMemo(
     () => buildMonthWeeks(visibleMonth, weekStartsOn),
@@ -126,7 +135,15 @@ function RouteComponent() {
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
           onToday={handleToday}
-        />
+        >
+          <MilestoneSelect
+            projectId={projectId}
+            value={milestoneId}
+            onChange={setMilestoneId}
+            filter
+            includeClosed
+          />
+        </CalendarToolbar>
 
         {isLoading ? (
           <div className="border-b border-border/80 px-4 py-3 text-center">
@@ -143,11 +160,17 @@ function RouteComponent() {
         ) : scheduledTasks.length === 0 ? (
           <div className="border-b border-border/80 px-4 py-3 text-center">
             <p className="text-sm font-semibold text-foreground">
-              {t("tasks:calendar.noTasks")}
+              {t(
+                milestoneId
+                  ? "tasks:milestones.noTasks"
+                  : "tasks:calendar.noTasks",
+              )}
             </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {t("tasks:calendar.noTasksSubtitle")}
-            </p>
+            {!milestoneId && (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {t("tasks:calendar.noTasksSubtitle")}
+              </p>
+            )}
           </div>
         ) : null}
 

@@ -17,11 +17,13 @@ import {
   GANTT_WINDOW_DAYS,
   parseTaskDate,
 } from "@/components/gantt/timeline";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
+import { useMilestoneFilter } from "@/hooks/use-milestone-filter";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/cn";
 import { getStatusLabel } from "@/lib/i18n/domain";
@@ -44,6 +46,7 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
+  const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
   const navigate = useNavigate();
   const { data: project } = useGetTasks(projectId);
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
@@ -94,11 +97,14 @@ function RouteComponent() {
   }, [isMobile]);
 
   const allTasks = useMemo(
-    () => [
-      ...(project?.columns.flatMap((column) => column.tasks) ?? []),
-      ...(project?.plannedTasks ?? []),
-    ],
-    [project],
+    () =>
+      [
+        ...(project?.columns.flatMap((column) => column.tasks) ?? []),
+        ...(project?.plannedTasks ?? []),
+      ].filter(
+        (task) => !milestoneId || (task.milestoneId ?? "none") === milestoneId,
+      ),
+    [project, milestoneId],
   );
 
   const parsedTasks = useMemo(() => {
@@ -237,13 +243,20 @@ function RouteComponent() {
       <div className="flex h-full min-h-0 flex-col bg-background">
         <div className="border-b border-border/80 px-3 py-3 sm:px-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <MilestoneSelect
+                projectId={projectId}
+                value={milestoneId}
+                onChange={setMilestoneId}
+                filter
+                includeClosed
+              />
               <h1 className="text-sm font-semibold text-foreground">
                 {t("tasks:gantt.title")}
               </h1>
             </div>
 
-            <div className="relative w-full max-w-sm">
+            <div className="relative w-full max-w-sm sm:w-64">
               <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchQuery}
@@ -328,11 +341,17 @@ function RouteComponent() {
           <div className="flex flex-1 items-center justify-center px-6">
             <div className="max-w-sm text-center">
               <h2 className="text-sm font-semibold text-foreground">
-                {t("tasks:gantt.noTasks")}
+                {t(
+                  milestoneId
+                    ? "tasks:milestones.noTasks"
+                    : "tasks:gantt.noTasks",
+                )}
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t("tasks:gantt.noTasksSubtitle")}
-              </p>
+              {!milestoneId && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t("tasks:gantt.noTasksSubtitle")}
+                </p>
+              )}
             </div>
           </div>
         ) : scheduledTasks.length === 0 ? (

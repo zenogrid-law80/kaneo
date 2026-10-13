@@ -15,6 +15,10 @@ const m = vi.hoisted(() => ({
   update: vi.fn(),
   tasks: [] as Record<string, unknown>[],
 }));
+vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
+  useMilestoneOptions: () => ({ data: { pages: [{ data: [] }] } }),
+  useMilestone: () => ({}),
+}));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: { component: ComponentType }) => {
     m.component = options.component;

@@ -32,6 +32,10 @@ const m = vi.hoisted(() => ({
   retryPeople: vi.fn(),
 }));
 
+vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
+  useMilestoneOptions: () => ({ data: { pages: [{ data: [] }] } }),
+  useMilestone: () => ({}),
+}));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: object) => ({
     ...options,
@@ -170,12 +174,14 @@ describe("project statistics page", () => {
       "p1",
       "2026-09-01",
       "2026-09-30",
+      undefined,
     );
     expect(m.people).toHaveBeenLastCalledWith(
       "",
       "p1",
       "2026-09-01",
       "2026-09-30",
+      undefined,
     );
     expect(screen.queryByRole("combobox")).toBeNull();
     expect(screen.queryByText("statistics:columns.assigned")).toBeNull();
@@ -189,6 +195,7 @@ describe("project statistics page", () => {
       "p1",
       "2026-09-01",
       "2026-09-30",
+      undefined,
     );
     metric("statistics:columns.assigned", "15");
     metric("statistics:columns.completed", "11");

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type * as React from "react";
 import { DayPicker } from "react-day-picker";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/cn";
 import { useUserPreferencesStore } from "@/store/user-preferences";
@@ -19,9 +20,14 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   components: userComponents,
+  formatters: userFormatters,
+  locale,
   weekStartsOn: weekStartsOnProp,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
+  const { i18n } = useTranslation();
+  const language =
+    locale?.code || i18n.resolvedLanguage || i18n.language || "en-US";
   const preferredWeekStartsOn = useUserPreferencesStore(
     (state) => state.weekStartsOn,
   );
@@ -129,9 +135,13 @@ function Calendar({
       components={mergedComponents}
       data-slot="calendar"
       formatters={{
+        formatCaption: (date) =>
+          date.toLocaleDateString(language, { month: "long", year: "numeric" }),
         formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+          date.toLocaleDateString(language, { month: "short" }),
+        ...userFormatters,
       }}
+      locale={locale}
       mode="single"
       showOutsideDays={showOutsideDays}
       weekStartsOn={weekStartsOnProp ?? preferredWeekStartsOn}

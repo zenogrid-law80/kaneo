@@ -21,7 +21,12 @@ import {
   workspaceMemberStatisticListSchema,
   workspaceTeamListSchema,
 } from "./response";
-import { myTasksQuery, statisticsQuery, workspaceIdParam } from "./schema";
+import {
+  memberStatisticsQuery,
+  myTasksQuery,
+  statisticsQuery,
+  workspaceIdParam,
+} from "./schema";
 
 const getWorkspaceMembersRoute = createRoute({
   method: "get",
@@ -68,7 +73,7 @@ const getWorkspaceMemberStatisticsRoute = createRoute({
     workspaceAccess.fromParam("workspaceId"),
     requireWorkspacePermission({ workspace: ["update", "manage_settings"] }),
   ] as const,
-  request: { params: workspaceIdParam, query: statisticsQuery },
+  request: { params: workspaceIdParam, query: memberStatisticsQuery },
   responses: {
     200: jsonResponse(
       "Task statistics for each workspace member",
@@ -114,7 +119,7 @@ const getMemberTeamMonthlyStatisticsRoute = createRoute({
     workspaceAccess.fromParam("workspaceId"),
     requireWorkspacePermission({ workspace: ["update", "manage_settings"] }),
   ] as const,
-  request: { params: workspaceIdParam, query: statisticsQuery },
+  request: { params: workspaceIdParam, query: memberStatisticsQuery },
   responses: {
     200: jsonResponse(
       "Monthly task statistics for members and teams",
@@ -167,13 +172,14 @@ const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
     c.json(await getWorkspaceTeamsCtrl(c.get("workspaceId")), 200),
   )
   .openapi(getWorkspaceMemberStatisticsRoute, async (c) => {
-    const { projectId, startDate, endDate } = c.req.valid("query");
+    const { projectId, startDate, endDate, milestoneId } = c.req.valid("query");
     return c.json(
       await getWorkspaceMemberStatisticsCtrl(
         c.get("workspaceId"),
         projectId,
         startDate,
         endDate,
+        milestoneId,
       ),
       200,
     );
@@ -191,13 +197,14 @@ const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
     );
   })
   .openapi(getMemberTeamMonthlyStatisticsRoute, async (c) => {
-    const { projectId, startDate, endDate } = c.req.valid("query");
+    const { projectId, startDate, endDate, milestoneId } = c.req.valid("query");
     return c.json(
       await getMemberTeamMonthlyStatisticsCtrl(
         c.get("workspaceId"),
         projectId,
         startDate,
         endDate,
+        milestoneId,
       ),
       200,
     );

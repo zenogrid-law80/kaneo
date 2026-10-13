@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import SortControl from "@/components/common/sort-control";
 import type { CustomFieldDefinition } from "@/components/project/custom-field-editor";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -329,6 +330,17 @@ export default function BoardToolbar({
       <div className="flex min-h-10 items-center px-2 py-1.5 md:px-3">
         <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
+            {project && (
+              <MilestoneSelect
+                projectId={project.id}
+                filter
+                includeClosed
+                value={filters.milestone?.[0] ?? null}
+                onChange={(value) =>
+                  updateFilter("milestone", value ? [value] : null)
+                }
+              />
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={

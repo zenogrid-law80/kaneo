@@ -5,7 +5,9 @@ import {
   eq,
   getTableColumns,
   gte,
+  ilike,
   inArray,
+  isNull,
   lte,
   type SQL,
   type SQLWrapper,
@@ -34,6 +36,9 @@ import { getSubtaskCounts } from "../get-subtask-counts";
 
 export type GetTasksOptions = {
   publicOnly?: boolean;
+  search?: string;
+  milestoneId?: string;
+  withoutMilestone?: boolean;
   assigneeId?: string;
   dueAfter?: string;
   dueBefore?: string;
@@ -118,6 +123,21 @@ async function getTasksPage(
 
   const conditions = [eq(taskTable.projectId, projectId)];
 
+  if (options.search?.trim())
+    conditions.push(
+      ilike(
+        taskTable.title,
+        `%${options.search.trim().replace(/[\\%_]/g, "\\$&")}%`,
+      ),
+    );
+  if (options.milestoneId && options.withoutMilestone)
+    throw new HTTPException(400, {
+      message: "Choose milestoneId or withoutMilestone",
+    });
+  if (options.milestoneId)
+    conditions.push(eq(taskTable.milestoneId, options.milestoneId));
+  if (options.withoutMilestone) conditions.push(isNull(taskTable.milestoneId));
+
   if (options.status) {
     conditions.push(eq(taskTable.status, options.status));
   }
@@ -177,6 +197,7 @@ async function getTasksPage(
 
   const taskSelection = {
     id: taskTable.id,
+    milestoneId: taskTable.milestoneId,
     title: taskTable.title,
     number: taskTable.number,
     description: boardDescription,

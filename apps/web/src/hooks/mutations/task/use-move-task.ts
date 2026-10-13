@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import { useTranslation } from "react-i18next";
 import moveTask from "@/fetchers/task/move-task";
+import { invalidateMilestones } from "@/lib/milestone-cache";
 import { toast } from "@/lib/toast";
 
 export function useMoveTask() {
@@ -13,6 +14,7 @@ export function useMoveTask() {
     onSuccess: (result, variables) => {
       invalidateMyWork(queryClient);
       toast.success(t("tasks:move.success"));
+      invalidateMilestones(queryClient);
       queryClient.invalidateQueries({
         queryKey: ["external-links", variables.taskId],
       });

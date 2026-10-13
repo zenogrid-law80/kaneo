@@ -4,6 +4,7 @@ import createTask, {
   type CreateTaskRequest,
 } from "@/fetchers/task/create-task";
 import { trackFirstTask } from "@/lib/analytics/activation";
+import { invalidateMilestones } from "@/lib/milestone-cache";
 
 function useCreateTask() {
   const queryClient = useQueryClient();
@@ -20,6 +21,7 @@ function useCreateTask() {
       priority,
       customFields,
       draftAssetIds,
+      milestoneId,
     }: CreateTaskRequest) =>
       createTask(
         title,
@@ -32,11 +34,13 @@ function useCreateTask() {
         priority,
         customFields,
         draftAssetIds,
+        milestoneId,
       ),
     onSuccess: (_data, variables) => {
       invalidateMyWork(queryClient);
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
       trackFirstTask();
+      invalidateMilestones(queryClient, variables.projectId);
       void queryClient.invalidateQueries({
         queryKey: ["tasks", variables.projectId],
       });

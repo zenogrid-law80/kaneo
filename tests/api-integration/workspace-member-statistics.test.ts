@@ -15,6 +15,159 @@ describe("API integration: workspace member statistics", () => {
     await resetTestDatabase();
   });
 
+  it("filters summary, overdue tasks and member/team monthly counts by the current milestone", async () => {
+    const member = await createWorkspaceMember({ role: "admin" });
+    const project = await createProjectFixture({
+      workspaceId: member.workspace.id,
+    });
+    const foreignMember = await createWorkspaceMember({ role: "admin" });
+    const foreignProject = await createProjectFixture({
+      workspaceId: foreignMember.workspace.id,
+    });
+    const [closed, open, foreign] = await db
+      .insert(schema.milestoneTable)
+      .values([
+        {
+          projectId: project.project.id,
+          name: "Closed milestone",
+          status: "closed",
+          closedAt: new Date(),
+        },
+        { projectId: project.project.id, name: "Open milestone" },
+        { projectId: foreignProject.project.id, name: "Foreign milestone" },
+      ])
+      .returning();
+    const teamId = `team-${randomUUID()}`;
+    await db.insert(schema.teamTable).values({
+      id: teamId,
+      name: "Engineering",
+      workspaceId: member.workspace.id,
+      createdAt: new Date(),
+    });
+    await db.insert(schema.teamMemberTable).values({
+      id: `team-member-${randomUUID()}`,
+      teamId,
+      userId: member.user.id,
+      createdAt: new Date(),
+    });
+    const tasks = await db
+      .insert(schema.taskTable)
+      .values(
+        [
+          {
+            milestoneId: closed.id,
+            title: "Closed done",
+            status: project.columns.done.slug,
+            columnId: project.columns.done.id,
+          },
+          {
+            milestoneId: closed.id,
+            title: "Closed overdue",
+            status: project.columns.todo.slug,
+            columnId: project.columns.todo.id,
+          },
+          {
+            milestoneId: open.id,
+            title: "Open done",
+            status: project.columns.done.slug,
+            columnId: project.columns.done.id,
+          },
+          {
+            milestoneId: open.id,
+            title: "Open overdue",
+            status: project.columns.todo.slug,
+            columnId: project.columns.todo.id,
+          },
+          {
+            milestoneId: null,
+            title: "Without milestone",
+            status: "planned",
+            columnId: null,
+          },
+        ].map((task, index) => ({
+          ...task,
+          projectId: project.project.id,
+          userId: member.user.id,
+          number: index + 1,
+          createdAt: new Date("2026-06-15T12:00:00Z"),
+          dueDate: new Date("2020-01-01T00:00:00Z"),
+        })),
+      )
+      .returning();
+    await db.insert(schema.activityTable).values(
+      [tasks[0], tasks[2]].map((task) => ({
+        taskId: task.id,
+        userId: member.user.id,
+        type: "status_changed",
+        createdAt: new Date("2026-06-16T12:00:00Z"),
+        eventData: {
+          oldStatus: "in-progress",
+          newStatus: project.columns.done.slug,
+        },
+      })),
+    );
+    mockAuthenticatedSession(member.user);
+    const app = createApp().app;
+    for (const filter of [
+      {
+        id: undefined,
+        assigned: 5,
+        completed: 2,
+        overdue: [tasks[1].id, tasks[3].id, tasks[4].id],
+      },
+      { id: closed.id, assigned: 2, completed: 1, overdue: [tasks[1].id] },
+      { id: open.id, assigned: 2, completed: 1, overdue: [tasks[3].id] },
+      { id: "none", assigned: 1, completed: 0, overdue: [tasks[4].id] },
+      { id: foreign.id, assigned: 0, completed: 0, overdue: [] },
+    ]) {
+      const query = new URLSearchParams({
+        projectId: project.project.id,
+        startDate: "2026-06-01",
+        endDate: "2026-06-30",
+      });
+      if (filter.id) query.set("milestoneId", filter.id);
+      const response = await app.request(
+        `/api/workspace/${member.workspace.id}/member-statistics?${query}`,
+      );
+      expect(response.status).toBe(200);
+      const [summary] = await response.json();
+      expect(summary).toMatchObject({
+        assignedTasks: filter.assigned,
+        completedTasks: filter.completed,
+        overdueTasks: filter.overdue.length,
+        inProgressTasks: filter.assigned - filter.completed,
+        completionRate: filter.assigned
+          ? Math.round((filter.completed / filter.assigned) * 100)
+          : 0,
+      });
+      expect(
+        summary.overdueTaskItems.map((task: { id: string }) => task.id).sort(),
+      ).toEqual([...filter.overdue].sort());
+      const monthlyResponse = await app.request(
+        `/api/workspace/${member.workspace.id}/member-team-monthly-statistics?${query}`,
+      );
+      expect(monthlyResponse.status).toBe(200);
+      const monthly = await monthlyResponse.json();
+      for (const row of [monthly.members[0], monthly.teams[0]]) {
+        expect(row.months).toEqual([
+          {
+            month: "2026-06",
+            createdTasks: filter.assigned,
+            completedTasks: filter.completed,
+          },
+        ]);
+        expect(row.overdueTasks).toBe(filter.overdue.length);
+        expect(
+          row.overdueTaskItems.map((task: { id: string }) => task.id).sort(),
+        ).toEqual([...filter.overdue].sort());
+      }
+    }
+    const invalid = await app.request(
+      `/api/workspace/${member.workspace.id}/member-statistics?milestoneId=`,
+    );
+    expect(invalid.status).toBe(400);
+  });
+
   it("credits the latest member who started work, even when someone else completes it", async () => {
     const member = await createWorkspaceMember({ role: "admin" });
     const workerId = `user-${randomUUID()}`;

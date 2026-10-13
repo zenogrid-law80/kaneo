@@ -304,10 +304,16 @@ it("bounds per-task reads during a thousand-event burst and reconciles once", as
     await vi.advanceTimersByTimeAsync(200);
     expect(
       mocks.client.invalidateQueries.mock.calls.filter(
-        ([options]) => options.queryKey[0] === "tasks",
+        ([options]) => options.queryKey?.[0] === "tasks",
       ),
     ).toHaveLength(1);
     expect(mocks.getTask).toHaveBeenCalledTimes(4);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(
+      mocks.client.invalidateQueries.mock.calls.filter(
+        ([options]) => options.queryKey?.[0] === "milestones",
+      ),
+    ).toHaveLength(1);
   } finally {
     vi.useRealTimers();
   }
@@ -423,7 +429,7 @@ it.each(["TASK_CREATED", "TASK_DELETED", "TASK_MOVED", "TASKS_REORDERED"])(
     await Promise.resolve();
     expect(
       mocks.client.invalidateQueries.mock.calls.filter(
-        ([options]) => options.queryKey[0] === "tasks",
+        ([options]) => options.queryKey?.[0] === "tasks",
       ),
     ).toHaveLength(1);
     expect(mocks.getTask).not.toHaveBeenCalled();

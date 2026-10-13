@@ -16,6 +16,7 @@ async function getTask(taskId: string, board = false) {
   const task = await db
     .select({
       id: taskTable.id,
+      milestoneId: taskTable.milestoneId,
       title: taskTable.title,
       number: taskTable.number,
       description: board ? boardDescription : taskTable.description,

@@ -84,6 +84,7 @@ async function createColumn({
 
   await publishEvent("project.updated", { projectId: created.projectId });
 
+  await publishEvent("column.created", { projectId });
   return created;
 }
 

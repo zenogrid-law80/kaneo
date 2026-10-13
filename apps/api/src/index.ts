@@ -12,6 +12,7 @@ import * as Sentry from "@sentry/node";
 import type { Session, User } from "better-auth/types";
 import { eq, sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { reconcileMilestoneMigration } from "./database/reconcile-milestone-migration";
 import { Hono } from "hono";
 import { compress } from "hono/compress";
 import { cors } from "hono/cors";
@@ -47,6 +48,7 @@ import label from "./label";
 import mattermostIntegration from "./mattermost-integration";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
 import { migrateColumns } from "./migrations/column-migration";
+import milestone from "./milestone";
 import notification from "./notification";
 import notificationPreferences from "./notification-preferences";
 import oauth from "./oauth";
@@ -64,7 +66,7 @@ import {
   getDescriptionPage,
   getPublicProjectDescriptionPage,
 } from "./task/description-pages";
-import { boardSchema, descriptionPageSchema } from "./task/response";
+import { publicBoardSchema, descriptionPageSchema } from "./task/response";
 import { descriptionPageQuery, listTasksQuery } from "./task/schema";
 import taskRelation from "./task-relation";
 import telegramIntegration from "./telegram-integration";
@@ -275,15 +277,13 @@ export function createApp() {
         security: [],
         request: {
           params: z.object({ id: z.string() }),
-          query: listTasksQuery,
+          query: listTasksQuery.omit({
+            milestoneId: true,
+            withoutMilestone: true,
+          }),
         },
         responses: {
-          200: jsonResponse(
-            "A public board page",
-            boardSchema.shape.data
-              .extend({ pagination: boardSchema.shape.pagination })
-              .openapi("PublicBoardPage"),
-          ),
+          200: jsonResponse("A public board page", publicBoardSchema),
           403: errorResponse("Project is not public"),
           404: errorResponse("Project not found"),
           400: errorResponse("Invalid pagination or filters"),
@@ -744,6 +744,7 @@ export function createApp() {
   const projectApi = api.route("/project", project);
   const calendarFeedApi = api.route("/calendar-feed", calendarFeed);
   const taskApi = api.route("/task", task);
+  const milestoneApi = api.route("/milestone", milestone);
   const columnApi = api.route("/column", column);
   const activityApi = api.route("/activity", activity);
   const commentApi = api.route("/comment", comment);
@@ -913,6 +914,7 @@ export function createApp() {
     mattermostIntegrationApi,
     slackIntegrationApi,
     taskApi,
+    milestoneApi,
     taskRelationApi,
     telegramIntegrationApi,
     timeEntryApi,
@@ -941,6 +943,7 @@ export async function runStartupTasks() {
       await migrateSessionColumn();
 
       console.log("🔄 Migrating database...");
+      await reconcileMilestoneMigration(getDatabase());
       await migrate(getDatabase(), {
         migrationsFolder: `${currentDir}/../drizzle`,
       });
@@ -1045,6 +1048,7 @@ const {
   searchApi,
   slackIntegrationApi,
   taskApi,
+  milestoneApi,
   taskRelationApi,
   telegramIntegrationApi,
   timeEntryApi,
@@ -1072,6 +1076,7 @@ export type AppType =
   | typeof projectApi
   | typeof calendarFeedApi
   | typeof taskApi
+  | typeof milestoneApi
   | typeof columnApi
   | typeof activityApi
   | typeof commentApi

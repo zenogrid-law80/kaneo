@@ -6,10 +6,12 @@ import {
   columnTable,
   externalLinkTable,
   integrationTable,
+  milestoneTable,
   projectTable,
   taskTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
+import { publishMilestoneAssignment } from "../../milestone/controllers/milestones";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
 
@@ -114,7 +116,7 @@ async function moveTask({
     destinationStatus,
   );
 
-  const movedTask = await db.transaction(async (tx) => {
+  const moved = await db.transaction(async (tx) => {
     for (const projectId of [sourceProject.id, destinationProjectId].sort()) {
       const [project] = await tx
         .select({ id: projectTable.id })
@@ -125,12 +127,37 @@ async function moveTask({
             eq(projectTable.workspaceId, sourceProject.workspaceId),
           ),
         )
-        .for("key share");
+        .for("update");
       if (!project)
         throw new HTTPException(409, {
           message: "Project was moved to another workspace, please try again",
         });
     }
+    const [lockedTask] = await tx
+      .select({ milestoneId: taskTable.milestoneId })
+      .from(taskTable)
+      .where(
+        and(
+          eq(taskTable.id, taskId),
+          eq(taskTable.projectId, sourceProject.id),
+        ),
+      )
+      .for("update");
+    if (!lockedTask)
+      throw new HTTPException(409, {
+        message: "Task was moved concurrently, please try again",
+      });
+    const [oldMilestone] = lockedTask.milestoneId
+      ? await tx
+          .select({ id: milestoneTable.id, name: milestoneTable.name })
+          .from(milestoneTable)
+          .where(
+            and(
+              eq(milestoneTable.id, lockedTask.milestoneId),
+              eq(milestoneTable.projectId, sourceProject.id),
+            ),
+          )
+      : [];
     const nextTaskNumber = await claimTaskNumber(destinationProjectId, tx);
     const nextPosition = await nextTaskPosition(
       tx,
@@ -143,6 +170,7 @@ async function moveTask({
       .update(taskTable)
       .set({
         projectId: destinationProjectId,
+        milestoneId: null,
         status: resolvedColumn.slug,
         columnId: resolvedColumn.id,
         number: nextTaskNumber,
@@ -183,8 +211,17 @@ async function moveTask({
       .set({ projectId: destinationProjectId })
       .where(eq(assetTable.taskId, taskId));
 
-    return updatedTask;
+    return { updatedTask, oldMilestone };
   });
+
+  const movedTask = moved.updatedTask;
+  if (moved.oldMilestone)
+    await publishMilestoneAssignment(
+      { id: taskId, projectId: sourceProject.id },
+      currentUserId,
+      moved.oldMilestone,
+      null,
+    );
 
   await publishEvent("task.moved", {
     taskId,

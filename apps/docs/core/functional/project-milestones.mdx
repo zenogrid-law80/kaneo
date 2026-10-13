@@ -1,0 +1,40 @@
+---
+title: Track Project Milestones
+description: Group tasks around a delivery goal, target date, and progress
+---
+
+Open a project and select **Milestones** to track outcomes such as a beta launch or a feature delivery. Each milestone belongs to one project, and each task can belong to one milestone.
+
+## Create and manage a milestone
+
+Only workspace owners and administrators can create milestones. Enter a name, an optional description, and an optional target date. Dates are calendar dates, so selecting October 31 keeps October 31 in every time zone.
+
+Use **Edit milestone** to change its details. **Close milestone** marks the goal as closed even when unfinished tasks remain. Completing every task does not automatically close a milestone. **Reopen milestone** allows new tasks to be added again. Existing tasks in a closed milestone can still be updated or unlinked.
+
+Creation also requires `project:update`; granting this permission to a member or custom role does not allow creation. Editing existing milestones follows the workspace's configured roles and uses `project:update`, and deletion also requires `task:update`. Members can link tasks by default; viewers can only read.
+
+## Link tasks
+
+From milestone details, choose **Link existing tasks** to select an unassigned task, or **Add task** to create a task in that milestone. A task's properties also contain a **Milestone** selector for changing or clearing its assignment. Board/List, Backlog, Hierarchy, Gantt, Calendar, and Statistics can filter by milestone, including closed milestones or tasks with no milestone. Choose **All milestones** to clear this filter. Statistics applies the selected milestone to task counts, completion rates, overdue lists, and monthly member/team charts, alongside the date, member, and team filters. It uses each task's current milestone assignment. Bulk selection can assign or clear milestones for several tasks at once.
+
+Subtasks are assigned independently. Changing a parent task's milestone does not change its children.
+
+The selected milestone filter is shared across Board/List, Backlog, Hierarchy, Gantt, Calendar, and Statistics. Switching views keeps the selection, including **No milestone** or **All milestones**. Each project remembers its own selection in the browser, including after a page refresh. In Backlog, the milestone filter applies to both planned and archived tasks.
+
+Moving a task to another project clears its milestone. Deleting a milestone unlinks its tasks and keeps the tasks themselves.
+
+## Understand progress
+
+Progress counts tasks in the project's final workflow columns as complete. Planned tasks count as unfinished. Archived tasks are excluded from progress and shown separately, so archiving completed tasks can lower the percentage. Progress uses every linked active task, independently of filters and pagination.
+
+A target date is independent of task due dates. An open milestone is overdue after its target day in your local time zone. Target dates do not automatically change task schedules.
+
+Milestone changes and task progress update across project windows. Public project boards do not expose milestone metadata.
+
+## API and MCP
+
+Use `/api/milestone/project/{projectId}` for listing and creation, and `/api/milestone/{id}` for reading, updating, or deleting a milestone. `GET /api/milestone/{id}/tasks` returns paginated tasks. `PATCH /api/task/{id}/milestone` accepts `{ "milestoneId": "…" }` or `{ "milestoneId": null }`.
+
+Both HTTP and stdio MCP provide `list_milestones`, `get_milestone`, `create_milestone`, `update_milestone`, `delete_milestone`, `list_milestone_tasks`, and `set_task_milestone`. API keys obey the same workspace permissions and their own scopes.
+
+The task export/import format does not include milestones or their assignments. External milestone synchronization, cross-project roadmaps, and deadline reminders are not included.

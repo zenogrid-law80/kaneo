@@ -99,7 +99,18 @@ describe("project WebSocket lifecycle", () => {
     expect(old.close).toHaveBeenCalledOnce();
     expect(old.send).not.toHaveBeenCalled();
     expect(current.send).toHaveBeenCalledWith('{"type":"ping"}');
-    expect(client.invalidateQueries).not.toHaveBeenCalled();
+    expect(
+      client.invalidateQueries.mock.calls.filter(
+        ([filters]) =>
+          filters.queryKey &&
+          !["milestones", "milestone", "milestone-tasks"].includes(
+            filters.queryKey[0],
+          ),
+      ),
+    ).toHaveLength(0);
+    expect(client.invalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: ["milestones", "project-a"],
+    });
     unmount();
     act(() => current.onclose?.());
     expect(current.close).toHaveBeenCalledOnce();

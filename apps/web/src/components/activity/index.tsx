@@ -200,6 +200,13 @@ function renderActivityContent({
     );
   }
 
+  if (activity.type === "milestone_changed") {
+    return t("tasks:milestones.activity", {
+      from: String(eventData?.oldMilestoneName ?? t("tasks:milestones.none")),
+      to: String(eventData?.newMilestoneName ?? t("tasks:milestones.none")),
+    });
+  }
+
   if (activity.type === "status_changed") {
     if (eventData) {
       return (

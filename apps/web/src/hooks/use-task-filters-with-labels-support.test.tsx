@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 import type { ProjectWithTasks } from "@/types/project";
 import { useTaskFiltersWithLabelsSupport } from "./use-task-filters-with-labels-support";
@@ -256,5 +256,33 @@ describe("useTaskFiltersWithLabelsSupport", () => {
     expect(result.current.filteredProject?.columns[0]?.tasks).toEqual([
       expect.objectContaining({ id: "unassigned" }),
     ]);
+  });
+});
+
+describe("milestone board filters", () => {
+  it("matches a milestone, supports unassigned tasks and clears back to all tasks", () => {
+    const tasks = [
+      { id: "t1", milestoneId: "m1" },
+      { id: "t2", milestoneId: null },
+      { id: "t3", milestoneId: "m2" },
+    ];
+    const project = {
+      id: "p1",
+      columns: [{ tasks }],
+    } as unknown as ProjectWithTasks;
+    const { result } = renderHook(
+      () => useTaskFiltersWithLabelsSupport(project),
+      { wrapper: createWrapper() },
+    );
+    act(() => result.current.updateFilter("milestone", ["m1"]));
+    expect(
+      result.current.filteredProject?.columns[0].tasks.map((task) => task.id),
+    ).toEqual(["t1"]);
+    act(() => result.current.updateFilter("milestone", ["none"]));
+    expect(
+      result.current.filteredProject?.columns[0].tasks.map((task) => task.id),
+    ).toEqual(["t2"]);
+    act(() => result.current.clearFilters());
+    expect(result.current.filteredProject?.columns[0].tasks).toHaveLength(3);
   });
 });

@@ -3,6 +3,7 @@ import {
   BarChart3,
   CalendarDays,
   CalendarRange,
+  Flag,
   Network,
   SquareKanban,
   SquircleDashed,
@@ -42,7 +43,8 @@ type ProjectLayoutProps = {
     | "calendar"
     | "gantt"
     | "hierarchy"
-    | "statistics";
+    | "statistics"
+    | "milestones";
 };
 
 export default function ProjectLayout({
@@ -67,17 +69,26 @@ export default function ProjectLayout({
 
   const resolvedView =
     activeView ??
-    (location.pathname.includes("/backlog")
-      ? "backlog"
-      : location.pathname.includes("/calendar")
-        ? "calendar"
-        : location.pathname.includes("/hierarchy")
-          ? "hierarchy"
-          : location.pathname.includes("/gantt")
-            ? "gantt"
-            : location.pathname.includes("/statistics")
-              ? "statistics"
-              : "board");
+    (location.pathname.includes("/milestones")
+      ? "milestones"
+      : location.pathname.includes("/backlog")
+        ? "backlog"
+        : location.pathname.includes("/calendar")
+          ? "calendar"
+          : location.pathname.includes("/hierarchy")
+            ? "hierarchy"
+            : location.pathname.includes("/gantt")
+              ? "gantt"
+              : location.pathname.includes("/statistics")
+                ? "statistics"
+                : "board");
+
+  const handleNavigateToMilestones = () => {
+    navigate({
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/milestones",
+      params: { workspaceId, projectId },
+    });
+  };
 
   const handleNavigateToBacklog = () => {
     navigate({
@@ -124,17 +135,19 @@ export default function ProjectLayout({
   const handleProjectSwitch = (nextProjectId: string) => {
     navigate({
       to:
-        resolvedView === "backlog"
-          ? "/dashboard/workspace/$workspaceId/project/$projectId/backlog"
-          : resolvedView === "calendar"
-            ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
-            : resolvedView === "gantt"
-              ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
-              : resolvedView === "statistics"
-                ? "/dashboard/workspace/$workspaceId/project/$projectId/statistics"
-                : resolvedView === "hierarchy"
-                  ? "/dashboard/workspace/$workspaceId/project/$projectId/hierarchy"
-                  : "/dashboard/workspace/$workspaceId/project/$projectId/board",
+        resolvedView === "milestones"
+          ? "/dashboard/workspace/$workspaceId/project/$projectId/milestones"
+          : resolvedView === "backlog"
+            ? "/dashboard/workspace/$workspaceId/project/$projectId/backlog"
+            : resolvedView === "calendar"
+              ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
+              : resolvedView === "gantt"
+                ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
+                : resolvedView === "statistics"
+                  ? "/dashboard/workspace/$workspaceId/project/$projectId/statistics"
+                  : resolvedView === "hierarchy"
+                    ? "/dashboard/workspace/$workspaceId/project/$projectId/hierarchy"
+                    : "/dashboard/workspace/$workspaceId/project/$projectId/board",
       params: {
         workspaceId,
         projectId: nextProjectId,
@@ -198,6 +211,7 @@ export default function ProjectLayout({
                   canManageWorkspace() ? handleNavigateToStatistics : undefined
                 }
                 onSelectHierarchy={handleNavigateToHierarchy}
+                onSelectMilestones={handleNavigateToMilestones}
                 onSelectProject={handleProjectSwitch}
                 onAddProject={() => setIsCreateProjectModalOpen(true)}
               />
@@ -274,6 +288,16 @@ export default function ProjectLayout({
             >
               <CalendarDays className="size-3.5" />
               {t("tasks:view.gantt")}
+            </Button>
+            <Button
+              variant={resolvedView === "milestones" ? "secondary" : "ghost"}
+              size="xs"
+              aria-current={resolvedView === "milestones" ? "page" : undefined}
+              onClick={handleNavigateToMilestones}
+              className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs"
+            >
+              <Flag className="size-3.5" />
+              {t("tasks:milestones.title")}
             </Button>
             {canManageWorkspace() && (
               <Button

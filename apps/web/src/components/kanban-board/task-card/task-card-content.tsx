@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import MilestoneBadge from "@/components/milestone/milestone-badge";
 import { TaskProgressBadges } from "@/components/task/task-progress-badges";
 import { TaskPullRequests } from "@/components/task/task-pull-requests";
 import {
@@ -71,6 +72,7 @@ function TaskCardContent({
   const dueDateStatus = getDueDateStatus(task.dueDate, taskIsCompleted);
   const isOverdue = dueDateStatus === "overdue";
   const { data: workspace } = useActiveWorkspace();
+  const workspaceId = project?.workspaceId ?? workspace?.id;
   const { mutateAsync: deleteTask } = useDeleteTask();
   const {
     showAssignees,
@@ -303,6 +305,13 @@ function TaskCardContent({
               )}
 
               <TaskProgressBadges task={task} />
+              {task.milestoneId && workspaceId && (
+                <MilestoneBadge
+                  workspaceId={workspaceId}
+                  projectId={task.projectId}
+                  id={task.milestoneId}
+                />
+              )}
 
               {showDueDates && task.dueDate && (
                 <div

@@ -38,6 +38,7 @@ type Task = {
   assigneeName: string | null;
   assigneeImage?: string | null;
   projectId: string;
+  milestoneId?: string | null;
   columnId?: string | null;
   subtaskCounts?: { completed: number; total: number };
   labels?: TaskLabel[];

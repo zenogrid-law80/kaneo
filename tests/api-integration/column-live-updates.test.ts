@@ -25,10 +25,15 @@ it("announces committed column changes for focused remote boards", async () => {
   await reorderColumns(project.id, [{ id: column.id, position: 0 }]);
   await deleteColumn(column.id);
   expect(publish.mock.calls).toEqual(
-    Array.from({ length: 4 }, () => [
+    [
       "project.updated",
-      { projectId: project.id },
-    ]),
+      "column.created",
+      "project.updated",
+      "column.updated",
+      "project.updated",
+      "project.updated",
+      "column.deleted",
+    ].map((type) => [type, { projectId: project.id }]),
   );
   expect(
     await db.query.columnTable.findFirst({
@@ -36,7 +41,7 @@ it("announces committed column changes for focused remote boards", async () => {
     }),
   ).toBeUndefined();
   await expect(deleteColumn(column.id)).rejects.toThrow("Column not found");
-  expect(publish).toHaveBeenCalledTimes(4);
+  expect(publish).toHaveBeenCalledTimes(7);
 });
 
 it.each(["missing", "foreign"])(

@@ -29,6 +29,7 @@ async function deleteColumn(id: string) {
 
   await publishEvent("project.updated", { projectId: existing.projectId });
 
+  await publishEvent("column.deleted", { projectId: existing.projectId });
   return existing;
 }
 

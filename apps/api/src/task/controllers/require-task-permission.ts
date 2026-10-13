@@ -13,6 +13,7 @@ type BulkTaskOperation =
   | "delete"
   | "addLabel"
   | "removeLabel"
+  | "updateMilestone"
   | "updateDueDate";
 
 const BULK_OPERATIONS: readonly BulkTaskOperation[] = [
@@ -23,6 +24,7 @@ const BULK_OPERATIONS: readonly BulkTaskOperation[] = [
   "addLabel",
   "removeLabel",
   "updateDueDate",
+  "updateMilestone",
 ];
 
 // Route middleware runs before the validators, so c.req.valid() is unavailable.
@@ -49,6 +51,12 @@ async function bulkOperation(c: Context): Promise<BulkTaskOperation> {
 
 export async function requireBulkTaskPermission(c: Context, next: Next) {
   const operation = await bulkOperation(c);
+
+  if (operation === "updateMilestone")
+    return requireWorkspacePermission({ task: ["update"], project: ["read"] })(
+      c,
+      next,
+    );
 
   if (operation === "delete") {
     return requireWorkspacePermission({ task: ["delete"] })(c, next);

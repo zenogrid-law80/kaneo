@@ -6,6 +6,7 @@ export const workspaceMemberStatisticsQueryKey = (
   projectId?: string,
   startDate?: string,
   endDate?: string,
+  milestoneId?: string,
 ) =>
   [
     "workspace-member-statistics",
@@ -13,6 +14,7 @@ export const workspaceMemberStatisticsQueryKey = (
     projectId,
     startDate,
     endDate,
+    milestoneId,
   ] as const;
 
 function useWorkspaceMemberStatistics(
@@ -20,6 +22,7 @@ function useWorkspaceMemberStatistics(
   projectId?: string,
   startDate?: string,
   endDate?: string,
+  milestoneId?: string,
 ) {
   return useQuery({
     queryKey: workspaceMemberStatisticsQueryKey(
@@ -27,9 +30,16 @@ function useWorkspaceMemberStatistics(
       projectId,
       startDate,
       endDate,
+      milestoneId,
     ),
     queryFn: () =>
-      getWorkspaceMemberStatistics(workspaceId, projectId, startDate, endDate),
+      getWorkspaceMemberStatistics(
+        workspaceId,
+        projectId,
+        startDate,
+        endDate,
+        milestoneId,
+      ),
     enabled: Boolean(workspaceId),
   });
 }

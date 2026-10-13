@@ -41,6 +41,9 @@ const priority = z.enum(VALID_PRIORITIES);
 
 // Required object of optional filters: a RouteParameter cannot itself be optional.
 export const listTasksQuery = z.object({
+  search: z.string().max(200).optional(),
+  milestoneId: z.string().min(1).optional(),
+  withoutMilestone: z.enum(["true", "false"]).optional(),
   status: z.string().optional(),
   priority: z.string().optional(),
   assigneeId: z.string().optional(),
@@ -66,6 +69,7 @@ export const bulkUpdateBody = z.object({
     "addLabel",
     "removeLabel",
     "updateDueDate",
+    "updateMilestone",
   ]),
   value: z.string().nullable().optional().openapi({
     description:
@@ -74,6 +78,7 @@ export const bulkUpdateBody = z.object({
 });
 
 export const createTaskBody = z.object({
+  milestoneId: z.string().min(1).nullable().optional(),
   title: z.string(),
   description: z.string(),
   startDate: z.string().optional(),

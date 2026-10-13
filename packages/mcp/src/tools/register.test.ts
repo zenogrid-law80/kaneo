@@ -455,3 +455,25 @@ describe("registerTools", () => {
     ]);
   });
 });
+
+describe("milestone MCP tools", () => {
+  it("passes null to unlink and open/closed to update without a full task overwrite", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ success: true }) };
+    registerTools(server as never, { client: client as never });
+    await tools
+      .get("set_task_milestone")
+      ?.handler({ taskId: "task 1", milestoneId: null });
+    expect(client.json).toHaveBeenCalledWith("/api/task/task%201/milestone", {
+      method: "PATCH",
+      body: JSON.stringify({ milestoneId: null }),
+    });
+    await tools
+      .get("update_milestone")
+      ?.handler({ id: "m1", status: "closed" });
+    expect(client.json).toHaveBeenCalledWith("/api/milestone/m1", {
+      method: "PATCH",
+      body: JSON.stringify({ status: "closed" }),
+    });
+  });
+});

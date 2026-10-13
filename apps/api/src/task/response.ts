@@ -6,6 +6,7 @@ export const taskSchema = z
   .object({
     id: z.string(),
     projectId: z.string(),
+    milestoneId: z.string().nullable(),
     position: z.number().nullable().openapi({
       description: "Order within its column, ascending.",
     }),
@@ -122,6 +123,7 @@ export const boardTaskSchema = z
         description:
           "Direct subtasks in the workspace; completed means a final column in the child project. Public boards count only children in public projects.",
       }),
+    milestoneId: z.string().nullable(),
     labels: z.array(taskLabelSchema),
     externalLinks: z.array(taskExternalLinkSchema),
   })
@@ -327,3 +329,17 @@ export const assignedTasksSchema = z
     }),
   })
   .openapi("AssignedTasks");
+// Public projects explicitly omit private milestone metadata.
+export const publicBoardTaskSchema = boardTaskSchema
+  .omit({ milestoneId: true })
+  .openapi("PublicBoardTask");
+export const publicBoardSchema = boardSchema.shape.data
+  .extend({
+    pagination: boardSchema.shape.pagination,
+    columns: z.array(
+      boardColumnSchema.extend({ tasks: z.array(publicBoardTaskSchema) }),
+    ),
+    archivedTasks: z.array(publicBoardTaskSchema),
+    plannedTasks: z.array(publicBoardTaskSchema),
+  })
+  .openapi("PublicBoard");

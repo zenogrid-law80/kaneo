@@ -145,8 +145,8 @@ async function updateTask(
   });
 
   if (!updatedTask) {
-    throw new HTTPException(500, {
-      message: "Failed to update task",
+    throw new HTTPException(409, {
+      message: "Task changed projects; retry the update",
     });
   }
 

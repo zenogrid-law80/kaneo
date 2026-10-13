@@ -13,6 +13,11 @@ import {
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import {
+  assertOpenMilestone,
+  lockMilestoneProjects,
+  publishMilestoneAssignment,
+} from "../../milestone/controllers/milestones";
+import {
   assertAssignableUser,
   getProjectWorkspaceId,
 } from "../../utils/assert-assignable-user";
@@ -57,6 +62,7 @@ async function createTask({
   priority,
   customFields,
   draftAssetIds,
+  milestoneId,
 }: {
   projectId: string;
   currentUserId: string;
@@ -69,6 +75,7 @@ async function createTask({
   priority?: string;
   customFields?: CustomFieldInput[];
   draftAssetIds?: string[];
+  milestoneId?: string | null;
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
@@ -131,7 +138,11 @@ async function createTask({
     ),
   });
 
+  let milestone: { id: string; name: string } | null = null;
   const createdTask = await db.transaction(async (tx) => {
+    await lockMilestoneProjects(tx, [projectId]);
+    if (milestoneId)
+      milestone = await assertOpenMilestone(tx, milestoneId, projectId);
     const taskNumber = await claimTaskNumber(projectId, tx);
     const nextPosition = await nextTaskPosition(
       tx,
@@ -144,6 +155,7 @@ async function createTask({
       .insert(taskTable)
       .values({
         projectId,
+        milestoneId: milestoneId ?? null,
         userId: normalizedUserId ?? null,
         title: title || "",
         status: resolvedStatus,
@@ -222,6 +234,14 @@ async function createTask({
     type: "created",
     content: null,
   });
+
+  if (milestone)
+    await publishMilestoneAssignment(
+      createdTask,
+      currentUserId,
+      null,
+      milestone,
+    );
 
   return {
     ...createdTask,

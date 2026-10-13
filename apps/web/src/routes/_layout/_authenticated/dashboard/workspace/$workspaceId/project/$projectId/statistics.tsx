@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RotateCcw } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
 import MonthlyTaskChart from "@/components/statistics/monthly-task-chart";
 import {
@@ -37,6 +38,7 @@ import {
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@/components/ui/tabs";
 import useMemberTeamMonthlyStatistics from "@/hooks/queries/workspace/use-member-team-monthly-statistics";
 import useWorkspaceMemberStatistics from "@/hooks/queries/workspace/use-workspace-member-statistics";
+import { useMilestoneFilter } from "@/hooks/use-milestone-filter";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 
 export const Route = createFileRoute(
@@ -49,7 +51,21 @@ function RouteComponent() {
     useWorkspacePermission();
   const { workspaceId, projectId } = Route.useParams();
   const search = Route.useSearch();
+  const { milestoneId, setMilestoneId } = useMilestoneFilter(
+    projectId,
+    search.milestone,
+  );
   const navigate = Route.useNavigate();
+  useEffect(() => {
+    if (search.milestone === (milestoneId ?? undefined)) return;
+    void navigate({
+      search: (previous: StatisticsSearch) => ({
+        ...previous,
+        milestone: milestoneId ?? undefined,
+      }),
+      replace: true,
+    });
+  }, [milestoneId, search.milestone, navigate]);
   const [initialRange] = useState(() => dateRange());
   const startDate = search.startDate ?? initialRange.startDate;
   const endDate =
@@ -65,12 +81,14 @@ function RouteComponent() {
     projectId,
     effectiveStart,
     endDate,
+    milestoneId ?? undefined,
   );
   const people = useMemberTeamMonthlyStatistics(
     canView ? workspaceId : "",
     projectId,
     effectiveStart,
     endDate,
+    milestoneId ?? undefined,
   );
   const teams = people.data?.teams ?? [];
   const selectedTeam = teams.find((team) => team.teamId === teamId);
@@ -206,6 +224,18 @@ function RouteComponent() {
                 })}
               </div>
               <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1">
+                  <span className="block text-xs text-muted-foreground">
+                    {t("tasks:milestones.title")}
+                  </span>
+                  <MilestoneSelect
+                    projectId={projectId}
+                    value={milestoneId}
+                    onChange={setMilestoneId}
+                    filter
+                    includeClosed
+                  />
+                </div>
                 <DateFilter
                   label={t("statistics:filters.startDate")}
                   value={effectiveStart}
@@ -279,14 +309,16 @@ function RouteComponent() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() =>
+                  onClick={() => {
+                    setMilestoneId(null);
                     update({
                       ...dateRange(),
                       member: "all",
                       team: "all",
                       schedule: "all",
-                    })
-                  }
+                      milestone: undefined,
+                    });
+                  }}
                 >
                   <RotateCcw />
                   {t("statistics:filters.reset")}

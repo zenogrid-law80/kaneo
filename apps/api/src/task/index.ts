@@ -9,6 +9,8 @@ import {
   taskTable,
   workspaceTable,
 } from "../database/schema";
+import { setTaskMilestones } from "../milestone/controllers/milestones";
+import { updateTaskMilestoneBody } from "../milestone/schema";
 import {
   apiRouter,
   type BaseVariables,
@@ -110,6 +112,34 @@ import {
   updateTitleBody,
 } from "./schema";
 
+const updateTaskMilestoneRoute = createRoute({
+  method: "patch",
+  path: "/{id}/milestone",
+  operationId: "updateTaskMilestone",
+  tags: ["Tasks"],
+  summary: "Set or clear a task milestone",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"], project: ["read"] }),
+    requireEntitlement,
+  ] as const,
+  request: {
+    params: taskParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateTaskMilestoneBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("Updated task", taskSchema),
+    400: errorResponse("Milestone belongs to another project"),
+    401: errorResponse("Authentication required"),
+    403: errorResponse("Insufficient permissions"),
+    404: errorResponse("Task not found"),
+    409: errorResponse("Milestone is closed or task moved"),
+  },
+});
+
 const listAssignedTasksRoute = createRoute({
   method: "get",
   operationId: "listAssignedTasks",
@@ -140,7 +170,10 @@ const listTasksRoute = createRoute({
   summary: "List tasks",
   description:
     "Get a project's board: its columns, each with the tasks in it, plus the archived and planned buckets. Responses always contain at most 100 tasks (50 by default). Continue through pagination.totalPages for the whole board, and for each task page follow relatedPage through pagination.relatedTotalPages for all labels, links and column metadata. Filters and sorting apply before pagination. Descriptions larger than 64 KiB are omitted with descriptionDeferred=true; read the task detail or description pages for full text.",
-  middleware: [workspaceAccess.fromProject("projectId")] as const,
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ project: ["read"], task: ["read"] }),
+  ] as const,
   request: { params: projectIdParam, query: listTasksQuery },
   responses: {
     200: jsonResponse("The project board", boardSchema),
@@ -148,7 +181,9 @@ const listTasksRoute = createRoute({
     400: errorResponse(
       "Unknown project, or its workspace could not be determined",
     ),
-    403: errorResponse("No access to the project's workspace"),
+    403: errorResponse(
+      "No workspace access, or missing project:read/task:read permission",
+    ),
   },
 });
 
@@ -288,6 +323,12 @@ const createTaskRoute = createRoute({
     workspaceAccess.fromProject("projectId"),
     requireWorkspacePermission({ task: ["create"] }),
     requireEntitlement,
+    async (c, next) => {
+      const body = await c.req.json().catch(() => null);
+      if (body?.milestoneId)
+        return requireWorkspacePermission({ project: ["read"] })(c, next);
+      return next();
+    },
   ] as const,
   request: {
     params: projectIdParam,
@@ -346,7 +387,10 @@ const getTaskRoute = createRoute({
   summary: "Get task",
   description:
     "Get a single task by ID, with its assignee name. The board view omits descriptions above 64 KiB and includes task and same-project parent subtask progress.",
-  middleware: [workspaceAccess.fromTask()] as const,
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ project: ["read"], task: ["read"] }),
+  ] as const,
   request: {
     params: taskParam,
     query: z.object({ view: z.enum(["detail", "board"]).optional() }),
@@ -356,7 +400,9 @@ const getTaskRoute = createRoute({
     400: errorResponse(
       "Unknown task, or its workspace could not be determined",
     ),
-    403: errorResponse("No access to the task's workspace"),
+    403: errorResponse(
+      "No workspace access, or missing project:read/task:read permission",
+    ),
   },
 });
 
@@ -433,6 +479,7 @@ const updateTaskRoute = createRoute({
     },
   },
   responses: {
+    409: errorResponse("Task moved while updating; retry the request"),
     200: jsonResponse("The updated task", taskSchema),
     400: errorResponse("Invalid body, or unknown task"),
     403: errorResponse(
@@ -814,7 +861,10 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     const { projectId } = c.req.valid("param");
     const filters = c.req.valid("query") || {};
 
-    const tasks = await getTasks(projectId, filters);
+    const tasks = await getTasks(projectId, {
+      ...filters,
+      withoutMilestone: filters.withoutMilestone === "true",
+    });
 
     return c.json(tasks, 200);
   })
@@ -885,6 +935,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       userId,
       customFields,
       draftAssetIds,
+      milestoneId,
     } = c.req.valid("json");
 
     const parsedStartDate =
@@ -910,6 +961,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       status,
       customFields,
       draftAssetIds,
+      milestoneId,
     });
 
     return c.json(task, 200);
@@ -1275,6 +1327,15 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     });
 
     return c.json(task, 200);
+  })
+  .openapi(updateTaskMilestoneRoute, async (c) => {
+    const [updated] = await setTaskMilestones(
+      [c.req.valid("param").id],
+      c.req.valid("json").milestoneId,
+      c.get("userId"),
+    );
+    if (!updated) throw new HTTPException(404, { message: "Task not found" });
+    return c.json(updated, 200);
   });
 
 export default task;
