@@ -1,21 +1,19 @@
-import { and, asc, eq, max } from "drizzle-orm";
+import { and, asc, eq, isNotNull, notInArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
   assetTable,
   columnTable,
+  externalLinkTable,
+  integrationTable,
   milestoneTable,
   projectTable,
   taskTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
-import {
-  lockMilestoneProjects,
-  publishMilestoneAssignment,
-} from "../../milestone/controllers/milestones";
+import { publishMilestoneAssignment } from "../../milestone/controllers/milestones";
 import { claimTaskNumber } from "./claim-task-numbers";
-
-type DbOrTx = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+import { nextTaskPosition } from "./next-task-position";
 
 function isSameProjectMove(
   sourceProjectId: string,
@@ -64,26 +62,6 @@ async function resolveDestinationStatus(
   return requestedColumn ?? matchingCurrentColumn ?? firstColumn;
 }
 
-async function getNextTaskPosition(
-  dbOrTx: DbOrTx,
-  projectId: string,
-  status: string,
-  columnId: string,
-) {
-  const [maxPositionResult] = await dbOrTx
-    .select({ maxPosition: max(taskTable.position) })
-    .from(taskTable)
-    .where(
-      and(
-        eq(taskTable.projectId, projectId),
-        eq(taskTable.status, status),
-        eq(taskTable.columnId, columnId),
-      ),
-    );
-
-  return (maxPositionResult?.maxPosition ?? 0) + 1;
-}
-
 async function moveTask({
   taskId,
   destinationProjectId,
@@ -111,24 +89,24 @@ async function moveTask({
     });
   }
 
-  const [sourceProject, destinationProject] = await Promise.all([
-    db.query.projectTable.findFirst({
-      where: eq(projectTable.id, existingTask.projectId),
-    }),
-    db.query.projectTable.findFirst({
-      where: eq(projectTable.id, destinationProjectId),
-    }),
-  ]);
-
-  if (!sourceProject || !destinationProject) {
+  const sourceProject = await db.query.projectTable.findFirst({
+    where: eq(projectTable.id, existingTask.projectId),
+  });
+  if (!sourceProject) {
     throw new HTTPException(404, {
       message: "Project not found",
     });
   }
 
-  if (sourceProject.workspaceId !== destinationProject.workspaceId) {
-    throw new HTTPException(400, {
-      message: "Tasks can only be moved within the same workspace",
+  const destinationProject = await db.query.projectTable.findFirst({
+    where: and(
+      eq(projectTable.id, destinationProjectId),
+      eq(projectTable.workspaceId, sourceProject.workspaceId),
+    ),
+  });
+  if (!destinationProject) {
+    throw new HTTPException(404, {
+      message: "Project not found",
     });
   }
 
@@ -139,35 +117,54 @@ async function moveTask({
   );
 
   const moved = await db.transaction(async (tx) => {
-    await lockMilestoneProjects(tx, [
-      existingTask.projectId,
-      destinationProjectId,
-    ]);
-    const [current] = await tx
-      .select()
+    for (const projectId of [sourceProject.id, destinationProjectId].sort()) {
+      const [project] = await tx
+        .select({ id: projectTable.id })
+        .from(projectTable)
+        .where(
+          and(
+            eq(projectTable.id, projectId),
+            eq(projectTable.workspaceId, sourceProject.workspaceId),
+          ),
+        )
+        .for("update");
+      if (!project)
+        throw new HTTPException(409, {
+          message: "Project was moved to another workspace, please try again",
+        });
+    }
+    const [lockedTask] = await tx
+      .select({ milestoneId: taskTable.milestoneId })
       .from(taskTable)
-      .where(eq(taskTable.id, taskId))
+      .where(
+        and(
+          eq(taskTable.id, taskId),
+          eq(taskTable.projectId, sourceProject.id),
+        ),
+      )
       .for("update");
-    if (!current || current.projectId !== existingTask.projectId)
+    if (!lockedTask)
       throw new HTTPException(409, {
-        message: "Task changed projects; retry the move",
+        message: "Task was moved concurrently, please try again",
       });
-    const [oldMilestone] = current.milestoneId
+    const [oldMilestone] = lockedTask.milestoneId
       ? await tx
-          .select()
+          .select({ id: milestoneTable.id, name: milestoneTable.name })
           .from(milestoneTable)
-          .where(eq(milestoneTable.id, current.milestoneId))
+          .where(
+            and(
+              eq(milestoneTable.id, lockedTask.milestoneId),
+              eq(milestoneTable.projectId, sourceProject.id),
+            ),
+          )
       : [];
-
-    const [nextTaskNumber, nextPosition] = await Promise.all([
-      claimTaskNumber(destinationProjectId, tx),
-      getNextTaskPosition(
-        tx,
-        destinationProjectId,
-        resolvedColumn.slug,
-        resolvedColumn.id,
-      ),
-    ]);
+    const nextTaskNumber = await claimTaskNumber(destinationProjectId, tx);
+    const nextPosition = await nextTaskPosition(
+      tx,
+      destinationProjectId,
+      resolvedColumn.slug,
+      resolvedColumn.id,
+    );
 
     const [updatedTask] = await tx
       .update(taskTable)
@@ -179,14 +176,35 @@ async function moveTask({
         number: nextTaskNumber,
         position: nextPosition,
       })
-      .where(eq(taskTable.id, taskId))
+      .where(
+        and(
+          eq(taskTable.id, taskId),
+          eq(taskTable.projectId, sourceProject.id),
+        ),
+      )
       .returning();
 
     if (!updatedTask) {
-      throw new HTTPException(500, {
-        message: "Failed to move task",
+      throw new HTTPException(409, {
+        message: "Task was moved concurrently, please try again",
       });
     }
+
+    await tx
+      .delete(externalLinkTable)
+      .where(
+        and(
+          eq(externalLinkTable.taskId, taskId),
+          isNotNull(externalLinkTable.integrationId),
+          notInArray(
+            externalLinkTable.integrationId,
+            tx
+              .select({ id: integrationTable.id })
+              .from(integrationTable)
+              .where(eq(integrationTable.projectId, destinationProjectId)),
+          ),
+        ),
+      );
 
     await tx
       .update(assetTable)

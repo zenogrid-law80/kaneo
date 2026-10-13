@@ -7,7 +7,7 @@ type TaskLabel = {
 type TaskExternalLink = {
   id: string;
   taskId: string;
-  integrationId: string;
+  integrationId: string | null;
   resourceType: string;
   externalId: string;
   url: string;
@@ -15,11 +15,17 @@ type TaskExternalLink = {
   metadata: Record<string, unknown> | null;
 };
 
+type TaskCustomFieldValue = {
+  fieldId: string;
+  value: string | null;
+};
+
 type Task = {
   id: string;
   title: string;
   number: number | null;
   description: string | null;
+  descriptionDeferred?: boolean;
   status: string;
   priority: string | null;
   startDate: string | null;
@@ -34,8 +40,10 @@ type Task = {
   projectId: string;
   milestoneId?: string | null;
   columnId?: string | null;
+  subtaskCounts?: { completed: number; total: number };
   labels?: TaskLabel[];
   externalLinks?: TaskExternalLink[];
+  customFieldValues?: TaskCustomFieldValue[];
 };
 
 export default Task;

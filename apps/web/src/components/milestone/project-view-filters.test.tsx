@@ -9,7 +9,14 @@ import {
 import { createInstance } from "i18next";
 import type { ComponentType, ReactNode } from "react";
 import { I18nextProvider } from "react-i18next";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 import type { StatisticsSearch } from "@/components/statistics/statistics-model";
 import { useTaskFiltersWithLabelsSupport } from "@/hooks/use-task-filters-with-labels-support";
 import { Route as BacklogRoute } from "@/routes/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/backlog";
@@ -38,6 +45,18 @@ const state = vi.hoisted(() => ({
     isError: false,
   })),
 }));
+vi.mock(
+  "@/hooks/queries/custom-field/use-get-custom-field-filter-values",
+  () => ({ default: () => ({ data: [] }) }),
+);
+vi.mock(
+  "@/hooks/queries/custom-field/use-get-custom-fields-by-project",
+  () => ({ default: () => ({ data: [] }) }),
+);
+vi.mock(
+  "@/hooks/queries/custom-field/use-get-all-custom-field-values-by-project",
+  () => ({ default: () => ({ getValuesForTask: () => [] }) }),
+);
 vi.mock("@tanstack/react-query", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@tanstack/react-query")>()),
   useQueryClient: () => state.queryClient,
@@ -194,6 +213,10 @@ void i18n.init({
   initAsync: false,
 });
 beforeEach(() => {
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+    configurable: true,
+    value: vi.fn(),
+  });
   window.localStorage.clear();
   useMilestoneFilters.setState({ byProject: {} });
   state.projectId = "project";

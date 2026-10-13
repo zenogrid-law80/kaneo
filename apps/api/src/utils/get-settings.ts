@@ -1,12 +1,15 @@
 import { isSmtpConfigured } from "@kaneo/email";
 import { config } from "dotenv-mono";
 import { isBillingEnabled } from "../billing/config";
+import { resolveFileSecret } from "./file-secret";
 import { isGithubSsoConfigured } from "./github-sso-env";
+import { isCloud } from "./is-cloud";
 
 config();
 
 function getSettings() {
   return {
+    isCloud: isCloud(),
     disableRegistration: process.env.DISABLE_REGISTRATION === "true",
     disablePasswordRegistration:
       process.env.DISABLE_PASSWORD_REGISTRATION === "true",
@@ -23,8 +26,13 @@ function getSettings() {
       Boolean(process.env.DISCORD_CLIENT_SECRET),
     hasCustomOAuth:
       Boolean(process.env.CUSTOM_OAUTH_CLIENT_ID) &&
-      Boolean(process.env.CUSTOM_OAUTH_CLIENT_SECRET),
-    hasGuestAccess: process.env.DISABLE_GUEST_ACCESS !== "true",
+      Boolean(resolveFileSecret("CUSTOM_OAUTH_CLIENT_SECRET")),
+    hasGuestAccess: [
+      "DISABLE_GUEST_ACCESS",
+      "DISABLE_REGISTRATION",
+      "DISABLE_PASSWORD_REGISTRATION",
+      "DISABLE_LOGIN_FORM",
+    ].every((key) => process.env[key] !== "true"),
     disableLoginForm: process.env.DISABLE_LOGIN_FORM === "true",
     customOAuthAutoLogin: process.env.CUSTOM_OAUTH_AUTO_LOGIN === "true",
     customOAuthLogoutUrl: process.env.CUSTOM_OAUTH_LOGOUT_URL || null,

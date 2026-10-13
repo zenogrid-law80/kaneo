@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import { formatDate, formatRelativeTime } from "./format";
 
 vi.mock("./i18n", () => ({ i18n: { language: "en-US" } }));

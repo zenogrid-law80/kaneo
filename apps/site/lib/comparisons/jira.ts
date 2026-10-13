@@ -4,12 +4,12 @@ export const jira: Comparison = {
   slug: "jira",
   competitor: "Jira",
   category: "saas",
-  title: "Open-source Jira alternative",
+  title: "Self-hosted Jira alternative: Kaneo vs Jira",
   description:
-    "Kaneo is an open-source, self-hostable project management tool and a simple Jira alternative you can run yourself or use as a managed cloud. Free to self-host, fair cloud pricing.",
+    "Kaneo is a free, self-hosted Jira alternative under the MIT license, with boards, backlog, Gantt, and SSO but no admin console. Managed cloud from $4 a month.",
   summary:
     "Same planning, none of the admin console. MIT licensed and free to self-host.",
-  heading: "The open-source Jira alternative",
+  heading: "The self-hosted, open-source Jira alternative",
   subheading:
     "Jira can run a 500-person org, but most teams just want to plan and ship work without the weight. Kaneo is a simple, open-source project manager you can self-host or let us run for you.",
   verdict:
@@ -64,7 +64,7 @@ export const jira: Comparison = {
     {
       question: "Does Kaneo have Jira features like sprints and workflows?",
       answer:
-        "Kaneo has backlog planning, configurable workflow columns per project, labels, priorities, assignees, task relations, comments, time tracking, and workspace roles. It does not have Jira's schemes, custom issue-type hierarchies, or marketplace apps, which is the deliberate trade.",
+        "Kaneo has backlog planning, configurable workflow columns, integration-driven workflow rules, Gantt and calendar views, custom fields, task relations, time tracking, and workspace roles. It does not have dedicated sprints with story points and burndown reports, Jira's schemes, custom issue-type hierarchies, or marketplace apps.",
     },
     {
       question: "How much does Kaneo cost compared to Jira?",
@@ -73,6 +73,12 @@ export const jira: Comparison = {
     },
   ],
   related: ["linear", "asana", "clickup", "openproject"],
+  guides: [
+    {
+      label: "Free, open-source Jira alternatives compared",
+      href: "/guides/open-source-jira-alternatives",
+    },
+  ],
   verifiedOn: "2026-08-19",
   sources: [
     {

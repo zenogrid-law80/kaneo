@@ -11,9 +11,12 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+.env.minio.local
 
 # Testing
 coverage
+logs/
+browserstack-artifacts/
 
 # Turbo
 .turbo
@@ -55,6 +58,8 @@ compose.override.yml
 # TanStack Router generated cache
 apps/web/.tanstack/
 .pi/
+.superpowers/
 
 # TypeScript incremental build state
 *.tsbuildinfo
+.vitest/

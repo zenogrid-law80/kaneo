@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import getMyTasks from "@/fetchers/task/get-my-tasks";
 import useGetMyTasks from "./use-get-my-tasks";
 

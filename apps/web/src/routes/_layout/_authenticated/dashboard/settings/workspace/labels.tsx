@@ -45,7 +45,9 @@ import useUpdateLabel from "@/hooks/mutations/label/use-update-label";
 import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
+import { resolveLabelColor } from "@/lib/label-color";
 import { toast } from "@/lib/toast";
+import { SettingsPage } from "@/components/settings/settings-page";
 
 export const Route = createFileRoute(
   "/_layout/_authenticated/dashboard/settings/workspace/labels",
@@ -92,6 +94,7 @@ function RouteComponent() {
   const [deletingLabel, setDeletingLabel] = useState<{
     id: string;
     name: string;
+    deletionStartedAt?: string | null;
   } | null>(null);
 
   const resetCreate = () => {
@@ -185,7 +188,11 @@ function RouteComponent() {
     }
   };
 
-  const openDelete = (label: { id: string; name: string }) => {
+  const openDelete = (label: {
+    id: string;
+    name: string;
+    deletionStartedAt?: string | null;
+  }) => {
     setDeletingLabel(label);
     setDeleteOpen(true);
   };
@@ -213,25 +220,13 @@ function RouteComponent() {
     }
   };
 
-  const getColorVar = (colorValue: string) =>
-    labelColors.find((c) => c.value === colorValue)?.color ??
-    "var(--color-neutral-400)";
-
   return (
     <>
       <PageTitle title={t("settings:workspaceLabels.pageTitle")} />
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">
-            {t("settings:workspaceLabels.title", { defaultValue: "Labels" })}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("settings:workspaceLabels.subtitle", {
-              defaultValue: "Create, edit, and delete workspace-level labels.",
-            })}
-          </p>
-        </div>
-
+      <SettingsPage
+        title={t("settings:workspaceLabels.title")}
+        description={t("settings:workspaceLabels.subtitle")}
+      >
         <CardFrame>
           <Card className="!rounded-none !border-t-0">
             <CardHeader>
@@ -287,10 +282,15 @@ function RouteComponent() {
                         <span
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{
-                            backgroundColor: getColorVar(label.color),
+                            backgroundColor: resolveLabelColor(label.color),
                           }}
                         />
                         <span className="text-sm truncate">{label.name}</span>
+                        {label.deletionStartedAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {t("settings:workspaceLabels.deletionPending")}
+                          </span>
+                        )}
                       </div>
                       {(canUpdate || canDelete) && (
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -303,6 +303,10 @@ function RouteComponent() {
                                 { defaultValue: "Edit Label" },
                               )}
                               className="h-8 w-8"
+                              disabled={
+                                !!label.deletionStartedAt ||
+                                deleteLabel.isPending
+                              }
                               onClick={() =>
                                 openEdit({
                                   id: label.id,
@@ -318,15 +322,20 @@ function RouteComponent() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label={t(
-                                "settings:workspaceLabels.deleteLabel",
-                                { defaultValue: "Delete" },
-                              )}
+                              aria-label={
+                                label.deletionStartedAt
+                                  ? t("settings:workspaceLabels.resumeDeletion")
+                                  : t("settings:workspaceLabels.deleteLabel", {
+                                      defaultValue: "Delete",
+                                    })
+                              }
+                              disabled={deleteLabel.isPending}
                               className="h-8 w-8 text-destructive hover:text-destructive"
                               onClick={() =>
                                 openDelete({
                                   id: label.id,
                                   name: label.name,
+                                  deletionStartedAt: label.deletionStartedAt,
                                 })
                               }
                             >
@@ -342,7 +351,7 @@ function RouteComponent() {
             </CardPanel>
           </Card>
         </CardFrame>
-      </div>
+      </SettingsPage>
 
       {/* Create Dialog */}
       <Dialog
@@ -564,9 +573,13 @@ function RouteComponent() {
               onClick={handleDelete}
               disabled={deleteLabel.isPending}
             >
-              {t("settings:workspaceLabels.deleteLabel", {
-                defaultValue: "Delete",
-              })}
+              {deleteLabel.isPending
+                ? t("common:actions.deleting")
+                : deletingLabel?.deletionStartedAt
+                  ? t("settings:workspaceLabels.resumeDeletion")
+                  : t("settings:workspaceLabels.deleteLabel", {
+                      defaultValue: "Delete",
+                    })}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

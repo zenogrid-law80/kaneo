@@ -1,8 +1,11 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { useTrackSignup } from "@/hooks/use-track-signup";
+import { useUserWebSocket } from "@/hooks/use-user-websocket";
 import { authClient } from "@/lib/auth-client";
 
 // protects all child routes, must be logged in
 export const Route = createFileRoute("/_layout/_authenticated")({
+  component: AuthenticatedLayout,
   beforeLoad: async ({ location }) => {
     let session = null;
     let sessionError = false;
@@ -20,13 +23,20 @@ export const Route = createFileRoute("/_layout/_authenticated")({
       throw redirect({
         to: "/auth/sign-in",
         search: {
-          redirect:
-            location.pathname +
-            location.searchStr +
-            (location.hash ? `#${location.hash}` : ""),
+          // location.href is pathname + search + hash without the origin.
+          // location.search is a null-prototype parsed object, so string
+          // concatenation on it throws "Cannot convert object to primitive value".
+          redirect: location.href,
         },
       });
     }
     return { session, sessionError };
   },
 });
+
+function AuthenticatedLayout() {
+  const { session } = Route.useRouteContext();
+  useUserWebSocket();
+  useTrackSignup(session?.user);
+  return <Outlet />;
+}

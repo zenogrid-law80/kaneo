@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { McpServer as LegacyMcpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import {
@@ -6,8 +5,10 @@ import {
   isLegacyRequest,
 } from "@modelcontextprotocol/server";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { auth } from "../auth";
 import { apiRouter, createRoute, jsonResponse } from "../openapi";
+import { type BanState, isBanActive } from "../utils/user-ban";
 import {
   beginMcpAuthorization,
   decideMcpAuthorizationRequest,
@@ -16,6 +17,7 @@ import {
 } from "./controllers/oauth-consent";
 import { createModernMcpHandler } from "./modern";
 import { exchangeCode } from "./oauth";
+import { oauthRequestBounds } from "./request-bounds";
 import {
   authorizationDecisionResponseSchema,
   authorizationDecisionSchema,
@@ -36,13 +38,6 @@ const internalApiUrl = (
 )
   .replace(/\/api\/?$/, "")
   .replace(/\/+$/, "");
-
-type McpSession = {
-  transport: WebStandardStreamableHTTPServerTransport;
-  userId: string;
-};
-
-const sessions = new Map<string, McpSession>();
 
 function createMcpServerForUser(token: string): LegacyMcpServer {
   const server = new LegacyMcpServer({
@@ -67,13 +62,49 @@ async function validateBearerToken(
   const session = await auth.api.getSession({ headers });
 
   if (!session?.user?.id) return null;
+  if (isBanActive(session.user as BanState)) return null;
   return { userId: session.user.id, token };
 }
 
 const mcp = apiRouter();
+for (const path of [
+  "/mcp/register",
+  "/mcp/authorize",
+  "/mcp/authorize/request/*",
+  "/mcp/token",
+]) {
+  mcp.use(path, oauthRequestBounds);
+}
 
 const jsonError = (description: string) =>
   jsonResponse(description, oauthErrorSchema);
+
+// OAuth clients parse validation failures, so these routes answer with the
+// RFC 6749 / RFC 7591 JSON error shape instead of the router's text default.
+type ValidationResult = { success: boolean; error?: { issues: unknown[] } };
+
+const oauthValidationHook =
+  (error: "invalid_request" | "invalid_client_metadata") =>
+  (result: ValidationResult): undefined => {
+    if (result.success) return;
+    const issue = result.error?.issues[0] as
+      | { path?: PropertyKey[]; message?: string }
+      | undefined;
+    const field = issue?.path?.map(String).join(".");
+    throw new HTTPException(400, {
+      res: Response.json(
+        {
+          error: field?.startsWith("redirect_uri")
+            ? "invalid_redirect_uri"
+            : error,
+          error_description: issue
+            ? `${field || "request"}: ${issue.message}`
+            : "Invalid request",
+        },
+        { status: 400 },
+      ),
+    });
+  };
 
 const registerRoute = createRoute({
   method: "post",
@@ -163,100 +194,54 @@ const decideAuthorizationRequestRoute = createRoute({
 });
 
 mcp
-  .openapi(registerRoute, async (c) =>
-    c.json(await registerMcpClient(c.req.valid("json")), 200),
+  .openapi(
+    registerRoute,
+    async (c) => c.json(await registerMcpClient(c.req.valid("json")), 200),
+    oauthValidationHook("invalid_client_metadata"),
   )
-  .openapi(authorizeRoute, async (c) =>
-    c.redirect(await beginMcpAuthorization(c.req.valid("query"))),
+  .openapi(
+    authorizeRoute,
+    async (c) => c.redirect(await beginMcpAuthorization(c.req.valid("query"))),
+    oauthValidationHook("invalid_request"),
   )
-  .openapi(getAuthorizationRequestRoute, async (c) =>
-    c.json(
-      await getMcpAuthorizationRequest(c.req.valid("param").requestId),
-      200,
-    ),
+  .openapi(
+    getAuthorizationRequestRoute,
+    async (c) =>
+      c.json(
+        await getMcpAuthorizationRequest(c.req.valid("param").requestId),
+        200,
+      ),
+    oauthValidationHook("invalid_request"),
   )
-  .openapi(decideAuthorizationRequestRoute, async (c) => {
-    const redirect = await decideMcpAuthorizationRequest({
-      requestId: c.req.valid("param").requestId,
-      decision: c.req.valid("json"),
-      headers: c.req.raw.headers,
-      origin: c.req.header("origin"),
-    });
-    return c.json({ redirect }, 200);
-  });
-
-mcp.all("/mcp", async (c) => {
-  const authResult = await validateBearerToken(c.req.raw);
-  if (!authResult) {
-    const prmUrl = `${publicApiUrl}/api/.well-known/oauth-protected-resource/api/mcp`;
-    c.header("WWW-Authenticate", `Bearer resource_metadata="${prmUrl}"`);
-    return c.json(
-      {
-        error: "invalid_token",
-        error_description: "Missing or invalid token",
-      },
-      401,
-    );
-  }
-
-  const sessionId = c.req.header("mcp-session-id");
-
-  if (sessionId) {
-    const existing = sessions.get(sessionId);
-    // A mismatched owner is reported as missing rather than forbidden so the
-    // response cannot confirm that someone else's session id is valid.
-    if (existing && existing.userId === authResult.userId) {
-      return existing.transport.handleRequest(c.req.raw);
-    }
-    return c.json({ error: "Session not found" }, 404);
-  }
-
-  if (c.req.method !== "POST") {
-    return c.json({ error: "Method not allowed" }, 405);
-  }
-
-  if (!isJsonContentType(c.req.header("content-type"))) {
-    return c.json({ error: "Unsupported Media Type" }, 415);
-  }
-
-  if (!(await isLegacyRequest(c.req.raw.clone()))) {
-    const modern = createModernMcpHandler(authResult.token, internalApiUrl);
-    return modern.fetch(c.req.raw);
-  }
-
-  const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: () => randomUUID(),
-  });
-
-  transport.onclose = () => {
-    if (transport.sessionId) {
-      sessions.delete(transport.sessionId);
-    }
-  };
-
-  const server = createMcpServerForUser(authResult.token);
-  await server.connect(transport);
-  const response = await transport.handleRequest(c.req.raw);
-
-  if (transport.sessionId) {
-    sessions.set(transport.sessionId, {
-      transport,
-      userId: authResult.userId,
-    });
-  }
-
-  return response;
-});
+  .openapi(
+    decideAuthorizationRequestRoute,
+    async (c) => {
+      const redirect = await decideMcpAuthorizationRequest({
+        requestId: c.req.valid("param").requestId,
+        decision: c.req.valid("json"),
+        headers: c.req.raw.headers,
+        origin: c.req.header("origin"),
+      });
+      return c.json({ redirect }, 200);
+    },
+    oauthValidationHook("invalid_request"),
+  );
 
 mcp.post("/mcp/token", async (c) => {
   const contentType = c.req.header("content-type") || "";
-  let params: Record<string, string>;
+  let params: Record<string, unknown>;
 
-  if (contentType.includes("application/x-www-form-urlencoded")) {
-    const body = await c.req.text();
-    params = Object.fromEntries(new URLSearchParams(body));
-  } else {
-    params = await c.req.json();
+  try {
+    if (contentType.includes("application/x-www-form-urlencoded")) {
+      params = Object.fromEntries(new URLSearchParams(await c.req.text()));
+    } else {
+      const input: unknown = await c.req.json();
+      if (!input || typeof input !== "object" || Array.isArray(input))
+        return c.json({ error: "invalid_request" }, 400);
+      params = input as Record<string, unknown>;
+    }
+  } catch {
+    return c.json({ error: "invalid_request" }, 400);
   }
 
   const { grant_type, code, client_id, code_verifier, redirect_uri } = params;
@@ -264,7 +249,20 @@ mcp.post("/mcp/token", async (c) => {
   if (grant_type !== "authorization_code") {
     return c.json({ error: "unsupported_grant_type" }, 400);
   }
-  if (!code || !client_id || !code_verifier || !redirect_uri) {
+  if (
+    typeof code !== "string" ||
+    !code ||
+    code.length > 128 ||
+    typeof client_id !== "string" ||
+    !client_id ||
+    client_id.length > 128 ||
+    typeof code_verifier !== "string" ||
+    !code_verifier ||
+    code_verifier.length > 128 ||
+    typeof redirect_uri !== "string" ||
+    !redirect_uri ||
+    redirect_uri.length > 2048
+  ) {
     return c.json({ error: "invalid_request" }, 400);
   }
 
@@ -319,18 +317,6 @@ mcp.all("/mcp", async (c) => {
     );
   }
 
-  const sessionId = c.req.header("mcp-session-id");
-
-  if (sessionId) {
-    const existing = sessions.get(sessionId);
-    // A mismatched owner is reported as missing rather than forbidden so the
-    // response cannot confirm that someone else's session id is valid.
-    if (existing && existing.userId === authResult.userId) {
-      return existing.transport.handleRequest(c.req.raw);
-    }
-    return c.json({ error: "Session not found" }, 404);
-  }
-
   if (c.req.method !== "POST") {
     return c.json({ error: "Method not allowed" }, 405);
   }
@@ -344,28 +330,14 @@ mcp.all("/mcp", async (c) => {
     return modern.fetch(c.req.raw);
   }
 
+  // A fresh stateless transport lets legacy POSTs reach any replica. It also
+  // accepts session IDs issued before this change after their owner is gone.
   const transport = new WebStandardStreamableHTTPServerTransport({
-    sessionIdGenerator: () => randomUUID(),
+    sessionIdGenerator: undefined,
   });
-
-  transport.onclose = () => {
-    if (transport.sessionId) {
-      sessions.delete(transport.sessionId);
-    }
-  };
-
   const server = createMcpServerForUser(authResult.token);
   await server.connect(transport);
-  const response = await transport.handleRequest(c.req.raw);
-
-  if (transport.sessionId) {
-    sessions.set(transport.sessionId, {
-      transport,
-      userId: authResult.userId,
-    });
-  }
-
-  return response;
+  return transport.handleRequest(c.req.raw);
 });
 
 export default mcp;

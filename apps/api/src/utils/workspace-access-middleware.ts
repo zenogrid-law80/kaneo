@@ -19,7 +19,8 @@ type WorkspaceIdSource =
         | "comment"
         | "column"
         | "milestone"
-        | "workflowRule";
+        | "workflowRule"
+        | "customField";
       idKey: string;
     }
   | {
@@ -139,7 +140,8 @@ async function lookupWorkspaceId(
     | "comment"
     | "column"
     | "milestone"
-    | "workflowRule",
+    | "workflowRule"
+    | "customField",
   id: string,
 ): Promise<string | null> {
   try {
@@ -182,10 +184,27 @@ async function lookupWorkspaceId(
 
       case "label": {
         const [label] = await db
-          .select({ workspaceId: schema.labelTable.workspaceId })
+          .select({
+            workspaceId: schema.labelTable.workspaceId,
+            taskId: schema.labelTable.taskId,
+            taskWorkspaceId: schema.projectTable.workspaceId,
+          })
           .from(schema.labelTable)
+          .leftJoin(
+            schema.taskTable,
+            eq(schema.labelTable.taskId, schema.taskTable.id),
+          )
+          .leftJoin(
+            schema.projectTable,
+            eq(schema.taskTable.projectId, schema.projectTable.id),
+          )
           .where(eq(schema.labelTable.id, id))
           .limit(1);
+        // Older releases allowed inconsistent label/task references. Never use
+        // such a row to authorize reads, mutations or external provider sync.
+        if (label?.taskId && label.taskWorkspaceId !== label.workspaceId) {
+          return null;
+        }
         return label?.workspaceId || null;
       }
 
@@ -279,6 +298,24 @@ async function lookupWorkspaceId(
           .where(eq(schema.workflowRuleTable.id, id))
           .limit(1);
         return workflowRule?.workspaceId || null;
+      }
+
+      case "customField": {
+        const [field] = await db
+          .select({
+            workspaceId: schema.projectTable.workspaceId,
+          })
+          .from(schema.customFieldDefinitionTable)
+          .innerJoin(
+            schema.projectTable,
+            eq(
+              schema.customFieldDefinitionTable.projectId,
+              schema.projectTable.id,
+            ),
+          )
+          .where(eq(schema.customFieldDefinitionTable.id, id))
+          .limit(1);
+        return field?.workspaceId || null;
       }
 
       default:
@@ -375,6 +412,19 @@ export const workspaceAccess = {
     workspaceAccessMiddleware({
       sources: [
         { type: "lookup", resource: "workflowRule", idKey },
+        { type: "query", key: "workspaceId" },
+      ],
+    }),
+
+  fromCustomField: (idKey = "id") =>
+    workspaceAccessMiddleware({
+      sources: [{ type: "lookup", resource: "customField", idKey }],
+    }),
+
+  fromProjectId: (idKey = "projectId") =>
+    workspaceAccessMiddleware({
+      sources: [
+        { type: "lookup", resource: "project", idKey },
         { type: "query", key: "workspaceId" },
       ],
     }),

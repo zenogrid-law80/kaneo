@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import type { WorkspaceTeam } from "@/hooks/queries/workspace/use-workspace-teams";
 import type WorkspaceUser from "@/types/workspace-user";
 import {

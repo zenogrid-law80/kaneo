@@ -12,6 +12,7 @@ export type BoardFilters = {
   assignee: string[] | null;
   dueDate: string[] | null;
   labels: string[] | null;
+  customFields: Record<string, string[]> | null;
 };
 
 export const DUE_DATE_FILTER_VALUES = {
@@ -29,6 +30,7 @@ const DEFAULT_FILTERS: BoardFilters = {
   assignee: null,
   dueDate: null,
   labels: null,
+  customFields: null,
 };
 
 const FILTER_KEYS: Array<keyof BoardFilters> = [
@@ -38,6 +40,7 @@ const FILTER_KEYS: Array<keyof BoardFilters> = [
   "assignee",
   "dueDate",
   "labels",
+  "customFields",
 ];
 
 function normalizeFilters(raw: unknown): BoardFilters {
@@ -49,6 +52,13 @@ function normalizeFilters(raw: unknown): BoardFilters {
   const normalized = { ...DEFAULT_FILTERS };
 
   for (const key of FILTER_KEYS) {
+    if (key === "customFields") {
+      const value = candidate.customFields;
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        normalized.customFields = value as Record<string, string[]>;
+      }
+      continue;
+    }
     const value = candidate[key];
     if (Array.isArray(value)) {
       const values = value.filter((v): v is string => typeof v === "string");
@@ -94,7 +104,11 @@ export function useTaskFilters(
 
   useEffect(() => {
     if (!storageKey || typeof window === "undefined") return;
-    window.localStorage.setItem(storageKey, JSON.stringify(filters));
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(filters));
+    } catch {
+      // Storage may be unavailable or full; keep filters working in memory.
+    }
   }, [filters, storageKey]);
 
   const filterTasks = (tasks: Task[]): Task[] => {
@@ -173,6 +187,27 @@ export function useTaskFilters(
         }
       }
 
+      if (
+        filters.customFields &&
+        Object.keys(filters.customFields).length > 0
+      ) {
+        for (const [fieldId, values] of Object.entries(filters.customFields)) {
+          if (!values || values.length === 0) continue;
+
+          const taskValue =
+            task.customFieldValues?.find((v) => v.fieldId === fieldId)?.value ??
+            null;
+
+          if (taskValue == null || taskValue === "") {
+            return false;
+          }
+
+          if (!values.includes(taskValue)) {
+            return false;
+          }
+        }
+      }
+
       return true;
     });
   };
@@ -202,7 +237,7 @@ export function useTaskFilters(
     value: BoardFilters[keyof BoardFilters],
   ) => {
     if (key === "milestone") {
-      setMilestoneId(value?.[0] ?? null);
+      setMilestoneId(Array.isArray(value) ? (value[0] ?? null) : null);
       return;
     }
     setLocalFilters((prev) => ({ ...prev, [key]: value }));
@@ -225,6 +260,23 @@ export function useTaskFilters(
     });
   };
 
+  const updateCustomFieldFilter = (fieldId: string, value: string) => {
+    setLocalFilters((prev) => {
+      const current = prev.customFields ?? {};
+      const existing = current[fieldId] ?? [];
+      const isSelected = existing.includes(value);
+      const next = isSelected
+        ? existing.filter((v) => v !== value)
+        : [...existing, value];
+      const updated = { ...current, [fieldId]: next };
+      if (updated[fieldId].length === 0) delete updated[fieldId];
+      return {
+        ...prev,
+        customFields: Object.keys(updated).length > 0 ? updated : null,
+      };
+    });
+  };
+
   const setFilters = (value: SetStateAction<BoardFilters>) => {
     const next = typeof value === "function" ? value(filters) : value;
     setMilestoneId(next.milestone?.[0] ?? null);
@@ -236,6 +288,7 @@ export function useTaskFilters(
     setFilters,
     updateFilter,
     updateLabelFilter,
+    updateCustomFieldFilter,
     filteredProject,
     hasActiveFilters,
     clearFilters,

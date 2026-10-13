@@ -28,7 +28,29 @@ export const useMilestoneFilters = create<MilestoneFilters>()(
     }),
     {
       name: "kaneo-project-milestone-filters",
-      storage: createJSONStorage(() => window.localStorage),
+      storage: createJSONStorage(() => ({
+        getItem: (name) => {
+          try {
+            return window.localStorage.getItem(name);
+          } catch {
+            return null;
+          }
+        },
+        setItem: (name, value) => {
+          try {
+            window.localStorage.setItem(name, value);
+          } catch {
+            /* Keep the selection usable in memory. */
+          }
+        },
+        removeItem: (name) => {
+          try {
+            window.localStorage.removeItem(name);
+          } catch {
+            /* Storage may be unavailable. */
+          }
+        },
+      })),
       partialize: (state) => ({ byProject: state.byProject }),
       merge: (persisted, current) => {
         const stored = (persisted as Partial<MilestoneFilters> | null)

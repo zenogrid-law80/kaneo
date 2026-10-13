@@ -21,6 +21,9 @@ type UserPreferencesStore = {
   compactMode: boolean;
   setCompactMode: (compact: boolean) => void;
 
+  advancedSettings: boolean;
+  setAdvancedSettings: (enabled: boolean) => void;
+
   showTaskNumbers: boolean;
   setShowTaskNumbers: (show: boolean) => void;
   toggleTaskNumbers: () => void;
@@ -36,6 +39,11 @@ type UserPreferencesStore = {
   showPriority: boolean;
   setShowPriority: (show: boolean) => void;
   togglePriority: () => void;
+  showProjectBackgrounds: boolean;
+  setShowProjectBackgrounds: (show: boolean) => void;
+  showTaskItemCounts: boolean;
+  setShowTaskItemCounts: (show: boolean) => void;
+  toggleTaskItemCounts: () => void;
   resetDisplayPreferences: () => void;
 
   sidebarDefaultOpen: boolean;
@@ -82,6 +90,9 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       compactMode: false,
       setCompactMode: (compact) => set({ compactMode: compact }),
 
+      advancedSettings: false,
+      setAdvancedSettings: (enabled) => set({ advancedSettings: enabled }),
+
       showTaskNumbers: true,
       setShowTaskNumbers: (show) => set({ showTaskNumbers: show }),
       toggleTaskNumbers: () =>
@@ -101,6 +112,13 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
       setShowPriority: (show) => set({ showPriority: show }),
       togglePriority: () =>
         set((state) => ({ showPriority: !state.showPriority })),
+      showProjectBackgrounds: true,
+      setShowProjectBackgrounds: (show) =>
+        set({ showProjectBackgrounds: show }),
+      showTaskItemCounts: true,
+      setShowTaskItemCounts: (show) => set({ showTaskItemCounts: show }),
+      toggleTaskItemCounts: () =>
+        set((state) => ({ showTaskItemCounts: !state.showTaskItemCounts })),
       resetDisplayPreferences: () =>
         set({
           showAssignees: true,
@@ -108,6 +126,7 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
           showLabels: true,
           showTaskNumbers: true,
           showPriority: true,
+          showTaskItemCounts: true,
         }),
 
       sidebarDefaultOpen: true,

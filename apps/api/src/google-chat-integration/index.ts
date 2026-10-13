@@ -55,7 +55,7 @@ function toResponse(integration: {
     maskedWebhookUrl: maskWebhookUrl(config.webhookUrl),
     events: {
       ...defaultGoogleChatEvents,
-      ...(config.events ?? {}),
+      ...config.events,
     },
     isActive: integration.isActive,
     createdAt: integration.createdAt,
@@ -263,8 +263,8 @@ const googleChatIntegration = apiRouter<
           ? currentConfig.channelName
           : (body.channelName ?? undefined),
       events: {
-        ...(currentConfig.events ?? {}),
-        ...(body.events ?? {}),
+        ...currentConfig.events,
+        ...body.events,
       },
     });
 

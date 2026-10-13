@@ -29,6 +29,7 @@ import useGetProject from "@/hooks/queries/project/use-get-project";
 import { useProjectWebSocket } from "@/hooks/use-project-websocket";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
+import { useBackgroundStore } from "@/store/background";
 
 type ProjectLayoutProps = {
   projectId: string;
@@ -61,6 +62,8 @@ export default function ProjectLayout({
   const { canManageWorkspace } = useWorkspacePermission();
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
+
+  const { background } = useBackgroundStore();
 
   useProjectWebSocket(projectId);
 
@@ -154,7 +157,12 @@ export default function ProjectLayout({
 
   return (
     <Layout>
-      <Layout.Header className="h-auto flex-col gap-0 border-border/80 p-0 transition-none group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-auto">
+      <Layout.Header
+        className={cn(
+          "h-auto flex-col gap-0 border-border/80 p-0 transition-none group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-auto",
+          background && "bg-card/90 backdrop-blur",
+        )}
+      >
         <div className="flex min-h-12 w-full items-center justify-between gap-2 px-3">
           <div className="flex min-w-0 items-center gap-2">
             <TooltipProvider>

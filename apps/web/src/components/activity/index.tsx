@@ -465,6 +465,11 @@ function Activity({
             content={activity.content || ""}
             user={commentUser}
             createdAt={activity.createdAt}
+            importedBy={
+              activity.userId && activity.externalSource !== "github"
+                ? actorName
+                : undefined
+            }
             externalSource={activity.externalSource}
             externalUrl={activity.externalUrl}
           />

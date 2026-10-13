@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invalidateMyWork } from "@/lib/invalidate-my-work";
 import createTask, {
   type CreateTaskRequest,
 } from "@/fetchers/task/create-task";
+import { trackFirstTask } from "@/lib/analytics/activation";
 import { invalidateMilestones } from "@/lib/milestone-cache";
 
 function useCreateTask() {
@@ -17,6 +19,8 @@ function useCreateTask() {
       startDate,
       dueDate,
       priority,
+      customFields,
+      draftAssetIds,
       milestoneId,
     }: CreateTaskRequest) =>
       createTask(
@@ -28,12 +32,20 @@ function useCreateTask() {
         startDate ? new Date(startDate) : undefined,
         dueDate ? new Date(dueDate) : undefined,
         priority,
+        customFields,
+        draftAssetIds,
         milestoneId,
       ),
     onSuccess: (_data, variables) => {
+      invalidateMyWork(queryClient);
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      trackFirstTask();
       invalidateMilestones(queryClient, variables.projectId);
       void queryClient.invalidateQueries({
         queryKey: ["tasks", variables.projectId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["custom-field-values", variables.projectId],
       });
     },
   });

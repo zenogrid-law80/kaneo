@@ -1,9 +1,11 @@
+import { HTTPException } from "hono/http-exception";
 import { subscribeToEvent } from "../events";
 import {
   apiRouter,
   createRoute,
   errorResponse,
   jsonResponse,
+  z,
 } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
@@ -11,15 +13,47 @@ import createActivity from "./controllers/create-activity";
 import createComment from "./controllers/create-comment";
 import deleteComment from "./controllers/delete-comment";
 import getActivities from "./controllers/get-activities";
+import getWorkspaceActivities from "./controllers/get-workspace-activities";
 import updateComment from "./controllers/update-comment";
-import { activityListSchema, activitySchema } from "./response";
 import {
+  activityListSchema,
+  activitySchema,
+  workspaceActivityListSchema,
+} from "./response";
+import {
+  activitiesQuery,
   createActivityBody,
   createCommentBody,
   deleteCommentBody,
   taskIdParam,
   updateCommentBody,
+  workspaceIdParam,
 } from "./schema";
+
+const getWorkspaceActivitiesRoute = createRoute({
+  method: "get",
+  operationId: "getWorkspaceActivities",
+  path: "/workspace/{workspaceId}",
+  tags: ["Activity"],
+  summary: "Get recent workspace activity",
+  description:
+    "Get the 20 most recent task events across a workspace's active projects from the last 30 days, newest first. Each event carries a short plain-text excerpt instead of its full content.",
+  middleware: [
+    workspaceAccess.fromParam(),
+    requireWorkspacePermission({ project: ["read"], task: ["read"] }),
+  ] as const,
+  request: { params: workspaceIdParam },
+  responses: {
+    200: jsonResponse(
+      "Recent activity in the workspace",
+      workspaceActivityListSchema,
+    ),
+    400: errorResponse("Workspace ID could not be determined"),
+    403: errorResponse(
+      "No workspace access, or missing project:read or task:read permission",
+    ),
+  },
+});
 
 const getActivitiesRoute = createRoute({
   method: "get",
@@ -28,12 +62,12 @@ const getActivitiesRoute = createRoute({
   tags: ["Activity"],
   summary: "Get task activity",
   description:
-    "Get a task's full activity feed, newest first: comments alongside system events such as status and assignee changes.",
+    "Get a task's activity feed, newest first: comments alongside system events such as status and assignee changes. Set limit to request a bounded preview; omit it for the full feed.",
   middleware: [
     workspaceAccess.fromTaskId(),
     requireWorkspacePermission({ project: ["read"], task: ["read"] }),
   ] as const,
-  request: { params: taskIdParam },
+  request: { params: taskIdParam, query: activitiesQuery },
   responses: {
     200: jsonResponse("List of activities for the task", activityListSchema),
     400: errorResponse(
@@ -65,7 +99,14 @@ const createActivityRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The created activity", activitySchema),
-    400: errorResponse("Invalid body, or unknown task"),
+    400: {
+      description:
+        "Invalid body, unknown task, or comment activity submitted through the generic endpoint",
+      content: {
+        "text/plain": { schema: z.string() },
+        "application/json": { schema: z.object({ message: z.string() }) },
+      },
+    },
     403: errorResponse(
       "No workspace access, or missing task:update permission",
     ),
@@ -144,11 +185,28 @@ const deleteCommentRoute = createRoute({
 });
 
 const activity = apiRouter()
+  .openapi(getWorkspaceActivitiesRoute, async (c) =>
+    c.json(await getWorkspaceActivities(c.req.valid("param").workspaceId), 200),
+  )
   .openapi(getActivitiesRoute, async (c) =>
-    c.json(await getActivities(c.req.valid("param").taskId), 200),
+    c.json(
+      await getActivities(
+        c.req.valid("param").taskId,
+        c.req.valid("query").limit,
+      ),
+      200,
+    ),
   )
   .openapi(createActivityRoute, async (c) => {
     const { taskId, message, type, eventData } = c.req.valid("json");
+    if (type === "comment") {
+      throw new HTTPException(400, {
+        res: c.json(
+          { message: "Use the comment endpoint to create comments" },
+          400,
+        ),
+      });
+    }
     return c.json(
       await createActivity(taskId, type, c.get("userId"), message, eventData),
       200,

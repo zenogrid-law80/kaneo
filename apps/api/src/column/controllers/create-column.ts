@@ -1,8 +1,8 @@
+import { publishEvent } from "../../events";
 import { eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { columnTable } from "../../database/schema";
-import { publishEvent } from "../../events";
 import { VIRTUAL_STATUSES } from "../../task/validate-task-fields";
 
 export function toSlug(name: string): string {
@@ -81,6 +81,8 @@ async function createColumn({
   if (!created) {
     throw new HTTPException(500, { message: "Failed to create column" });
   }
+
+  await publishEvent("project.updated", { projectId: created.projectId });
 
   await publishEvent("column.created", { projectId });
   return created;

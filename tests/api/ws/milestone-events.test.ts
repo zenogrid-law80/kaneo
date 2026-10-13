@@ -1,4 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vite-plus/test";
 import { eventContext, publishEvent } from "../../../apps/api/src/events";
 import {
   addConnection,
@@ -6,6 +13,19 @@ import {
   removeConnection,
   shutdownWebSocketAdapter,
 } from "../../../apps/api/src/ws";
+
+vi.mock("../../../apps/api/src/database", () => ({
+  default: {
+    select: (fields: Record<string, unknown>) => ({
+      from: () => ({
+        where: () =>
+          fields.userId
+            ? Promise.resolve([{ userId: "u1" }, { userId: "u2" }])
+            : { limit: async () => [{ workspaceId: "workspace" }] },
+      }),
+    }),
+  },
+}));
 
 const transport = vi.hoisted(() => ({
   redis: false,
@@ -62,8 +82,8 @@ describe.each([
   it("refreshes remote project windows for metadata and column completion changes", async () => {
     const origin = socket();
     const other = socket();
-    const a = addConnection("p1", origin as never, "u1", "origin");
-    const b = addConnection("p1", other as never, "u2", "remote");
+    const a = addConnection("p1", origin as never, "u1", "origin", "workspace");
+    const b = addConnection("p1", other as never, "u2", "remote", "workspace");
     await eventContext.run({ initiatorId: "origin" }, () =>
       publishEvent("milestone.updated", { projectId: "p1" }),
     );
@@ -88,7 +108,13 @@ describe.each([
   });
   it("sends task membership changes through the task update path", async () => {
     const other = socket();
-    const connection = addConnection("p1", other as never, "u1", "remote");
+    const connection = addConnection(
+      "p1",
+      other as never,
+      "u1",
+      "remote",
+      "workspace",
+    );
     await publishEvent("task.milestone_changed", {
       taskId: "t1",
       projectId: "p1",

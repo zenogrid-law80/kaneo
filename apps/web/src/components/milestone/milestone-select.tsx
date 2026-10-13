@@ -37,10 +37,11 @@ export default function MilestoneSelect({
     !filter && !bulk ? (value ?? undefined) : undefined,
   );
   const current = currentQuery.isError ? undefined : currentQuery.data;
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
   useEffect(() => {
-    if (query.hasNextPage && !query.isFetchingNextPage)
-      void query.fetchNextPage({ cancelRefetch: false });
-  }, [query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage]);
+    if (hasNextPage && !isFetchingNextPage)
+      void fetchNextPage({ cancelRefetch: false });
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   const milestones = query.data?.pages.flatMap((page) => page.data) ?? [];
   if (current && !milestones.some((m) => m.id === current.id))
     milestones.push(current);
