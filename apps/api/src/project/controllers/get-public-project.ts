@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { projectTable } from "../../database/schema";
 import getTasks from "../../task/controllers/get-tasks";
+import { publicBoardSchema } from "../../task/response";
 
 export async function getPublicProject(id: string) {
   const [project] = await db
@@ -37,5 +38,5 @@ export async function getPublicProject(id: string) {
     });
   }
 
-  return result.data;
+  return publicBoardSchema.parse(result.data);
 }

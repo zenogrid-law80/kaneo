@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { columnTable, taskTable } from "../../database/schema";
+import { publishEvent } from "../../events";
 
 async function deleteColumn(id: string) {
   const existing = await db.query.columnTable.findFirst({
@@ -26,6 +27,7 @@ async function deleteColumn(id: string) {
 
   await db.delete(columnTable).where(eq(columnTable.id, id));
 
+  await publishEvent("column.deleted", { projectId: existing.projectId });
   return existing;
 }
 

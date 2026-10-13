@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import BacklogListView from "@/components/backlog-list-view";
 import ProjectLayout from "@/components/common/project-layout";
 import SortControl from "@/components/common/sort-control";
+import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
@@ -42,6 +43,7 @@ import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import useWorkspaceTeams from "@/hooks/queries/workspace/use-workspace-teams";
 import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useMilestoneFilter } from "@/hooks/use-milestone-filter";
 import {
   DUE_DATE_FILTER_VALUES,
   UNASSIGNED_FILTER_VALUE,
@@ -73,6 +75,7 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
+  const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
   const navigate = useNavigate();
   const { data } = useGetTasks(projectId);
   const { project, setProject } = useProjectStore();
@@ -153,6 +156,7 @@ function RouteComponent() {
   };
 
   const clearFilters = () => {
+    setMilestoneId(null);
     setFilters({
       priority: null,
       assignee: [],
@@ -161,9 +165,11 @@ function RouteComponent() {
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some((filter) =>
-    Array.isArray(filter) ? filter.length > 0 : filter !== null,
-  );
+  const hasActiveFilters =
+    Boolean(milestoneId) ||
+    Object.values(filters).some((filter) =>
+      Array.isArray(filter) ? filter.length > 0 : filter !== null,
+    );
 
   useEffect(() => {
     if (data) {
@@ -195,6 +201,9 @@ function RouteComponent() {
 
     const filterTasks = (tasks: Task[]) => {
       return tasks.filter((task) => {
+        if (milestoneId && (task.milestoneId ?? "none") !== milestoneId) {
+          return false;
+        }
         if (filters.priority && task.priority !== filters.priority) {
           return false;
         }
@@ -272,7 +281,7 @@ function RouteComponent() {
       plannedTasks: filterTasks(project.plannedTasks || []),
       archivedTasks: filterTasks(project.archivedTasks || []),
     };
-  }, [project, filters, getTaskLabels]);
+  }, [project, filters, getTaskLabels, milestoneId]);
 
   const uniqueLabels = workspaceLabels.reduce(
     (
@@ -393,6 +402,13 @@ function RouteComponent() {
           <div className="flex min-h-12 items-center px-3 py-2 md:px-4">
             <div className="flex w-full items-center gap-2">
               <div className="flex w-full flex-wrap items-center gap-1.5">
+                <MilestoneSelect
+                  projectId={projectId}
+                  value={milestoneId}
+                  onChange={setMilestoneId}
+                  filter
+                  includeClosed
+                />
                 <Button
                   variant="ghost"
                   size="xs"

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { columnTable } from "../../database/schema";
+import { publishEvent } from "../../events";
 
 async function updateColumn(
   id: string,
@@ -35,6 +36,7 @@ async function updateColumn(
     throw new HTTPException(500, { message: "Failed to update column" });
   }
 
+  await publishEvent("column.updated", { projectId: updated.projectId });
   return updated;
 }
 

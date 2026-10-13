@@ -29,14 +29,19 @@ const getActivitiesRoute = createRoute({
   summary: "Get task activity",
   description:
     "Get a task's full activity feed, newest first: comments alongside system events such as status and assignee changes.",
-  middleware: [workspaceAccess.fromTaskId()] as const,
+  middleware: [
+    workspaceAccess.fromTaskId(),
+    requireWorkspacePermission({ project: ["read"], task: ["read"] }),
+  ] as const,
   request: { params: taskIdParam },
   responses: {
     200: jsonResponse("List of activities for the task", activityListSchema),
     400: errorResponse(
       "Unknown task, or its workspace could not be determined",
     ),
-    403: errorResponse("No access to the task's workspace"),
+    403: errorResponse(
+      "No workspace access, or missing project:read/task:read permission",
+    ),
   },
 });
 
@@ -285,3 +290,15 @@ subscribeToEvent<{
 });
 
 export default activity;
+
+subscribeToEvent<{
+  taskId: string;
+  userId: string;
+  oldMilestoneId: string | null;
+  oldMilestoneName: string | null;
+  newMilestoneId: string | null;
+  newMilestoneName: string | null;
+}>("task.milestone_changed", async ({ taskId, userId, ...eventData }) => {
+  if (userId)
+    await createActivity(taskId, "milestone_changed", userId, null, eventData);
+});

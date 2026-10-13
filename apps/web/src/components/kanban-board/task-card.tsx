@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { type CSSProperties, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import MilestoneBadge from "@/components/milestone/milestone-badge";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -252,6 +253,15 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
               </div>
             </div>
 
+            {task.milestoneId && workspace && (
+              <div className="mb-2">
+                <MilestoneBadge
+                  id={task.milestoneId}
+                  projectId={task.projectId}
+                  workspaceId={workspace.id}
+                />
+              </div>
+            )}
             {showLabels && !!task.labels?.length && (
               <div className="mb-2.5">
                 <TaskLabels labels={task.labels ?? []} />

@@ -78,12 +78,12 @@ async function updateTask(
       position,
       userId: normalizedUserId ?? null,
     })
-    .where(eq(taskTable.id, id))
+    .where(and(eq(taskTable.id, id), eq(taskTable.projectId, projectId)))
     .returning();
 
   if (!updatedTask) {
-    throw new HTTPException(500, {
-      message: "Failed to update task",
+    throw new HTTPException(409, {
+      message: "Task changed projects; retry the update",
     });
   }
 

@@ -6,6 +6,7 @@ export const taskSchema = z
   .object({
     id: z.string(),
     projectId: z.string(),
+    milestoneId: z.string().nullable(),
     position: z.number().nullable().openapi({
       description: "Order within its column, ascending.",
     }),
@@ -74,6 +75,7 @@ export const boardTaskSchema = z
     assigneeId: z.string().nullable(),
     assigneeImage: z.string().nullable(),
     projectId: z.string(),
+    milestoneId: z.string().nullable(),
     labels: z.array(taskLabelSchema),
     externalLinks: z.array(taskExternalLinkSchema),
   })
@@ -215,3 +217,17 @@ export const finalizedAssetSchema = z
     }),
   })
   .openapi("TaskImageAsset");
+
+// Public projects explicitly omit private milestone metadata.
+export const publicBoardTaskSchema = boardTaskSchema
+  .omit({ milestoneId: true })
+  .openapi("PublicBoardTask");
+export const publicBoardSchema = boardSchema.shape.data
+  .extend({
+    columns: z.array(
+      boardColumnSchema.extend({ tasks: z.array(publicBoardTaskSchema) }),
+    ),
+    archivedTasks: z.array(publicBoardTaskSchema),
+    plannedTasks: z.array(publicBoardTaskSchema),
+  })
+  .openapi("PublicBoard");

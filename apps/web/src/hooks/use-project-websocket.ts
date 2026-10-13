@@ -3,6 +3,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { getApiUrl } from "@/fetchers/get-api-url";
 import { authClient } from "@/lib/auth-client";
+import {
+  invalidateMilestones,
+  invalidateMilestoneTasks,
+} from "@/lib/milestone-cache";
 
 export function getWsUrl(projectId: string) {
   const base = getApiUrl("ws");
@@ -43,6 +47,7 @@ export function useProjectWebSocket(projectId: string) {
       wsRef.current = ws;
 
       ws.onopen = () => {
+        invalidateMilestoneTasks(queryClient, projectId);
         retriesRef.current = 0; // Reset retries on successful connection
         // Start keepalive pings to prevent Cloudflare idle timeout (100s)
         clearPing();
@@ -56,6 +61,14 @@ export function useProjectWebSocket(projectId: string) {
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
+          if (message.type === "MILESTONES_UPDATED") {
+            invalidateMilestoneTasks(queryClient, projectId);
+            void queryClient.invalidateQueries({ queryKey: ["project"] });
+            void queryClient.invalidateQueries({
+              queryKey: ["columns", projectId],
+            });
+          }
+
           if (
             message.type === "TASK_UPDATED" ||
             message.type === "TASK_CREATED" ||
@@ -65,6 +78,11 @@ export function useProjectWebSocket(projectId: string) {
             message.type === "TASK_RELATION_UPDATED" ||
             message.type === "COMMENT_UPDATED"
           ) {
+            invalidateMilestones(queryClient, projectId);
+            void queryClient.invalidateQueries({
+              queryKey: ["milestone-candidates", projectId],
+            });
+            queryClient.invalidateQueries({ queryKey: ["activities"] });
             queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
             queryClient.invalidateQueries({
               queryKey: ["tasks", message.projectId],

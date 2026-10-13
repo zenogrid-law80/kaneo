@@ -2,7 +2,9 @@ import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   customType,
+  date,
   foreignKey,
   index,
   integer,
@@ -398,6 +400,46 @@ export const workflowRuleTable = pgTable(
   ],
 );
 
+export const milestoneTable = pgTable(
+  "milestone",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    description: text("description"),
+    dueDate: date("due_date", { mode: "string" }),
+    status: text("status", { enum: ["open", "closed"] })
+      .notNull()
+      .default("open"),
+    closedAt: timestamp("closed_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    unique("milestone_project_id_id_unique").on(table.projectId, table.id),
+    index("milestone_project_status_due_date_idx").on(
+      table.projectId,
+      table.status,
+      table.dueDate,
+    ),
+    check("milestone_status_check", sql`${table.status} IN ('open', 'closed')`),
+    check(
+      "milestone_closed_at_check",
+      sql`(${table.status} = 'open' AND ${table.closedAt} IS NULL) OR (${table.status} = 'closed' AND ${table.closedAt} IS NOT NULL)`,
+    ),
+  ],
+);
+
 export const taskTable = pgTable(
   "task",
   {
@@ -410,6 +452,7 @@ export const taskTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
+    milestoneId: text("milestone_id"),
     position: integer("position").default(0),
     number: integer("number").default(1),
     userId: text("assignee_id").references(() => userTable.id, {
@@ -434,6 +477,12 @@ export const taskTable = pgTable(
   },
   (table) => [
     index("task_projectId_idx").on(table.projectId),
+    index("task_project_milestone_idx").on(table.projectId, table.milestoneId),
+    foreignKey({
+      name: "task_project_milestone_fk",
+      columns: [table.projectId, table.milestoneId],
+      foreignColumns: [milestoneTable.projectId, milestoneTable.id],
+    }),
     index("task_dueDate_idx").on(table.dueDate),
     index("task_assigneeId_idx").on(table.userId),
     index("task_columnId_idx").on(table.columnId),

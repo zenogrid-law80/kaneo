@@ -3,6 +3,7 @@ import {
   CalendarDays,
   CalendarRange,
   Check,
+  Flag,
   Menu,
   Network,
   Plus,
@@ -28,12 +29,14 @@ type MobileProjectNavProps = {
     | "calendar"
     | "gantt"
     | "hierarchy"
-    | "statistics";
+    | "statistics"
+    | "milestones";
   onSelectBoard: () => void;
   onSelectBacklog: () => void;
   onSelectCalendar: () => void;
   onSelectGantt: () => void;
   onSelectStatistics?: () => void;
+  onSelectMilestones: () => void;
   onSelectHierarchy: () => void;
   onSelectProject: (projectId: string) => void;
   onAddProject: () => void;
@@ -49,6 +52,7 @@ export default function MobileProjectNav({
   onSelectGantt,
   onSelectStatistics,
   onSelectHierarchy,
+  onSelectMilestones,
   onSelectProject,
   onAddProject,
 }: MobileProjectNavProps) {
@@ -138,6 +142,19 @@ export default function MobileProjectNav({
               >
                 <CalendarDays className="size-3.5" />
                 Gantt
+              </button>
+              <button
+                type="button"
+                onClick={onSelectMilestones}
+                className={cn(
+                  "flex w-full items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs",
+                  activeView === "milestones"
+                    ? "bg-secondary border-border"
+                    : "border-transparent hover:bg-accent",
+                )}
+              >
+                <Flag className="size-3.5" />
+                {t("tasks:milestones.title")}
               </button>
               {onSelectStatistics ? (
                 <button

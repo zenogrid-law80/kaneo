@@ -360,6 +360,12 @@
           "projectId": {
             "type": "string"
           },
+          "milestoneId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "labels": {
             "type": "array",
             "items": {
@@ -389,6 +395,7 @@
           "assigneeId",
           "assigneeImage",
           "projectId",
+          "milestoneId",
           "labels",
           "externalLinks"
         ]
@@ -712,6 +719,12 @@
           "projectId": {
             "type": "string"
           },
+          "milestoneId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "position": {
             "type": [
               "number",
@@ -772,6 +785,7 @@
         "required": [
           "id",
           "projectId",
+          "milestoneId",
           "position",
           "number",
           "userId",
@@ -3115,6 +3129,490 @@
           "id",
           "sourceTaskId",
           "targetTaskId"
+        ]
+      },
+      "MilestoneListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MilestoneWithStatistics"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/MilestonePagination"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "MilestoneWithStatistics": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Milestone"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "totalTasks": {
+                "type": "integer"
+              },
+              "completedTasks": {
+                "type": "integer"
+              },
+              "archivedTasks": {
+                "type": "integer"
+              },
+              "progressPercent": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalTasks",
+              "completedTasks",
+              "archivedTasks",
+              "progressPercent"
+            ]
+          }
+        ]
+      },
+      "Milestone": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ]
+          },
+          "closedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "dueDate",
+          "status",
+          "closedAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "MilestonePagination": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
+        ]
+      },
+      "MilestoneTaskListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Task"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/MilestonePagination"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "DeleteMilestoneResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "detachedTasks": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "detachedTasks"
+        ]
+      },
+      "MyTasks": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyTask"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "hasMore"
+        ]
+      },
+      "MyTask": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "priority": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          },
+          "milestoneId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "number",
+          "priority",
+          "dueDate",
+          "projectId",
+          "projectName",
+          "projectSlug",
+          "milestoneId"
+        ]
+      },
+      "WorkspaceMemberStatistic": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "image": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assignedTasks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completedTasks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "overdueTasks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "overdueTaskItems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "projectId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "projectId"
+              ]
+            }
+          },
+          "inProgressTasks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completionRate": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "userId",
+          "name",
+          "email",
+          "image",
+          "assignedTasks",
+          "completedTasks",
+          "overdueTasks",
+          "overdueTaskItems",
+          "inProgressTasks",
+          "completionRate"
+        ]
+      },
+      "MemberTeamMonthlyStatistics": {
+        "type": "object",
+        "properties": {
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "overdueTasks": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "overdueTaskItems": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "projectId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "projectId"
+                    ]
+                  }
+                },
+                "months": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "month": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}$"
+                      },
+                      "createdTasks": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "completedTasks": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "month",
+                      "createdTasks",
+                      "completedTasks"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "userId",
+                "name",
+                "email",
+                "image",
+                "overdueTasks",
+                "overdueTaskItems",
+                "months"
+              ]
+            }
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "teamId": {
+                  "type": "string"
+                },
+                "teamName": {
+                  "type": "string"
+                },
+                "overdueTasks": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "overdueTaskItems": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "projectId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "projectId"
+                    ]
+                  }
+                },
+                "userIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "months": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "month": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}$"
+                      },
+                      "createdTasks": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "completedTasks": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "month",
+                      "createdTasks",
+                      "completedTasks"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "teamId",
+                "teamName",
+                "overdueTasks",
+                "overdueTaskItems",
+                "userIds",
+                "months"
+              ]
+            }
+          }
+        },
+        "required": [
+          "members",
+          "teams"
         ]
       }
     },
@@ -6104,6 +6602,36 @@
           },
           {
             "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "required": false,
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": false,
+            "name": "milestoneId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "withoutMilestone",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string"
             },
             "required": false,
@@ -6214,7 +6742,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "No access to the project's workspace",
+            "description": "No workspace access, or missing project:read/task:read permission",
             "content": {
               "text/plain": {
                 "schema": {
@@ -6257,7 +6785,8 @@
                       "delete",
                       "addLabel",
                       "removeLabel",
-                      "updateDueDate"
+                      "updateDueDate",
+                      "updateMilestone"
                     ]
                   },
                   "value": {
@@ -6348,6 +6877,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "milestoneId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
+                  },
                   "title": {
                     "type": "string"
                   },
@@ -6469,7 +7005,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "No access to the task's workspace",
+            "description": "No workspace access, or missing project:read/task:read permission",
             "content": {
               "text/plain": {
                 "schema": {
@@ -6577,6 +7113,16 @@
           },
           "403": {
             "description": "No workspace access, or missing task:update or task:assign permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Task moved while updating; retry the request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8000,7 +8546,7 @@
             "description": "Missing or invalid credentials"
           },
           "403": {
-            "description": "No access to the task's workspace",
+            "description": "No workspace access, or missing project:read/task:read permission",
             "content": {
               "text/plain": {
                 "schema": {
@@ -13112,6 +13658,1042 @@
           },
           "401": {
             "description": "Missing or invalid credentials"
+          }
+        }
+      }
+    },
+    "/task/{id}/milestone": {
+      "patch": {
+        "operationId": "updateTaskMilestone",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Set or clear a task milestone",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "milestoneId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "milestoneId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Milestone belongs to another project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or task moved",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/milestone/project/{projectId}": {
+      "get": {
+        "operationId": "listMilestones",
+        "tags": [
+          "Milestones"
+        ],
+        "summary": "List milestones",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "closed"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List milestones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or milestone/project mismatch",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Milestone not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or changed concurrently",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createMilestone",
+        "tags": [
+          "Milestones"
+        ],
+        "summary": "Create milestone",
+        "description": "Only workspace owners and administrators can create milestones. Requires project:update and matching API key scopes.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 10000
+                  },
+                  "dueDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Create milestone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Milestone"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or milestone/project mismatch",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Requires workspace owner/admin role and project:update permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Milestone not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or changed concurrently",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/milestone/{id}": {
+      "get": {
+        "operationId": "getMilestone",
+        "tags": [
+          "Milestones"
+        ],
+        "summary": "Get milestone",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get milestone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneWithStatistics"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or milestone/project mismatch",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Milestone not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or changed concurrently",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateMilestone",
+        "tags": [
+          "Milestones"
+        ],
+        "summary": "Update or close/reopen milestone",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 10000
+                  },
+                  "dueDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "open",
+                      "closed"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update or close/reopen milestone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Milestone"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or milestone/project mismatch",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Milestone not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or changed concurrently",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteMilestone",
+        "tags": [
+          "Milestones"
+        ],
+        "summary": "Delete milestone and detach its tasks",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete milestone and detach its tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteMilestoneResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or milestone/project mismatch",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Milestone not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or changed concurrently",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/milestone/{id}/tasks": {
+      "get": {
+        "operationId": "tasksMilestone",
+        "tags": [
+          "Milestones"
+        ],
+        "summary": "List milestone tasks",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false"
+            },
+            "required": false,
+            "name": "archived",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List milestone tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneTaskListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or milestone/project mismatch",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Milestone not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or changed concurrently",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspace/{workspaceId}/my-tasks": {
+      "get": {
+        "operationId": "getMyTasks",
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Get my open tasks",
+        "description": "Get 12 open tasks assigned to the authenticated user in this workspace, ordered by due date (undated tasks last). Excludes archived projects and final columns. Date filters are applied before pagination using the supplied local-day boundaries.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "overdue",
+                "today",
+                "undated"
+              ],
+              "default": "all"
+            },
+            "required": false,
+            "name": "due",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": false,
+            "name": "dayStart",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": false,
+            "name": "dayEnd",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "My open tasks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyTasks"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid page or workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to tasks in this workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspace/{workspaceId}/member-statistics": {
+      "get": {
+        "operationId": "getWorkspaceMemberStatistics",
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Get workspace member statistics",
+        "description": "Get assigned, completed, and in-progress task counts and completion rates for every workspace member. Archived projects are excluded.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Limit statistics to one project in the workspace."
+            },
+            "required": false,
+            "description": "Limit statistics to one project in the workspace.",
+            "name": "projectId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Include statistics on or after this date (YYYY-MM-DD)."
+            },
+            "required": false,
+            "description": "Include statistics on or after this date (YYYY-MM-DD).",
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Include statistics on or before this date (YYYY-MM-DD)."
+            },
+            "required": false,
+            "description": "Include statistics on or before this date (YYYY-MM-DD).",
+            "name": "endDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Limit task statistics to the currently assigned milestone. Use 'none' for tasks without a milestone; omit for all milestones."
+            },
+            "required": false,
+            "description": "Limit task statistics to the currently assigned milestone. Use 'none' for tasks without a milestone; omit for all milestones.",
+            "name": "milestoneId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task statistics for each workspace member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceMemberStatistic"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Workspace ID could not be determined",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No access to the workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspace/{workspaceId}/member-team-monthly-statistics": {
+      "get": {
+        "operationId": "getMemberTeamMonthlyStatistics",
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Get member and team monthly statistics",
+        "description": "Get monthly created and completed task counts for each workspace member and team over the last 12 calendar months.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "workspaceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Limit statistics to one project in the workspace."
+            },
+            "required": false,
+            "description": "Limit statistics to one project in the workspace.",
+            "name": "projectId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Include statistics on or after this date (YYYY-MM-DD)."
+            },
+            "required": false,
+            "description": "Include statistics on or after this date (YYYY-MM-DD).",
+            "name": "startDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Include statistics on or before this date (YYYY-MM-DD)."
+            },
+            "required": false,
+            "description": "Include statistics on or before this date (YYYY-MM-DD).",
+            "name": "endDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Limit task statistics to the currently assigned milestone. Use 'none' for tasks without a milestone; omit for all milestones."
+            },
+            "required": false,
+            "description": "Limit task statistics to the currently assigned milestone. Use 'none' for tasks without a milestone; omit for all milestones.",
+            "name": "milestoneId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Monthly task statistics for members and teams",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberTeamMonthlyStatistics"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Workspace ID could not be determined",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No access to the workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }

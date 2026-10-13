@@ -14,6 +14,13 @@ export const statisticsQuery = z.object({
   }),
 });
 
+export const memberStatisticsQuery = statisticsQuery.extend({
+  milestoneId: z.string().min(1).optional().openapi({
+    description:
+      "Limit task statistics to the currently assigned milestone. Use 'none' for tasks without a milestone; omit for all milestones.",
+  }),
+});
+
 export const myTasksQuery = z
   .object({
     page: z.coerce.number().int().min(1).max(10000).default(1),

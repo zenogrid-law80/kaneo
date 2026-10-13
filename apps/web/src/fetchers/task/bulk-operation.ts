@@ -7,6 +7,7 @@ type BulkOperationType =
   | "delete"
   | "addLabel"
   | "removeLabel"
+  | "updateMilestone"
   | "updateDueDate";
 
 async function bulkOperation({

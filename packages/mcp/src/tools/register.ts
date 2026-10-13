@@ -43,6 +43,149 @@ export function registerTools(
   const { client } = ctx;
 
   server.registerTool(
+    "list_milestones",
+    {
+      description: "List project milestones with progress.",
+      inputSchema: z.object({
+        projectId: nonEmptyString,
+        status: z.enum(["open", "closed"]).optional(),
+        page: z.number().int().min(1).optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+      }),
+    },
+    async (args) => {
+      const qs = new URLSearchParams();
+      if (args.status) qs.set("status", args.status);
+      if (args.page) qs.set("page", String(args.page));
+      if (args.limit) qs.set("limit", String(args.limit));
+      return run(() =>
+        client.json(
+          `/api/milestone/project/${encodeURIComponent(args.projectId)}?${qs}`,
+        ),
+      );
+    },
+  );
+
+  server.registerTool(
+    "get_milestone",
+    {
+      description: "Get a milestone and its progress.",
+      inputSchema: z.object({ id: nonEmptyString }),
+    },
+    async (args) => {
+      return run(() =>
+        client.json(`/api/milestone/${encodeURIComponent(args.id)}`),
+      );
+    },
+  );
+
+  server.registerTool(
+    "create_milestone",
+    {
+      description:
+        "Create a project milestone. Requires workspace owner/admin role and project:update.",
+      inputSchema: z.object({
+        projectId: nonEmptyString,
+        name: nonEmptyString.max(200),
+        description: z.string().max(10_000).nullable().optional(),
+        dueDate: z.iso.date().nullable().optional(),
+      }),
+    },
+    async (args) => {
+      const { projectId, ...body } = args;
+      return run(() =>
+        client.json(`/api/milestone/project/${encodeURIComponent(projectId)}`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      );
+    },
+  );
+
+  server.registerTool(
+    "update_milestone",
+    {
+      description: "Edit, close or reopen a milestone.",
+      inputSchema: z.object({
+        id: nonEmptyString,
+        name: nonEmptyString.max(200).optional(),
+        description: z.string().max(10_000).nullable().optional(),
+        dueDate: z.iso.date().nullable().optional(),
+        status: z.enum(["open", "closed"]).optional(),
+      }),
+    },
+    async (args) => {
+      const { id, ...body } = args;
+      return run(() =>
+        client.json(`/api/milestone/${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        }),
+      );
+    },
+  );
+
+  server.registerTool(
+    "delete_milestone",
+    {
+      description:
+        "Delete a milestone and unlink its tasks without deleting tasks.",
+      inputSchema: z.object({ id: nonEmptyString }),
+    },
+    async (args) => {
+      return run(() =>
+        client.json(`/api/milestone/${encodeURIComponent(args.id)}`, {
+          method: "DELETE",
+        }),
+      );
+    },
+  );
+
+  server.registerTool(
+    "list_milestone_tasks",
+    {
+      description:
+        "List a milestone’s tasks, independently of its overall progress.",
+      inputSchema: z.object({
+        id: nonEmptyString,
+        page: z.number().int().min(1).optional(),
+        archived: z.boolean().optional(),
+      }),
+    },
+    async (args) => {
+      const qs = new URLSearchParams({
+        page: String(args.page ?? 1),
+        archived: String(args.archived ?? false),
+      });
+      return run(() =>
+        client.json(
+          `/api/milestone/${encodeURIComponent(args.id)}/tasks?${qs}`,
+        ),
+      );
+    },
+  );
+
+  server.registerTool(
+    "set_task_milestone",
+    {
+      description:
+        "Connect a task to an open milestone in its project, or clear with null.",
+      inputSchema: z.object({
+        taskId: nonEmptyString,
+        milestoneId: nonEmptyString.nullable(),
+      }),
+    },
+    async (args) => {
+      return run(() =>
+        client.json(`/api/task/${encodeURIComponent(args.taskId)}/milestone`, {
+          method: "PATCH",
+          body: JSON.stringify({ milestoneId: args.milestoneId }),
+        }),
+      );
+    },
+  );
+
+  server.registerTool(
     "whoami",
     {
       description:
@@ -187,6 +330,9 @@ export function registerTools(
 
   const listTasksSchema = z.object({
     projectId: nonEmptyString,
+    milestoneId: optionalNonEmptyString,
+    withoutMilestone: z.boolean().optional(),
+    search: z.string().max(200).optional(),
     status: optionalNonEmptyString,
     priority: prioritySchema.optional(),
     assigneeId: optionalNonEmptyString,
@@ -241,6 +387,7 @@ export function registerTools(
       description: "Create a task in a project.",
       inputSchema: z.object({
         projectId: nonEmptyString,
+        milestoneId: nullableOptionalNonEmptyString,
         title: nonEmptyString,
         description: z.string(),
         priority: prioritySchema,
@@ -251,7 +398,7 @@ export function registerTools(
       }),
     },
     async (args) => {
-      const body: Record<string, string | undefined> = {
+      const body: Record<string, string | null | undefined> = {
         title: args.title,
         description: args.description,
         priority: args.priority,
@@ -266,6 +413,7 @@ export function registerTools(
       if (args.userId !== undefined) {
         body.userId = args.userId;
       }
+      if (args.milestoneId !== undefined) body.milestoneId = args.milestoneId;
       return run(() =>
         client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
           method: "POST",

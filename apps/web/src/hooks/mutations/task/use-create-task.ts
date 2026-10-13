@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import createTask, {
   type CreateTaskRequest,
 } from "@/fetchers/task/create-task";
+import { invalidateMilestones } from "@/lib/milestone-cache";
 
 function useCreateTask() {
   const queryClient = useQueryClient();
@@ -16,6 +17,7 @@ function useCreateTask() {
       startDate,
       dueDate,
       priority,
+      milestoneId,
     }: CreateTaskRequest) =>
       createTask(
         title,
@@ -26,8 +28,10 @@ function useCreateTask() {
         startDate ? new Date(startDate) : undefined,
         dueDate ? new Date(dueDate) : undefined,
         priority,
+        milestoneId,
       ),
     onSuccess: (_data, variables) => {
+      invalidateMilestones(queryClient, variables.projectId);
       void queryClient.invalidateQueries({
         queryKey: ["tasks", variables.projectId],
       });

@@ -1,10 +1,12 @@
 import { addWeeks, endOfWeek, isWithinInterval, startOfWeek } from "date-fns";
-import { useEffect, useState } from "react";
+import { type SetStateAction, useEffect, useMemo, useState } from "react";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import type { ProjectWithTasks } from "@/types/project";
 import type Task from "@/types/task";
+import { useMilestoneFilter } from "./use-milestone-filter";
 
 export type BoardFilters = {
+  milestone?: string[] | null;
   status: string[] | null;
   priority: string[] | null;
   assignee: string[] | null;
@@ -21,6 +23,7 @@ export const DUE_DATE_FILTER_VALUES = {
 export const UNASSIGNED_FILTER_VALUE = "unassigned";
 
 const DEFAULT_FILTERS: BoardFilters = {
+  milestone: null,
   status: null,
   priority: null,
   assignee: null,
@@ -29,6 +32,7 @@ const DEFAULT_FILTERS: BoardFilters = {
 };
 
 const FILTER_KEYS: Array<keyof BoardFilters> = [
+  "milestone",
   "status",
   "priority",
   "assignee",
@@ -61,7 +65,15 @@ export function useTaskFilters(
 ) {
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
   const storageKey = projectId ? `kaneo:board-filters:${projectId}` : null;
-  const [filters, setFilters] = useState<BoardFilters>(DEFAULT_FILTERS);
+  const [localFilters, setLocalFilters] =
+    useState<BoardFilters>(DEFAULT_FILTERS);
+  const { milestoneId, setMilestoneId } = useMilestoneFilter(
+    projectId ?? project?.id ?? "",
+  );
+  const filters = useMemo(
+    () => ({ ...localFilters, milestone: milestoneId ? [milestoneId] : null }),
+    [localFilters, milestoneId],
+  );
 
   useEffect(() => {
     if (!storageKey || typeof window === "undefined") return;
@@ -69,14 +81,14 @@ export function useTaskFilters(
     try {
       const stored = window.localStorage.getItem(storageKey);
       if (!stored) {
-        setFilters(DEFAULT_FILTERS);
+        setLocalFilters(DEFAULT_FILTERS);
         return;
       }
 
       const parsed = JSON.parse(stored) as unknown;
-      setFilters(normalizeFilters(parsed));
+      setLocalFilters(normalizeFilters(parsed));
     } catch {
-      setFilters(DEFAULT_FILTERS);
+      setLocalFilters(DEFAULT_FILTERS);
     }
   }, [storageKey]);
 
@@ -87,6 +99,12 @@ export function useTaskFilters(
 
   const filterTasks = (tasks: Task[]): Task[] => {
     return tasks.filter((task) => {
+      if (
+        filters.milestone?.length &&
+        !filters.milestone.includes(task.milestoneId ?? "none")
+      )
+        return false;
+
       if (
         filters.status &&
         filters.status.length > 0 &&
@@ -175,18 +193,23 @@ export function useTaskFilters(
   );
 
   const clearFilters = () => {
-    setFilters(DEFAULT_FILTERS);
+    setMilestoneId(null);
+    setLocalFilters(DEFAULT_FILTERS);
   };
 
   const updateFilter = (
     key: keyof BoardFilters,
     value: BoardFilters[keyof BoardFilters],
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    if (key === "milestone") {
+      setMilestoneId(value?.[0] ?? null);
+      return;
+    }
+    setLocalFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const updateLabelFilter = (labelId: string) => {
-    setFilters((prev) => {
+    setLocalFilters((prev) => {
       const currentLabels = prev.labels || [];
       const isSelected = currentLabels.includes(labelId);
 
@@ -200,6 +223,12 @@ export function useTaskFilters(
 
       return { ...prev, labels: newLabels };
     });
+  };
+
+  const setFilters = (value: SetStateAction<BoardFilters>) => {
+    const next = typeof value === "function" ? value(filters) : value;
+    setMilestoneId(next.milestone?.[0] ?? null);
+    setLocalFilters(next);
   };
 
   return {
