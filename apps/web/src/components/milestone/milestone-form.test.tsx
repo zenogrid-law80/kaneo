@@ -20,6 +20,25 @@ void i18n.init({
   initAsync: false,
 });
 afterEach(cleanup);
+it("can create a milestone as the project default", async () => {
+  const save = vi.fn().mockResolvedValue({});
+  form(save);
+  fireEvent.change(screen.getByLabelText("Name"), {
+    target: { value: "Current release" },
+  });
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: "Set as current milestone" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  await waitFor(() =>
+    expect(save).toHaveBeenCalledWith({
+      name: "Current release",
+      description: null,
+      dueDate: null,
+      isCurrent: true,
+    }),
+  );
+});
 const milestone: Milestone = {
   id: "milestone",
   projectId: "project",
@@ -27,6 +46,7 @@ const milestone: Milestone = {
   description: null,
   dueDate: "2026-10-15",
   status: "open",
+  isCurrent: false,
   closedAt: null,
   createdAt: "2026-10-01T00:00:00.000Z",
   updatedAt: "2026-10-01T00:00:00.000Z",
@@ -64,6 +84,7 @@ describe("milestone form", () => {
       expect(save).toHaveBeenCalledWith({
         name: "Beta",
         description: null,
+        isCurrent: false,
         dueDate: "2026-10-31",
       }),
     );
@@ -83,6 +104,7 @@ describe("milestone form", () => {
       expect(save).toHaveBeenCalledWith({
         name: "Beta",
         description: null,
+        isCurrent: false,
         dueDate: null,
       }),
     );

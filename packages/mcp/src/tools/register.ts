@@ -107,6 +107,7 @@ export function registerTools(
       inputSchema: z.object({
         projectId: nonEmptyString,
         name: nonEmptyString.max(200),
+        isCurrent: z.boolean().optional(),
         description: z.string().max(10_000).nullable().optional(),
         dueDate: z.iso.date().nullable().optional(),
       }),
@@ -125,10 +126,12 @@ export function registerTools(
   registerTool(
     "update_milestone",
     {
-      description: "Edit, close or reopen a milestone.",
+      description:
+        "Edit, close or reopen a milestone. Set isCurrent to true to use it as the project's default for views and new tasks, or false to clear. Only open milestones can be current.",
       inputSchema: z.object({
         id: nonEmptyString,
         name: nonEmptyString.max(200).optional(),
+        isCurrent: z.boolean().optional(),
         description: z.string().max(10_000).nullable().optional(),
         dueDate: z.iso.date().nullable().optional(),
         status: z.enum(["open", "closed"]).optional(),
@@ -436,7 +439,8 @@ export function registerTools(
   registerTool(
     "create_task",
     {
-      description: "Create a task in a project.",
+      description:
+        "Create a task in a project. Omit milestoneId to use the project's current milestone, or pass null for no milestone.",
       inputSchema: z.object({
         projectId: nonEmptyString,
         milestoneId: nullableOptionalNonEmptyString,

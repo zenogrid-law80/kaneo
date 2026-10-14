@@ -15,7 +15,9 @@ import {
   updateMilestone,
 } from "./controllers/milestones";
 import { requireMilestoneCreatePermission } from "./controllers/require-milestone-create-permission";
+import { getCurrentMilestone } from "./controllers/current-milestone";
 import {
+  currentMilestoneSchema,
   deleteMilestoneSchema,
   milestoneListSchema,
   milestoneSchema,
@@ -85,6 +87,25 @@ const createMilestoneRoute = createRoute({
   },
 });
 
+const currentRoute = createRoute({
+  method: "get",
+  path: "/project/{projectId}/current",
+  operationId: "getCurrentMilestone",
+  tags: ["Milestones"],
+  summary: "Get the project's current milestone",
+  description:
+    "Returns the open milestone used by default for project views and new tasks, or null when none is designated.",
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ project: ["read"], task: ["read"] }),
+  ] as const,
+  request: { params: milestoneProjectParam },
+  responses: {
+    200: jsonResponse("Current milestone", currentMilestoneSchema),
+    ...errors,
+  },
+});
+
 const getRoute = createRoute({
   method: "get",
   path: "/{id}",
@@ -124,7 +145,9 @@ const updateRoute = createRoute({
   path: "/{id}",
   operationId: "updateMilestone",
   tags: ["Milestones"],
-  summary: "Update or close/reopen milestone",
+  summary: "Update, designate as current, or close/reopen milestone",
+  description:
+    "Setting isCurrent replaces the previous current milestone. Closing a current milestone clears the default; reopening does not restore it.",
   middleware: [
     workspaceAccess.fromMilestone(),
     requireWorkspacePermission({ project: ["update"] }),
@@ -163,6 +186,9 @@ const deleteRoute = createRoute({
 });
 
 const milestone = apiRouter()
+  .openapi(currentRoute, async (c) =>
+    c.json(await getCurrentMilestone(c.req.valid("param").projectId), 200),
+  )
   .openapi(listRoute, async (c) =>
     c.json(
       await listMilestones(

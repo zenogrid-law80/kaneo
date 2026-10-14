@@ -5,12 +5,13 @@ import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
 import MilestoneDetail from "@/components/milestone/milestone-detail";
 import MilestoneForm from "@/components/milestone/milestone-form";
+import MilestoneList from "@/components/milestone/milestone-list";
 import PageTitle from "@/components/page-title";
 import { Button } from "@/components/ui/button";
 import { useMilestoneMutations } from "@/hooks/mutations/milestone/use-milestone-mutations";
 import { useMilestones } from "@/hooks/queries/milestone/use-milestones";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
-import { isMilestoneOverdue, localDateString } from "@/lib/milestone-date";
+import { localDateString } from "@/lib/milestone-date";
 
 export const Route = createFileRoute(
   "/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/milestones",
@@ -118,43 +119,17 @@ function MilestonesPage() {
                 </p>
               </div>
             )}
-            <div className="divide-y rounded-lg border">
-              {query.data?.data.map((milestone) => (
-                <button
-                  key={milestone.id}
-                  type="button"
-                  className="flex w-full flex-wrap items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-accent"
-                  onClick={() => select(milestone.id)}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{milestone.name}</p>
-                    <p
-                      className={`mt-1 text-xs ${isMilestoneOverdue(milestone, today) ? "text-destructive" : "text-muted-foreground"}`}
-                    >
-                      {milestone.dueDate ?? t("tasks:milestones.noDate")}
-                      {isMilestoneOverdue(milestone, today) &&
-                        ` · ${t("tasks:milestones.overdue")}`}
-                    </p>
-                  </div>
-                  <div className="w-44 space-y-1 text-xs">
-                    <p>
-                      {milestone.totalTasks
-                        ? t("tasks:milestones.progress", {
-                            completed: milestone.completedTasks,
-                            total: milestone.totalTasks,
-                          })
-                        : t("tasks:milestones.noTasks")}
-                    </p>
-                    <progress
-                      className="h-1.5 w-full accent-primary"
-                      value={milestone.progressPercent}
-                      max={100}
-                      aria-label={t("tasks:milestones.progressLabel")}
-                    />
-                  </div>
-                </button>
-              ))}
-            </div>
+            {query.data && (
+              <MilestoneList
+                key={`${projectId}:${status}:${page}`}
+                projectId={projectId}
+                milestones={query.data.data}
+                today={today}
+                canManage={canUpdateProjects()}
+                status={status}
+                onSelect={select}
+              />
+            )}
             {query.data && query.data.pagination.totalPages > 1 && (
               <div className="flex items-center justify-end gap-3">
                 <Button

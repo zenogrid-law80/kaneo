@@ -12,6 +12,7 @@ import {
   userTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
+import { getCurrentMilestone } from "../../milestone/controllers/current-milestone";
 import {
   assertOpenMilestone,
   lockMilestoneProjects,
@@ -141,7 +142,9 @@ async function createTask({
   let milestone: { id: string; name: string } | null = null;
   const createdTask = await db.transaction(async (tx) => {
     await lockMilestoneProjects(tx, [projectId]);
-    if (milestoneId)
+    if (milestoneId === undefined)
+      milestone = await getCurrentMilestone(projectId, tx);
+    else if (milestoneId)
       milestone = await assertOpenMilestone(tx, milestoneId, projectId);
     const taskNumber = await claimTaskNumber(projectId, tx);
     const nextPosition = await nextTaskPosition(
@@ -155,7 +158,7 @@ async function createTask({
       .insert(taskTable)
       .values({
         projectId,
-        milestoneId: milestoneId ?? null,
+        milestoneId: milestone?.id ?? null,
         userId: normalizedUserId ?? null,
         title: title || "",
         status: resolvedStatus,

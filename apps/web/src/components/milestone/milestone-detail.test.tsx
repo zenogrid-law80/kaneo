@@ -23,6 +23,7 @@ const state = vi.hoisted(() => ({
   manage: true,
   edit: true,
   status: "open",
+  isCurrent: false,
   error: false,
   update: vi.fn(),
   remove: vi.fn(),
@@ -40,6 +41,7 @@ vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
       description: null,
       dueDate: null,
       status: state.status,
+      isCurrent: state.isCurrent,
       totalTasks: 2,
       completedTasks: 1,
       archivedTasks: 0,
@@ -92,6 +94,7 @@ beforeEach(() => {
   state.manage = true;
   state.edit = true;
   state.status = "open";
+  state.isCurrent = false;
   state.error = false;
   state.update.mockReset().mockResolvedValue({});
   state.remove.mockReset().mockResolvedValue({});
@@ -107,6 +110,17 @@ function detail() {
   return back;
 }
 describe("milestone details", () => {
+  it("shows the current milestone badge while designation is managed from the list", () => {
+    state.isCurrent = true;
+    detail();
+    expect(screen.getByText("Current")).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Clear current milestone" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Set as current milestone" }),
+    ).toBeNull();
+  });
   it("shows progress but no mutation actions to viewers", () => {
     state.manage = false;
     state.edit = false;
@@ -114,6 +128,7 @@ describe("milestone details", () => {
     expect(screen.getByText("1 / 2 tasks completed · 50%")).toBeTruthy();
     for (const name of [
       "Edit milestone",
+      "Set as current milestone",
       "Close milestone",
       "Delete milestone",
       "Link existing tasks",

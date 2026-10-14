@@ -16,12 +16,20 @@ import {
   it,
   vi,
 } from "vite-plus/test";
+import {
+  CURRENT_MILESTONE_FILTER,
+  useMilestoneFilters,
+} from "@/store/milestone-filters";
 import MilestoneSelect from "./milestone-select";
 
 const state = vi.hoisted(() => ({
   fetchNextPage: vi.fn(),
   current: null as null | { id: string; name: string; status: string },
   hasNextPage: false,
+  designated: null as null | { id: string; name: string },
+}));
+vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
+  useCurrentMilestone: () => ({ data: state.designated }),
 }));
 vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
   useMilestoneOptions: () => ({
@@ -55,6 +63,8 @@ beforeEach(() => {
   state.fetchNextPage.mockClear();
   state.current = null;
   state.hasNextPage = false;
+  state.designated = null;
+  useMilestoneFilters.setState({ byProject: {} });
 });
 function selector(props: {
   value: string | null;
@@ -72,6 +82,30 @@ function selector(props: {
   return change;
 }
 describe("milestone selector", () => {
+  it("shows the designated name only once and preserves automatic selection", async () => {
+    state.designated = { id: "m1", name: "Beta" };
+    useMilestoneFilters.getState().select("p1", CURRENT_MILESTONE_FILTER);
+    const change = selector({ value: "m1", filter: true, includeClosed: true });
+    expect(
+      screen.getByRole("combobox", { name: "Milestones" }).textContent,
+    ).toContain("Beta");
+    expect(screen.queryByText("Current milestone")).toBeNull();
+    expect(await screen.findAllByRole("option", { name: "Beta" })).toHaveLength(
+      1,
+    );
+    const all = screen.getByRole("option", { name: "All milestones" });
+    fireEvent.pointerDown(all, { pointerType: "mouse" });
+    fireEvent.click(all);
+    expect(change).toHaveBeenLastCalledWith(null);
+  });
+  it("shows the current name before its options page has loaded and selects it as the default", async () => {
+    state.designated = { id: "later-page", name: "Next release" };
+    const change = selector({ value: null, filter: true, includeClosed: true });
+    const option = await screen.findByRole("option", { name: "Next release" });
+    fireEvent.pointerDown(option, { pointerType: "mouse" });
+    fireEvent.click(option);
+    expect(change).toHaveBeenLastCalledWith(CURRENT_MILESTONE_FILTER);
+  });
   it("lets bulk actions clear existing assignments", async () => {
     const change = selector({ value: null, bulk: true });
     const option = await screen.findByRole("option", { name: "No milestone" });

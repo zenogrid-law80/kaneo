@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { defaultRolePayloads } from "@kaneo/permissions";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
@@ -65,9 +66,36 @@ describe("useWorkspacePermission", () => {
 
     expect(result.current.canCreateTasks()).toBe(true);
     expect(result.current.canUpdateTasks()).toBe(true);
+    expect(result.current.canAssignTasks()).toBe(false);
     expect(result.current.canDeleteTasks()).toBe(false);
     expect(result.current.canCreateLabels()).toBe(true);
     expect(result.current.canUpdateLabels()).toBe(true);
     expect(result.current.canDeleteLabels()).toBe(false);
+  });
+
+  it("allows the default member role to edit and assign tasks", async () => {
+    hasPermission.mockImplementation(
+      async ({ permissions }: { permissions: Record<string, string[]> }) => ({
+        data: {
+          success: Object.entries(permissions).every(([resource, actions]) =>
+            actions.every((action) =>
+              defaultRolePayloads.member[resource]?.includes(action),
+            ),
+          ),
+        },
+      }),
+    );
+
+    const { result } = renderHook(() => useWorkspacePermission(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => {
+      expect(result.current.isCheckingPermissions).toBe(false);
+    });
+
+    expect(result.current.isAdmin).toBe(false);
+    expect(result.current.canUpdateTasks()).toBe(true);
+    expect(result.current.canAssignTasks()).toBe(true);
+    expect(result.current.canDeleteTasks()).toBe(false);
   });
 });

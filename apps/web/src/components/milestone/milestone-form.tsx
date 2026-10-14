@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogDescription,
@@ -37,6 +38,7 @@ export default function MilestoneForm({
   const [name, setName] = useState(milestone?.name ?? "");
   const [description, setDescription] = useState(milestone?.description ?? "");
   const [dueDate, setDueDate] = useState(milestone?.dueDate ?? "");
+  const [isCurrent, setIsCurrent] = useState(milestone?.isCurrent ?? false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const selectedDate = dueDate ? parseISO(dueDate) : undefined;
   const [pending, setPending] = useState(false);
@@ -60,6 +62,7 @@ export default function MilestoneForm({
                 name: name.trim(),
                 description: description || null,
                 dueDate: dueDate || null,
+                isCurrent,
               });
               onClose();
             } catch (err) {
@@ -158,6 +161,21 @@ export default function MilestoneForm({
                 </PopoverContent>
               </Popover>
             </div>
+            {milestone?.status !== "closed" && (
+              <div className="space-y-1">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={isCurrent}
+                    onCheckedChange={setIsCurrent}
+                    disabled={pending}
+                  />
+                  {t("tasks:milestones.setCurrent")}
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  {t("tasks:milestones.currentDescription")}
+                </p>
+              </div>
+            )}
             {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}

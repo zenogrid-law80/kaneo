@@ -34,6 +34,9 @@ const navigate = vi.fn();
 // do retroactively.
 const routeParams = { workspaceId: "workspace-1", projectId: "project-1" };
 
+vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
+  useCurrentMilestone: () => ({ data: null }),
+}));
 vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
   useMilestoneOptions: () => ({ data: { pages: [{ data: [] }] } }),
   useMilestone: () => ({}),

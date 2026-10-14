@@ -1641,6 +1641,80 @@
           "tasks"
         ]
       },
+      "CurrentMilestoneResponse": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Milestone"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "Milestone": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dueDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ]
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "closedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "dueDate",
+          "status",
+          "isCurrent",
+          "closedAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "MilestoneListResponse": {
         "type": "object",
         "properties": {
@@ -1687,66 +1761,6 @@
               "progressPercent"
             ]
           }
-        ]
-      },
-      "Milestone": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "projectId": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "dueDate": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "open",
-              "closed"
-            ]
-          },
-          "closedAt": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "projectId",
-          "name",
-          "description",
-          "dueDate",
-          "status",
-          "closedAt",
-          "createdAt",
-          "updatedAt"
         ]
       },
       "MilestonePagination": {
@@ -10558,7 +10572,8 @@
                       "string",
                       "null"
                     ],
-                    "minLength": 1
+                    "minLength": 1,
+                    "description": "Omit to use the project's current milestone. Pass null for no milestone, or an open milestone ID from this project."
                   },
                   "title": {
                     "type": "string"
@@ -12159,6 +12174,89 @@
         }
       }
     },
+    "/milestone/project/{projectId}/current": {
+      "get": {
+        "operationId": "getCurrentMilestone",
+        "tags": [
+          "Milestones"
+        ],
+        "summary": "Get the project's current milestone",
+        "description": "Returns the open milestone used by default for project views and new tasks, or null when none is designated.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current milestone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentMilestoneResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or milestone/project mismatch",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Milestone not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Milestone is closed or changed concurrently",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/milestone/project/{projectId}": {
       "get": {
         "operationId": "listMilestones",
@@ -12317,6 +12415,10 @@
                       "null"
                     ],
                     "format": "date"
+                  },
+                  "isCurrent": {
+                    "type": "boolean",
+                    "description": "Use this open milestone as the project's default, replacing its previous current milestone."
                   }
                 },
                 "required": [
@@ -12476,7 +12578,8 @@
         "tags": [
           "Milestones"
         ],
-        "summary": "Update or close/reopen milestone",
+        "summary": "Update, designate as current, or close/reopen milestone",
+        "description": "Setting isCurrent replaces the previous current milestone. Closing a current milestone clears the default; reopening does not restore it.",
         "parameters": [
           {
             "schema": {
@@ -12520,6 +12623,10 @@
                       "open",
                       "closed"
                     ]
+                  },
+                  "isCurrent": {
+                    "type": "boolean",
+                    "description": "Use this open milestone as the project's default, replacing its previous current milestone."
                   }
                 }
               }

@@ -78,7 +78,10 @@ export const bulkUpdateBody = z.object({
 });
 
 export const createTaskBody = z.object({
-  milestoneId: z.string().min(1).nullable().optional(),
+  milestoneId: z.string().min(1).nullable().optional().openapi({
+    description:
+      "Omit to use the project's current milestone. Pass null for no milestone, or an open milestone ID from this project.",
+  }),
   title: z.string(),
   description: z.string(),
   startDate: z.string().optional(),

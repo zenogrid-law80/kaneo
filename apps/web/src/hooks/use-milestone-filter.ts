@@ -1,5 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { useMilestoneFilters } from "@/store/milestone-filters";
+import { useCurrentMilestone } from "@/hooks/queries/milestone/use-current-milestone";
+import {
+  CURRENT_MILESTONE_FILTER,
+  useMilestoneFilters,
+} from "@/store/milestone-filters";
 
 function previousBoardMilestone(projectId: string) {
   try {
@@ -28,10 +32,21 @@ export function useMilestoneFilter(
   const initialize = useMilestoneFilters((state) => state.initialize);
   const select = useMilestoneFilters((state) => state.select);
   const initial = useMemo(
-    () => initialMilestoneId || previousBoardMilestone(projectId),
+    () =>
+      initialMilestoneId ||
+      previousBoardMilestone(projectId) ||
+      CURRENT_MILESTONE_FILTER,
     [projectId, initialMilestoneId],
   );
-  const milestoneId = selection === undefined ? initial : selection;
+  const preference = selection === undefined ? initial : selection;
+  const current = useCurrentMilestone(
+    projectId,
+    preference === CURRENT_MILESTONE_FILTER,
+  );
+  const milestoneId =
+    preference === CURRENT_MILESTONE_FILTER
+      ? (current.data?.id ?? null)
+      : preference;
 
   useEffect(() => {
     if (selection === undefined) initialize(projectId, initial);

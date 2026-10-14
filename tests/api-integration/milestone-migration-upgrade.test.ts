@@ -87,8 +87,12 @@ describe("milestone migration branch integration", () => {
       await reconcileMilestoneMigration(db);
       await migrate(db, { migrationsFolder });
       expect(
-        (await client.query("SELECT name, due_date::text FROM milestone")).rows,
-      ).toEqual([{ name: "Beta", due_date: "2026-10-31" }]);
+        (
+          await client.query(
+            "SELECT name, due_date::text, is_current FROM milestone",
+          )
+        ).rows,
+      ).toEqual([{ name: "Beta", due_date: "2026-10-31", is_current: false }]);
       expect(
         (await client.query("SELECT title, milestone_id FROM task")).rows,
       ).toEqual([{ title: "Preserved task", milestone_id: "milestone" }]);

@@ -2866,7 +2866,16 @@
 			"bulk": "마일스톤 지정",
 			"bulkSuccess": "마일스톤을 변경했습니다",
 			"filter": "마일스톤 필터",
-			"save": "저장"
+			"save": "저장",
+			"current": "현재",
+			"currentDefault": "현재 마일스톤",
+			"noCurrent": "지정 안 함",
+			"currentSelection": "현재 마일스톤: {{name}}",
+			"setCurrent": "현재 마일스톤으로 지정",
+			"unsetCurrent": "현재 마일스톤 지정 해제",
+			"currentDescription": "프로젝트 뷰 필터와 새 작업의 기본값으로 사용합니다. 기존 현재 마일스톤을 대체합니다.",
+			"useDefault": "기본값 사용",
+			"newTaskDefault": "작업 생성 시 프로젝트의 현재 마일스톤을 사용합니다."
 		}
 	},
 	"invitations": {

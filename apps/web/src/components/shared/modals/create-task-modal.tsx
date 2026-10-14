@@ -13,6 +13,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import AssigneePickerContent from "@/components/task/assignee-picker-content";
+import NewTaskMilestoneField from "@/components/milestone/new-task-milestone-field";
 import TaskDescriptionEditor from "@/components/task/task-description-editor";
 import {
   Accordion,
@@ -278,6 +279,14 @@ function CreateTaskModalContent({
     (candidate) => candidate.id === (explicitProjectId || selectedProjectId),
   );
   const resolvedProjectId = resolvedProject?.id ?? "";
+  const [milestoneSelection, setMilestoneSelection] = useState<{
+    projectId: string;
+    id: string | null | undefined;
+  }>();
+  const selectedMilestoneId =
+    milestoneSelection?.projectId === resolvedProjectId
+      ? milestoneSelection.id
+      : undefined;
   const {
     data: projectColumns,
     isError: columnsError,
@@ -378,7 +387,8 @@ function CreateTaskModalContent({
     selectedProjectId ||
     labels.length > 0 ||
     stagedAssetsRef.current.length > 0 ||
-    hasCustomFieldChanges,
+    hasCustomFieldChanges ||
+    selectedMilestoneId !== undefined,
   );
 
   useEffect(() => {
@@ -520,6 +530,7 @@ function CreateTaskModalContent({
           userId: assigneeId,
           priority,
           projectId: resolvedProjectId,
+          milestoneId: selectedMilestoneId,
           startDate: startDate ? startDate.toISOString() : undefined,
           dueDate: dueDate ? dueDate.toISOString() : undefined,
           status: submitStatus,
@@ -560,6 +571,7 @@ function CreateTaskModalContent({
         setAssigneeId("");
         setStartDate(undefined);
         setDueDate(undefined);
+        setMilestoneSelection(undefined);
         setLabels([]);
         setLabelsStep("select");
         setSearchValue("");
@@ -1007,6 +1019,16 @@ function CreateTaskModalContent({
               />
             </div>
 
+            {resolvedProjectId && (
+              <NewTaskMilestoneField
+                projectId={resolvedProjectId}
+                value={selectedMilestoneId}
+                onChange={(id) =>
+                  setMilestoneSelection({ projectId: resolvedProjectId, id })
+                }
+                disabled={isSubmitting}
+              />
+            )}
             {customFields.length > 0 && (
               <div className="mt-2">
                 <Accordion

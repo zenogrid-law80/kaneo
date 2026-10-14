@@ -92,34 +92,36 @@ afterEach(() => {
 });
 
 describe("board realtime races", () => {
-  it.each(["TASKS_REORDERED", "PROJECT_UPDATED", "TASK_RELATION_UPDATED"])(
-    "discards a task refresh started before %s",
-    async (type) => {
-      let finish!: (value: unknown) => void;
-      mocks.getTask.mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            finish = resolve;
-          }),
-      );
-      renderHook(() => useProjectWebSocket("p"));
-      Socket.current.message("TASK_UPDATED", { taskId: "a" });
-      Socket.current.message(type, {
-        tasks: [{ id: "a", position: 2, status: "doing" }],
-      });
-      const afterEvent = mocks.board;
-      finish({ id: "a", projectId: "p", status: "todo", position: 0 });
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-      expect(mocks.board).toBe(afterEvent);
-      if (type === "TASKS_REORDERED")
-        expect(
-          (mocks.board as { columns: { tasks: { id: string }[] }[] }).columns[1]
-            .tasks[0].id,
-        ).toBe("a");
-    },
-  );
+  it.each([
+    "TASKS_REORDERED",
+    "PROJECT_UPDATED",
+    "TASK_RELATION_UPDATED",
+    "MILESTONES_UPDATED",
+  ])("discards a task refresh started before %s", async (type) => {
+    let finish!: (value: unknown) => void;
+    mocks.getTask.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    renderHook(() => useProjectWebSocket("p"));
+    Socket.current.message("TASK_UPDATED", { taskId: "a" });
+    Socket.current.message(type, {
+      tasks: [{ id: "a", position: 2, status: "doing" }],
+    });
+    const afterEvent = mocks.board;
+    finish({ id: "a", projectId: "p", status: "todo", position: 0 });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mocks.board).toBe(afterEvent);
+    if (type === "TASKS_REORDERED")
+      expect(
+        (mocks.board as { columns: { tasks: { id: string }[] }[] }).columns[1]
+          .tasks[0].id,
+      ).toBe("a");
+  });
 
   it("coalesces updates while pagination finishes without restarting page one", async () => {
     mocks.client.getQueryState.mockReturnValue({ fetchStatus: "fetching" });

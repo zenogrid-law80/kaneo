@@ -10,11 +10,15 @@ export const milestoneSchema = z
     description: z.string().nullable(),
     dueDate: milestoneDate.nullable(),
     status: z.enum(["open", "closed"]),
+    isCurrent: z.boolean(),
     closedAt: nullableResponseTimestamp,
     createdAt: responseTimestamp,
     updatedAt: responseTimestamp,
   })
   .openapi("Milestone");
+export const currentMilestoneSchema = z
+  .union([milestoneSchema, z.null()])
+  .openapi("CurrentMilestoneResponse");
 export const milestoneWithStatisticsSchema = milestoneSchema
   .extend({
     totalTasks: z.number().int(),

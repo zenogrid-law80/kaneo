@@ -30,6 +30,7 @@ import type Task from "@/types/task";
 import MilestoneSelect from "./milestone-select";
 
 const state = vi.hoisted(() => ({
+  currentId: null as string | null,
   projectId: "project",
   search: {} as StatisticsSearch,
   navigate: vi.fn(),
@@ -128,6 +129,16 @@ vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
 vi.mock("@/store/project", () => ({
   default: () => ({ project, setProject: vi.fn() }),
 }));
+vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
+  useCurrentMilestone: () => ({
+    data: state.currentId
+      ? {
+          id: state.currentId,
+          name: state.currentId === "beta" ? "Beta" : "Empty",
+        }
+      : null,
+  }),
+}));
 vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
   useMilestoneOptions: () => ({
     data: {
@@ -220,6 +231,7 @@ beforeEach(() => {
   window.localStorage.clear();
   useMilestoneFilters.setState({ byProject: {} });
   state.projectId = "project";
+  state.currentId = null;
   state.search = {};
   state.navigate.mockReset();
   state.navigate.mockImplementation((options) => {
@@ -260,6 +272,80 @@ function BoardView() {
     </>
   );
 }
+
+it("follows the current milestone across all views, including late loading, changes and clearing", async () => {
+  const routes = [
+    BacklogRoute,
+    HierarchyRoute,
+    GanttRoute,
+    CalendarRoute,
+    StatisticsRoute,
+  ];
+  const components = [
+    BoardView,
+    ...routes.map(
+      (route) =>
+        (route as unknown as { options: { component: ComponentType } }).options
+          .component,
+    ),
+  ];
+  const view = (View: ComponentType) => (
+    <I18nextProvider i18n={i18n}>
+      <View />
+    </I18nextProvider>
+  );
+  const { rerender } = render(view(BoardView));
+  expect(hasTask("Parent")).toBe(true);
+  state.currentId = "beta";
+  for (const View of components) {
+    rerender(view(View));
+    expect(
+      screen.getByRole("combobox", { name: "Milestones" }).textContent,
+    ).toContain("Beta");
+  }
+  expect(state.summary.mock.lastCall?.[4]).toBe("beta");
+  rerender(view(BoardView));
+  expect(hasTask("Parent")).toBe(false);
+  expect(hasTask("Child")).toBe(true);
+  state.currentId = "empty";
+  rerender(view(BoardView));
+  expect(
+    screen.getByRole("combobox", { name: "Milestones" }).textContent,
+  ).toContain("Empty");
+  expect(hasTask("Child")).toBe(false);
+  state.currentId = null;
+  rerender(view(BoardView));
+  expect(
+    screen.getByRole("combobox", { name: "Milestones" }).textContent,
+  ).toContain("All milestones");
+  expect(hasTask("Parent")).toBe(true);
+  expect(hasTask("Child")).toBe(true);
+});
+
+it("preserves an explicit filter when the default changes and can opt back in after reload", async () => {
+  state.currentId = "beta";
+  const view = () => (
+    <I18nextProvider i18n={i18n}>
+      <BoardView />
+    </I18nextProvider>
+  );
+  const rendered = render(view());
+  await selectMilestone("All milestones");
+  state.currentId = "empty";
+  rendered.rerender(view());
+  expect(hasTask("Child")).toBe(true);
+  await selectMilestone("Empty");
+  expect(hasTask("Child")).toBe(false);
+  const saved = window.localStorage.getItem("kaneo-project-milestone-filters");
+  rendered.unmount();
+  useMilestoneFilters.setState({ byProject: {} });
+  window.localStorage.setItem("kaneo-project-milestone-filters", saved!);
+  await act(() => useMilestoneFilters.persist.rehydrate());
+  state.currentId = "beta";
+  render(view());
+  expect(hasTask("Child")).toBe(true);
+  expect(hasTask("Parent")).toBe(false);
+});
 
 it("shares selections and clearing across board, backlog, hierarchy, gantt, calendar and statistics", async () => {
   const components = [

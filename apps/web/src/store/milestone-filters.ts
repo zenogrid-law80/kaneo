@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+export const CURRENT_MILESTONE_FILTER = "__current__";
+
 type MilestoneFilters = {
   byProject: Record<string, string | null>;
   initialize: (projectId: string, milestoneId: string | null) => void;

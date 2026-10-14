@@ -32,6 +32,9 @@ const m = vi.hoisted(() => ({
   retryPeople: vi.fn(),
 }));
 
+vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
+  useCurrentMilestone: () => ({ data: null }),
+}));
 vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
   useMilestoneOptions: () => ({ data: { pages: [{ data: [] }] } }),
   useMilestone: () => ({}),

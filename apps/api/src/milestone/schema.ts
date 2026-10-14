@@ -7,11 +7,16 @@ const fields = {
   name: z.string().trim().min(1).max(200),
   description: z.string().max(10_000).nullable(),
   dueDate: milestoneDate.nullable(),
+  isCurrent: z.boolean().optional().openapi({
+    description:
+      "Use this open milestone as the project's default, replacing its previous current milestone.",
+  }),
 };
 export const createMilestoneBody = z.object({
   name: fields.name,
   description: fields.description.optional(),
   dueDate: fields.dueDate.optional(),
+  isCurrent: fields.isCurrent,
 });
 export const updateMilestoneBody = z
   .object({
@@ -19,6 +24,7 @@ export const updateMilestoneBody = z
     description: fields.description.optional(),
     dueDate: fields.dueDate.optional(),
     status: z.enum(["open", "closed"]).optional(),
+    isCurrent: fields.isCurrent,
   })
   .refine(
     (value) => Object.keys(value).length > 0,

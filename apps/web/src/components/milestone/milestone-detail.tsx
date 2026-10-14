@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogDescription,
@@ -198,6 +199,9 @@ export default function MilestoneDetail({
           <h1 className="flex items-center gap-2 text-xl font-semibold">
             <Flag className="size-5" />
             {milestone.name}
+            {milestone.isCurrent && (
+              <Badge variant="secondary">{t("tasks:milestones.current")}</Badge>
+            )}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {milestone.status === "open"

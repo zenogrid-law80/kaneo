@@ -3,6 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
+import { defaultRolePayloads } from "../../packages/permissions/src";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import {
@@ -391,7 +392,7 @@ describe("API integration: workspace RBAC enforcement", () => {
       expect(persisted).toBeDefined();
     });
 
-    it("blocks a member from assigning a task in bulk", async () => {
+    it("allows a member to assign a task in bulk", async () => {
       const member = await createWorkspaceMember({ role: "member" });
       const { project, columns } = await createProjectFixture({
         workspaceId: member.workspace.id,
@@ -410,12 +411,12 @@ describe("API integration: workspace RBAC enforcement", () => {
           value: member.user.id,
         }),
       });
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(200);
 
       const persisted = await db.query.taskTable.findFirst({
         where: eq(schema.taskTable.id, task.id),
       });
-      expect(persisted?.userId).toBeNull();
+      expect(persisted?.userId).toBe(member.user.id);
     });
 
     it("allows an admin to assign a task in bulk", async () => {
@@ -653,7 +654,7 @@ describe("API integration: workspace RBAC enforcement", () => {
       expect(persisted?.userId).toBe(member.user.id);
     });
 
-    it("blocks a member from assigning an unassigned task through full update", async () => {
+    it("allows a member to assign an unassigned task through full update", async () => {
       const member = await createWorkspaceMember({ role: "member" });
       const { project, columns } = await createProjectFixture({
         workspaceId: member.workspace.id,
@@ -676,15 +677,15 @@ describe("API integration: workspace RBAC enforcement", () => {
           userId: member.user.id,
         }),
       });
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(200);
 
       const persisted = await db.query.taskTable.findFirst({
         where: eq(schema.taskTable.id, task.id),
       });
-      expect(persisted?.userId).toBeNull();
+      expect(persisted?.userId).toBe(member.user.id);
     });
 
-    it("blocks a member from unassigning a task through full update", async () => {
+    it("allows a member to unassign a task through full update", async () => {
       const member = await createWorkspaceMember({ role: "member" });
       const { project, columns } = await createProjectFixture({
         workspaceId: member.workspace.id,
@@ -707,12 +708,12 @@ describe("API integration: workspace RBAC enforcement", () => {
           userId: "",
         }),
       });
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(200);
 
       const persisted = await db.query.taskTable.findFirst({
         where: eq(schema.taskTable.id, task.id),
       });
-      expect(persisted?.userId).toBe(member.user.id);
+      expect(persisted?.userId).toBeNull();
     });
 
     it("allows an admin to assign a task through full update", async () => {
@@ -773,22 +774,109 @@ describe("API integration: workspace RBAC enforcement", () => {
   });
 
   describe("resource coverage: task:assign", () => {
-    it("blocks a member from assigning a task (assign is admin-tier)", async () => {
+    it("allows a seeded member to edit, assign, reassign, and unassign a task created by an owner", async () => {
       const member = await createWorkspaceMember({ role: "member" });
+      await createWorkspaceRoleRow(
+        member.workspace.id,
+        "member",
+        defaultRolePayloads.member,
+      );
+      const owner = await createWorkspaceMember({ role: "owner" });
+      await db.insert(schema.workspaceUserTable).values({
+        workspaceId: member.workspace.id,
+        userId: owner.user.id,
+        role: "owner",
+        joinedAt: new Date(),
+      });
+      const { project } = await createProjectFixture({
+        workspaceId: member.workspace.id,
+      });
+
+      mockAuthenticatedSession(owner.user);
+      const { app } = createApp();
+      const created = await postCreateTask(app, project.id);
+      expect(created.status).toBe(200);
+      const task = (await created.json()) as { id: string };
+
+      mockAuthenticatedSession(member.user);
+
+      for (const [field, value] of [
+        ["title", "Edited by another member"],
+        ["description", "Shared task details"],
+      ]) {
+        const response = await app.request(`/api/task/${field}/${task.id}`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ [field]: value }),
+        });
+        expect(response.status).toBe(200);
+      }
+
+      for (const userId of [member.user.id, owner.user.id, null]) {
+        const response = await app.request(`/api/task/assignee/${task.id}`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        expect(response.status).toBe(200);
+        const persisted = await db.query.taskTable.findFirst({
+          where: eq(schema.taskTable.id, task.id),
+        });
+        expect(persisted?.userId).toBe(userId);
+        expect(persisted?.title).toBe("Edited by another member");
+        expect(persisted?.description).toBe("Shared task details");
+      }
+    });
+
+    it.each(["viewer", "member", "restricted-member"])(
+      "blocks %s from assigning a task without task:assign",
+      async (role) => {
+        const member = await createWorkspaceMember({ role });
+        if (role !== "viewer") {
+          await createWorkspaceRoleRow(member.workspace.id, role, {
+            task: ["read", "update"],
+          });
+        }
+        const { project, columns } = await createProjectFixture({
+          workspaceId: member.workspace.id,
+        });
+        const task = await seedTask(project.id, columns.todo.id);
+        mockAuthenticatedSession(member.user);
+        const { app } = createApp();
+
+        const response = await app.request(`/api/task/assignee/${task.id}`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ userId: member.user.id }),
+        });
+        expect(response.status).toBe(403);
+        const persisted = await db.query.taskTable.findFirst({
+          where: eq(schema.taskTable.id, task.id),
+        });
+        expect(persisted?.userId).toBeNull();
+      },
+    );
+
+    it("blocks a member from assigning a task to a user outside the workspace", async () => {
+      const member = await createWorkspaceMember({ role: "member" });
+      const outsider = await createWorkspaceMember({ role: "member" });
       const { project, columns } = await createProjectFixture({
         workspaceId: member.workspace.id,
       });
       const task = await seedTask(project.id, columns.todo.id);
-
       mockAuthenticatedSession(member.user);
       const { app } = createApp();
 
       const response = await app.request(`/api/task/assignee/${task.id}`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ userId: member.user.id }),
+        body: JSON.stringify({ userId: outsider.user.id }),
       });
       expect(response.status).toBe(403);
+      const persisted = await db.query.taskTable.findFirst({
+        where: eq(schema.taskTable.id, task.id),
+      });
+      expect(persisted?.userId).toBeNull();
     });
 
     it("allows an admin to assign a task", async () => {

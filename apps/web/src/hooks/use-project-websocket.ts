@@ -218,11 +218,15 @@ export function useProjectWebSocket(projectId: string) {
           }
 
           if (message.type === "MILESTONES_UPDATED") {
+            markBoardCacheChanged(queryClient, projectId);
             invalidateMilestoneTasks(queryClient, projectId);
             void queryClient.invalidateQueries({ queryKey: ["project"] });
             void queryClient.invalidateQueries({
               queryKey: ["columns", projectId],
             });
+            // This event starts its own board fetch. Queuing it below would
+            // replay the same invalidation after every completed fetch forever.
+            return;
           }
 
           if (

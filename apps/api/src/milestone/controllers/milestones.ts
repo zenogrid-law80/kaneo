@@ -10,6 +10,7 @@ import {
 import { publishEvent } from "../../events";
 import type { z } from "../../openapi";
 import type { createMilestoneBody, updateMilestoneBody } from "../schema";
+import { clearCurrentMilestone } from "./current-milestone";
 
 export type MilestoneTransaction = Parameters<
   Parameters<typeof db.transaction>[0]
@@ -191,10 +192,15 @@ export async function createMilestone(
   projectId: string,
   body: z.infer<typeof createMilestoneBody>,
 ) {
-  const [milestone] = await db
-    .insert(milestoneTable)
-    .values({ projectId, ...body })
-    .returning();
+  const milestone = await db.transaction(async (tx) => {
+    await lockMilestoneProjects(tx, [projectId]);
+    if (body.isCurrent) await clearCurrentMilestone(tx, projectId);
+    const [created] = await tx
+      .insert(milestoneTable)
+      .values({ projectId, ...body })
+      .returning();
+    return created;
+  });
   if (!milestone)
     throw new HTTPException(500, { message: "Failed to create milestone" });
   await publishEvent("milestone.created", { projectId });
@@ -213,10 +219,16 @@ export async function updateMilestone(
       .where(eq(milestoneTable.id, id));
     if (!current)
       throw new HTTPException(404, { message: "Milestone not found" });
+    if (body.isCurrent && (body.status ?? current.status) !== "open")
+      throw new HTTPException(409, {
+        message: "Reopen the milestone before making it current",
+      });
+    if (body.isCurrent) await clearCurrentMilestone(tx, existing.projectId);
     const [updated] = await tx
       .update(milestoneTable)
       .set({
         ...body,
+        ...(body.status === "closed" ? { isCurrent: false } : {}),
         ...(body.status
           ? {
               closedAt:

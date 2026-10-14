@@ -11792,6 +11792,33 @@
 						},
 						"save": {
 							"type": "string"
+						},
+						"current": {
+							"type": "string"
+						},
+						"currentDefault": {
+							"type": "string"
+						},
+						"noCurrent": {
+							"type": "string"
+						},
+						"currentSelection": {
+							"type": "string"
+						},
+						"setCurrent": {
+							"type": "string"
+						},
+						"unsetCurrent": {
+							"type": "string"
+						},
+						"currentDescription": {
+							"type": "string"
+						},
+						"useDefault": {
+							"type": "string"
+						},
+						"newTaskDefault": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -11841,7 +11868,16 @@
 						"bulk",
 						"bulkSuccess",
 						"filter",
-						"save"
+						"save",
+						"current",
+						"currentDefault",
+						"noCurrent",
+						"currentSelection",
+						"setCurrent",
+						"unsetCurrent",
+						"currentDescription",
+						"useDefault",
+						"newTaskDefault"
 					]
 				}
 			},

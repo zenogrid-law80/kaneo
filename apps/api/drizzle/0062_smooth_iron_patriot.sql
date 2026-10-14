@@ -1,0 +1,3 @@
+ALTER TABLE "milestone" ADD COLUMN "is_current" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "milestone_current_project_unique" ON "milestone" USING btree ("project_id") WHERE "milestone"."is_current" = true;--> statement-breakpoint
+ALTER TABLE "milestone" ADD CONSTRAINT "milestone_current_open_check" CHECK (NOT "milestone"."is_current" OR "milestone"."status" = 'open');

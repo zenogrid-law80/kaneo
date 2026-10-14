@@ -422,6 +422,7 @@ export const milestoneTable = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     dueDate: date("due_date", { mode: "string" }),
+    isCurrent: boolean("is_current").notNull().default(false),
     status: text("status", { enum: ["open", "closed"] })
       .notNull()
       .default("open"),
@@ -434,6 +435,13 @@ export const milestoneTable = pgTable(
   },
   (table) => [
     unique("milestone_project_id_id_unique").on(table.projectId, table.id),
+    uniqueIndex("milestone_current_project_unique")
+      .on(table.projectId)
+      .where(sql`${table.isCurrent} = true`),
+    check(
+      "milestone_current_open_check",
+      sql`NOT ${table.isCurrent} OR ${table.status} = 'open'`,
+    ),
     index("milestone_project_status_due_date_idx").on(
       table.projectId,
       table.status,

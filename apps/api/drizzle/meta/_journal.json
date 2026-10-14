@@ -428,6 +428,20 @@
       "when": 1791892977733,
       "tag": "0060_vengeful_veda",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1791956296780,
+      "tag": "0061_member-task-assignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1791958167691,
+      "tag": "0062_smooth_iron_patriot",
+      "breakpoints": true
     }
   ]
 }

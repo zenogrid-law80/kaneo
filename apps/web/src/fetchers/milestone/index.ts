@@ -30,6 +30,13 @@ export async function getMilestone(id: string) {
   if (!response.ok) throw new HttpError(response.status, await response.text());
   return response.json();
 }
+export async function getCurrentMilestone(projectId: string) {
+  const response = await api.project[":projectId"].current.$get({
+    param: { projectId },
+  });
+  if (!response.ok) throw new HttpError(response.status, await response.text());
+  return response.json();
+}
 export async function getMilestoneTasks(
   id: string,
   page = 1,

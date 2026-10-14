@@ -457,6 +457,25 @@ describe("registerTools", () => {
 });
 
 describe("milestone MCP tools", () => {
+  it("passes the current designation through the validated MCP contract", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({ success: true }) };
+    registerTools(server as never, { client: client as never });
+    await tools
+      .get("create_milestone")
+      ?.handler({ projectId: "p1", name: "Beta", isCurrent: true });
+    expect(client.json).toHaveBeenCalledWith("/api/milestone/project/p1", {
+      method: "POST",
+      body: JSON.stringify({ name: "Beta", isCurrent: true }),
+    });
+    await tools
+      .get("update_milestone")
+      ?.handler({ id: "m1", isCurrent: false });
+    expect(client.json).toHaveBeenCalledWith("/api/milestone/m1", {
+      method: "PATCH",
+      body: JSON.stringify({ isCurrent: false }),
+    });
+  });
   it("passes null to unlink and open/closed to update without a full task overwrite", async () => {
     const { server, tools } = createServerMock();
     const client = { json: vi.fn().mockResolvedValue({ success: true }) };

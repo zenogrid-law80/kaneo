@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { useCurrentMilestone } from "@/hooks/queries/milestone/use-current-milestone";
+import {
+  CURRENT_MILESTONE_FILTER,
+  useMilestoneFilters,
+} from "@/store/milestone-filters";
 import {
   Select,
   SelectItem,
@@ -31,7 +36,11 @@ export default function MilestoneSelect({
   bulk?: boolean;
 }) {
   const { t } = useTranslation();
+  const followsCurrent = useMilestoneFilters(
+    (state) => state.byProject[projectId] === CURRENT_MILESTONE_FILTER,
+  );
   const query = useMilestoneOptions(projectId);
+  const { data: currentMilestone } = useCurrentMilestone(projectId, filter);
   const currentQuery = useMilestone(
     projectId,
     !filter && !bulk ? (value ?? undefined) : undefined,
@@ -46,6 +55,15 @@ export default function MilestoneSelect({
   if (current && !milestones.some((m) => m.id === current.id))
     milestones.push(current);
   const options = [
+    ...(filter && currentMilestone
+      ? [
+          {
+            label: currentMilestone.name,
+            value: CURRENT_MILESTONE_FILTER,
+            disabled: false,
+          },
+        ]
+      : []),
     ...(filter
       ? [{ label: t("tasks:milestones.all"), value: "all", disabled: false }]
       : []),
@@ -54,6 +72,7 @@ export default function MilestoneSelect({
       : []),
     { label: t("tasks:milestones.none"), value: "none", disabled: false },
     ...milestones
+      .filter((m) => !filter || m.id !== currentMilestone?.id)
       .filter((m) => includeClosed || m.status === "open" || m.id === value)
       .map((m) => ({
         label:
@@ -68,7 +87,13 @@ export default function MilestoneSelect({
     <div className="min-w-36">
       <Select
         items={options}
-        value={value ?? (bulk ? "bulk" : filter ? "all" : "none")}
+        value={
+          filter && (followsCurrent || value === currentMilestone?.id)
+            ? currentMilestone
+              ? CURRENT_MILESTONE_FILTER
+              : "all"
+            : (value ?? (bulk ? "bulk" : filter ? "all" : "none"))
+        }
         onValueChange={(id) =>
           onChange(id === "all" || (!filter && id === "none") ? null : id)
         }

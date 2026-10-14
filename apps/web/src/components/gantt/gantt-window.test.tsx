@@ -15,6 +15,9 @@ const m = vi.hoisted(() => ({
   update: vi.fn(),
   tasks: [] as Record<string, unknown>[],
 }));
+vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
+  useCurrentMilestone: () => ({ data: null }),
+}));
 vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
   useMilestoneOptions: () => ({ data: { pages: [{ data: [] }] } }),
   useMilestone: () => ({}),
