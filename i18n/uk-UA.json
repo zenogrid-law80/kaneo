@@ -2236,6 +2236,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "додав(ла) {{name}} як допоміжного виконавця",
+		"supportingAssigneeRemoved": "видалив(ла) {{name}} з допоміжних виконавців",
 		"assignedToSelf": "призначив завдання собі",
 		"unassigned": "зняв призначення завдання",
 		"assignedTo": "призначив завдання на {{name}}",
@@ -2350,6 +2352,19 @@
 		"created": "створив це завдання"
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Видалити всіх",
+			"primaryAssignee": "Основний виконавець",
+			"label": "Співвиконавці",
+			"none": "Немає",
+			"search": "Пошук учасників…",
+			"empty": "Учасників не знайдено",
+			"loadError": "Не вдалося завантажити співвиконавців",
+			"updateError": "Не вдалося оновити співвиконавців",
+			"includeInStatistics": "Враховувати співвиконавців",
+			"statisticsBasis": "Враховуються поточні співвиконавці. Кожне завдання рахується один раз на людину; підсумки додають участь усіх людей.",
+			"viewAll": "Показати всіх допоміжних виконавців ({{count}})"
+		},
 		"status": {
 			"label": "Статус",
 			"to-do": "До виконання",
@@ -2918,6 +2933,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Показати вихідні",
+			"hiddenTasks": "Показати завдання на вихідних ({{count}})"
 		}
 	},
 	"invitations": {

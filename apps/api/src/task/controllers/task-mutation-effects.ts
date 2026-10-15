@@ -115,6 +115,10 @@ export async function publishTaskMutation(
       type: "priority_changed",
     });
   if (changed("userId")) {
+    await publishEvent("task.supporting_assignees_changed", {
+      taskId: after.id,
+      projectId: after.projectId,
+    });
     const assignee =
       options.assigneeName !== undefined
         ? { name: options.assigneeName ?? undefined }

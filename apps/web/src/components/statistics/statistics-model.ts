@@ -1,4 +1,5 @@
 export type StatisticsSearch = {
+  includeSupportingAssignees?: boolean;
   startDate?: string;
   endDate?: string;
   member?: string;
@@ -51,6 +52,11 @@ export function validateStatisticsSearch(
   return {
     startDate,
     endDate,
+    includeSupportingAssignees:
+      search.includeSupportingAssignees === true ||
+      search.includeSupportingAssignees === "true"
+        ? true
+        : undefined,
     member: typeof search.member === "string" ? search.member : undefined,
     team: typeof search.team === "string" ? search.team : undefined,
     milestone:

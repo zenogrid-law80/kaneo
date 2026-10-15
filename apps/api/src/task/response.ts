@@ -58,6 +58,18 @@ export const taskWithAssigneeSchema = taskSchema
         }),
       )
       .optional(),
+    supportingAssignees: z
+      .array(
+        z.object({
+          userId: z.string(),
+          name: z.string(),
+        }),
+      )
+      .optional()
+      .openapi({
+        description:
+          "Supporting assignees for authenticated compact task refreshes.",
+      }),
     assigneeName: z.string().nullable(),
     assigneeId: z.string().nullable(),
   })
@@ -113,6 +125,18 @@ export const boardTaskSchema = z
     assigneeName: z.string().nullable(),
     assigneeId: z.string().nullable(),
     assigneeImage: z.string().nullable(),
+    supportingAssignees: z
+      .array(
+        z.object({
+          userId: z.string(),
+          name: z.string(),
+        }),
+      )
+      .optional()
+      .openapi({
+        description:
+          "Supporting assignees in the current workspace, excluding the primary assignee. Included for authenticated boards; omitted from public board responses.",
+      }),
     projectId: z.string(),
     subtaskCounts: z
       .object({

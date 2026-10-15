@@ -5,7 +5,10 @@ import {
   endOfWeek,
   startOfMonth,
   startOfWeek,
+  isWeekend,
 } from "date-fns";
+
+import { visibleScheduleColumns } from "@/lib/visible-schedule";
 
 export const DAYS_PER_WEEK = 7;
 
@@ -50,6 +53,7 @@ export type WeekLayout<TTask extends PackableTask> = {
 export function buildMonthWeeks(
   visibleMonth: Date,
   weekStartsOn: WeekStartsOn,
+  showWeekends = true,
 ): Date[][] {
   const gridStart = startOfWeek(startOfMonth(visibleMonth), { weekStartsOn });
   const gridEnd = endOfWeek(endOfMonth(visibleMonth), { weekStartsOn });
@@ -57,14 +61,18 @@ export function buildMonthWeeks(
 
   const weeks: Date[][] = [];
   for (let index = 0; index < days.length; index += DAYS_PER_WEEK) {
-    weeks.push(days.slice(index, index + DAYS_PER_WEEK));
+    weeks.push(
+      days
+        .slice(index, index + DAYS_PER_WEEK)
+        .filter((day) => showWeekends || !isWeekend(day)),
+    );
   }
 
   return weeks;
 }
 
 /**
- * Clips every task overlapping the week to that week's seven columns, then
+ * Clips every task overlapping the week to that week's visible columns, then
  * greedily packs the clipped segments into lanes so overlapping tasks stack
  * instead of colliding. Segments past `maxLanes` are reported per day so the
  * cell can render an overflow hint.
@@ -74,28 +82,24 @@ export function packWeekLanes<TTask extends PackableTask>(
   tasks: TTask[],
   maxLanes: number,
 ): WeekLayout<TTask> {
-  const hiddenCountByDay = new Array<number>(DAYS_PER_WEEK).fill(0);
-  const tasksByDay: TTask[][] = Array.from({ length: DAYS_PER_WEEK }, () => []);
+  const hiddenCountByDay = new Array<number>(week.length).fill(0);
+  const tasksByDay: TTask[][] = Array.from({ length: week.length }, () => []);
   const weekStart = week[0];
 
   if (!weekStart) {
     return { segments: [], hiddenCountByDay, tasksByDay };
   }
 
-  const lastDayIndex = DAYS_PER_WEEK - 1;
+  const lastDayIndex = week.length - 1;
 
   const candidates = tasks
     .map((task) => {
-      const startOffset = differenceInCalendarDays(
-        task.scheduleStart,
-        weekStart,
-      );
-      const endOffset = differenceInCalendarDays(task.scheduleEnd, weekStart);
-
-      if (endOffset < 0 || startOffset > lastDayIndex) return null;
-
-      const clippedStart = Math.max(0, startOffset);
-      const clippedEnd = Math.min(lastDayIndex, endOffset);
+      const {
+        first: clippedStart,
+        last: clippedEnd,
+        visible,
+      } = visibleScheduleColumns(week, task.scheduleStart, task.scheduleEnd);
+      if (!visible) return null;
 
       return {
         task,
@@ -103,8 +107,10 @@ export function packWeekLanes<TTask extends PackableTask>(
         clippedEnd,
         columnStart: clippedStart + 1,
         columnEnd: clippedEnd + 2,
-        continuesBefore: startOffset < 0,
-        continuesAfter: endOffset > lastDayIndex,
+        continuesBefore:
+          differenceInCalendarDays(task.scheduleStart, weekStart) < 0,
+        continuesAfter:
+          differenceInCalendarDays(task.scheduleEnd, week[lastDayIndex]) > 0,
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null)

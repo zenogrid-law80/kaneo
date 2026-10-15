@@ -1,3 +1,4 @@
+import TaskSupportingAssigneeAvatars from "@/components/task/task-supporting-assignee-avatars";
 import {
   Calendar,
   CalendarClock,
@@ -177,14 +178,14 @@ function TaskCardContent({
               )}
 
               {showAssignees && (
-                <div className="ml-auto shrink-0">
+                <div className="ml-auto flex shrink-0 items-center gap-1.5">
                   {task.userId ? (
                     <Avatar className="h-5 w-5">
                       <AvatarImage
                         src={assignee?.user?.image ?? ""}
                         alt={assignee?.user?.name || ""}
                       />
-                      <AvatarFallback className="text-xs font-medium border border-border/30">
+                      <AvatarFallback className="whitespace-nowrap border border-border/30 text-[10px] font-medium leading-none">
                         {getInitials(assignee?.user?.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -198,6 +199,11 @@ function TaskCardContent({
                       </span>
                     </div>
                   )}
+                  <TaskSupportingAssigneeAvatars
+                    task={task}
+                    members={workspaceUsers?.members}
+                    size="small"
+                  />
                 </div>
               )}
             </div>

@@ -1,4 +1,4 @@
-import { cleanup, renderHook } from "@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import {
   afterEach,
   beforeEach,
@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
     setQueriesData: vi.fn(),
     getQueriesData: vi.fn().mockReturnValue([]),
     invalidateQueries: vi.fn(),
+    fetchQuery: vi.fn(),
     cancelQueries: vi.fn().mockResolvedValue(undefined),
   },
 }));
@@ -61,6 +62,83 @@ class Socket {
   }
 }
 
+it("refreshes supporting assignments and opted-in statistics without refetching board tasks", async () => {
+  renderHook(() => useProjectWebSocket("p"));
+  mocks.client.invalidateQueries.mockClear();
+  Socket.current.message("TASK_SUPPORTING_ASSIGNEES_UPDATED", { taskId: "a" });
+  expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
+    queryKey: ["task-supporting-assignees", "p", "a"],
+  });
+  expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
+    queryKey: ["activities", "a"],
+  });
+  expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
+    queryKey: ["workspace-activity"],
+  });
+  const predicate = mocks.client.invalidateQueries.mock.calls.find(
+    ([filter]) => filter.predicate,
+  )?.[0].predicate;
+  expect(
+    predicate({
+      queryKey: [
+        "workspace-member-statistics",
+        "w",
+        "p",
+        "start",
+        "end",
+        undefined,
+        true,
+      ],
+    }),
+  ).toBe(true);
+  expect(
+    predicate({
+      queryKey: [
+        "workspace-member-statistics",
+        "w",
+        "p",
+        "start",
+        "end",
+        undefined,
+        false,
+      ],
+    }),
+  ).toBe(false);
+  expect(
+    predicate({
+      queryKey: [
+        "member-team-monthly-statistics",
+        "w",
+        "other",
+        "start",
+        "end",
+        undefined,
+        true,
+      ],
+    }),
+  ).toBe(false);
+  expect(mocks.getTask).not.toHaveBeenCalled();
+  await waitFor(() => expect(mocks.client.fetchQuery).toHaveBeenCalled());
+  await waitFor(() =>
+    expect(mocks.board).toMatchObject({
+      columns: [
+        expect.objectContaining({
+          tasks: [
+            expect.objectContaining({
+              id: "a",
+              supportingAssignees: [{ userId: "helper", name: "Helper" }],
+            }),
+          ],
+        }),
+        expect.anything(),
+      ],
+    }),
+  );
+  expect(mocks.client.invalidateQueries).not.toHaveBeenCalledWith({
+    queryKey: ["tasks", "p"],
+  });
+});
+
 beforeEach(() => {
   vi.stubGlobal("WebSocket", Socket);
   mocks.board = {
@@ -81,6 +159,9 @@ beforeEach(() => {
     mocks.board = typeof value === "function" ? value(mocks.board) : value;
   });
   mocks.client.invalidateQueries.mockReset();
+  mocks.client.fetchQuery
+    .mockReset()
+    .mockResolvedValue([{ userId: "helper", name: "Helper" }]);
   mocks.client.setQueriesData.mockClear();
   mocks.client.getQueriesData.mockReset().mockReturnValue([]);
   mocks.client.getQueryState.mockReset();
@@ -180,8 +261,11 @@ it("reconciles the initial handshake after active pagination completes", async (
     query: { queryKey: ["tasks", "p"], state: { fetchStatus: "idle" } },
   });
   await Promise.resolve();
-  expect(mocks.client.invalidateQueries).toHaveBeenCalledExactlyOnceWith({
+  expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
     queryKey: ["tasks", "p"],
+  });
+  expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
+    queryKey: ["task-supporting-assignees", "p"],
   });
 });
 it("preserves distinct task effects across pagination and a disconnect before replay", async () => {
@@ -417,7 +501,7 @@ it.each(["TASK_CREATED", "TASK_DELETED", "TASK_MOVED", "TASKS_REORDERED"])(
     });
     mocks.client.getQueryState.mockReturnValue({ fetchStatus: "idle" });
     mocks.client.invalidateQueries.mockImplementation(({ queryKey }) => {
-      if (queryKey[0] === "tasks")
+      if (queryKey?.[0] === "tasks")
         mocks.client.getQueryState.mockReturnValue({ fetchStatus: "fetching" });
     });
     const idle = () =>
@@ -667,4 +751,37 @@ it("shares one authorized task read between the board and sync samples", async (
     expect(mocks.client.setQueriesData).toHaveBeenCalled(),
   );
   expect(mocks.getTask).toHaveBeenCalledOnce();
+});
+
+it("reconciles a newly created card when supporting members change before its first snapshot arrives", async () => {
+  let complete!: (value: unknown) => void;
+  mocks.getTask.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        complete = resolve;
+      }),
+  );
+  renderHook(() => useProjectWebSocket("p"));
+  Socket.current.message("TASK_CREATED", { taskId: "new" });
+  Socket.current.message("TASK_SUPPORTING_ASSIGNEES_UPDATED", {
+    taskId: "new",
+  });
+  complete({
+    id: "new",
+    projectId: "p",
+    status: "todo",
+    position: 1,
+    supportingAssignees: [],
+  });
+  await waitFor(() =>
+    expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["tasks", "p"],
+    }),
+  );
+  const board = mocks.board as { columns: { tasks: { id: string }[] }[] };
+  expect(
+    board.columns
+      .flatMap((column) => column.tasks)
+      .some((task) => task.id === "new"),
+  ).toBe(false);
 });

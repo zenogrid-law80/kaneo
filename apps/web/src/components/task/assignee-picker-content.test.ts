@@ -4,7 +4,7 @@ import type WorkspaceUser from "@/types/workspace-user";
 import {
   groupAssigneeMembers,
   matchesAssigneeSearch,
-} from "./assignee-picker-content";
+} from "./assignee-picker-model";
 
 const member = (userId: string, name: string) =>
   ({

@@ -106,7 +106,10 @@ describe.each([
     removeConnection("p1", a);
     removeConnection("p1", b);
   });
-  it("sends task membership changes through the task update path", async () => {
+  it.each([
+    ["task.milestone_changed", "TASK_UPDATED"],
+    ["task.supporting_assignees_changed", "TASK_SUPPORTING_ASSIGNEES_UPDATED"],
+  ])("delivers %s through its task update path", async (event, type) => {
     const other = socket();
     const connection = addConnection(
       "p1",
@@ -115,7 +118,7 @@ describe.each([
       "remote",
       "workspace",
     );
-    await publishEvent("task.milestone_changed", {
+    await publishEvent(event, {
       taskId: "t1",
       projectId: "p1",
       userId: "u1",
@@ -124,7 +127,7 @@ describe.each([
       timeout: 500,
     });
     expect(JSON.parse(other.send.mock.calls[0][0])).toMatchObject({
-      type: "TASK_UPDATED",
+      type,
       projectId: "p1",
       taskId: "t1",
     });

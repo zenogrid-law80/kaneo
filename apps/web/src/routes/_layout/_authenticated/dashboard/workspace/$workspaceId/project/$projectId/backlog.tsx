@@ -18,6 +18,7 @@ import ProjectLayout from "@/components/common/project-layout";
 import SortControl from "@/components/common/sort-control";
 import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
+import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -76,6 +77,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
   const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
@@ -739,6 +741,33 @@ function RouteComponent() {
                         {t("tasks:assignee.label")}
                       </DropdownMenuLabel>
                     </DropdownMenuGroup>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        setFilters((current) => ({ ...current, assignee: [] }))
+                      }
+                      className="h-8 rounded-md text-sm"
+                    >
+                      {t("tasks:boardFilters.allAssignees")}
+                    </DropdownMenuItem>
+                    {user && (
+                      <DropdownMenuCheckboxItem
+                        checked={filters.assignee.includes(user.id)}
+                        indicatorVariant="checkbox"
+                        onCheckedChange={() =>
+                          setFilters((current) => ({
+                            ...current,
+                            assignee: current.assignee.includes(user.id)
+                              ? current.assignee.filter(
+                                  (userId) => userId !== user.id,
+                                )
+                              : [...current.assignee, user.id],
+                          }))
+                        }
+                        className="h-8 rounded-md text-sm"
+                      >
+                        {user.name}
+                      </DropdownMenuCheckboxItem>
+                    )}
                     <DropdownMenuCheckboxItem
                       checked={filters.assignee.includes(
                         UNASSIGNED_FILTER_VALUE,

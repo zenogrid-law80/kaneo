@@ -51,6 +51,24 @@ describe("describeActivity", () => {
     ).toBe("activity:clearedDueDate");
   });
 
+  it.each([
+    ["supporting_assignee_added", "supportingAssigneeAdded"],
+    ["supporting_assignee_removed", "supportingAssigneeRemoved"],
+  ])("describes %s with the target name", (type, key) => {
+    expect(
+      describeActivity(
+        activity({
+          type,
+          eventData: {
+            supportingAssigneeId: "helper",
+            supportingAssigneeName: "Alex",
+          },
+        }),
+        t,
+      ),
+    ).toBe(`activity:${key} {"name":"Alex"}`);
+  });
+
   it("uses configured status names and falls back for deleted columns", () => {
     expect(
       describeActivity(

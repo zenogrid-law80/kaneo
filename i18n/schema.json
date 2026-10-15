@@ -8963,6 +8963,12 @@
 			"type": "object",
 			"additionalProperties": false,
 			"properties": {
+				"supportingAssigneeAdded": {
+					"type": "string"
+				},
+				"supportingAssigneeRemoved": {
+					"type": "string"
+				},
 				"assignedToSelf": {
 					"type": "string"
 				},
@@ -9403,6 +9409,8 @@
 				}
 			},
 			"required": [
+				"supportingAssigneeAdded",
+				"supportingAssigneeRemoved",
 				"assignedToSelf",
 				"unassigned",
 				"assignedTo",
@@ -9422,6 +9430,75 @@
 			"type": "object",
 			"additionalProperties": false,
 			"properties": {
+				"supportingAssignees": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"clearAll": {
+							"type": "string"
+						},
+						"primaryAssignee": {
+							"type": "string"
+						},
+						"label": {
+							"type": "string"
+						},
+						"none": {
+							"type": "string"
+						},
+						"search": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"updateError": {
+							"type": "string"
+						},
+						"includeInStatistics": {
+							"type": "string"
+						},
+						"statisticsBasis": {
+							"type": "string"
+						},
+						"viewAll": {
+							"type": "string"
+						},
+						"viewAll_zero": {
+							"type": "string"
+						},
+						"viewAll_one": {
+							"type": "string"
+						},
+						"viewAll_two": {
+							"type": "string"
+						},
+						"viewAll_few": {
+							"type": "string"
+						},
+						"viewAll_many": {
+							"type": "string"
+						},
+						"viewAll_other": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"clearAll",
+						"primaryAssignee",
+						"label",
+						"none",
+						"search",
+						"empty",
+						"loadError",
+						"updateError",
+						"includeInStatistics",
+						"statisticsBasis"
+					]
+				},
 				"status": {
 					"type": "object",
 					"additionalProperties": false,
@@ -11879,9 +11956,41 @@
 						"useDefault",
 						"newTaskDefault"
 					]
+				},
+				"weekends": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"show": {
+							"type": "string"
+						},
+						"hiddenTasks": {
+							"type": "string"
+						},
+						"hiddenTasks_zero": {
+							"type": "string"
+						},
+						"hiddenTasks_one": {
+							"type": "string"
+						},
+						"hiddenTasks_two": {
+							"type": "string"
+						},
+						"hiddenTasks_few": {
+							"type": "string"
+						},
+						"hiddenTasks_many": {
+							"type": "string"
+						},
+						"hiddenTasks_other": {
+							"type": "string"
+						}
+					},
+					"required": ["show"]
 				}
 			},
 			"required": [
+				"supportingAssignees",
 				"status",
 				"priority",
 				"boardSearchPlaceholder",
@@ -11923,7 +12032,8 @@
 				"descriptionLoading",
 				"descriptionLoadError",
 				"board",
-				"milestones"
+				"milestones",
+				"weekends"
 			]
 		},
 		"invitations": {

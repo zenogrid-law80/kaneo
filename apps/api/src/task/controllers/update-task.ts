@@ -1,3 +1,4 @@
+import { clearPrimarySupportingAssignees } from "../supporting-assignees/clear-primary-supporting-assignees";
 import { and, eq, getTableColumns, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -113,6 +114,7 @@ async function updateTask(
         message: "Task order changed; refresh before updating",
       });
     existingTask = locked;
+    await clearPrimarySupportingAssignees(tx, [id]);
 
     const [task] = await tx
       .update(taskTable)
@@ -141,6 +143,7 @@ async function updateTask(
         { title, dueDate: dueDate ?? null },
         currentUserId,
       );
+    await clearPrimarySupportingAssignees(tx, [id]);
     return task;
   });
 

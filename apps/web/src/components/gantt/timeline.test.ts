@@ -80,3 +80,33 @@ describe("bounded Gantt timeline", () => {
     },
   );
 });
+
+describe("Gantt without weekends", () => {
+  it("compresses columns while keeping the same calendar range and pagination", () => {
+    const tasks = [span("2026-01-01", "2027-12-31")];
+    const full = buildGanttTimeline(
+      tasks,
+      1,
+      3,
+      null,
+      parseISO("2026-08-10"),
+      true,
+    )!;
+    const weekdays = buildGanttTimeline(
+      tasks,
+      1,
+      3,
+      null,
+      parseISO("2026-08-10"),
+      false,
+    )!;
+    expect(weekdays.days).toHaveLength(65);
+    expect(
+      weekdays.days.every((day) => day.getDay() !== 0 && day.getDay() !== 6),
+    ).toBe(true);
+    expect(weekdays.rangeStart).toEqual(full.rangeStart);
+    expect(weekdays.rangeEnd).toEqual(full.rangeEnd);
+    expect(weekdays.hasNext).toBe(full.hasNext);
+    expect(weekdays.timelineMinWidthRem).toBe(65 * 3);
+  });
+});

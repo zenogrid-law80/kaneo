@@ -7,6 +7,7 @@ export const workspaceMemberStatisticsQueryKey = (
   startDate?: string,
   endDate?: string,
   milestoneId?: string,
+  includeSupportingAssignees = false,
 ) =>
   [
     "workspace-member-statistics",
@@ -15,6 +16,7 @@ export const workspaceMemberStatisticsQueryKey = (
     startDate,
     endDate,
     milestoneId,
+    includeSupportingAssignees,
   ] as const;
 
 function useWorkspaceMemberStatistics(
@@ -23,6 +25,7 @@ function useWorkspaceMemberStatistics(
   startDate?: string,
   endDate?: string,
   milestoneId?: string,
+  includeSupportingAssignees = false,
 ) {
   return useQuery({
     queryKey: workspaceMemberStatisticsQueryKey(
@@ -31,6 +34,7 @@ function useWorkspaceMemberStatistics(
       startDate,
       endDate,
       milestoneId,
+      includeSupportingAssignees,
     ),
     queryFn: () =>
       getWorkspaceMemberStatistics(
@@ -39,6 +43,7 @@ function useWorkspaceMemberStatistics(
         startDate,
         endDate,
         milestoneId,
+        includeSupportingAssignees,
       ),
     enabled: Boolean(workspaceId),
   });

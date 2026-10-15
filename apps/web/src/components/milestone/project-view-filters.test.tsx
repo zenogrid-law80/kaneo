@@ -531,6 +531,7 @@ it("passes the selected milestone to both statistics queries and clears it on re
     "2026-06-01",
     "2026-06-30",
     "release",
+    false,
   );
   expect(state.monthly).toHaveBeenLastCalledWith(
     "workspace",
@@ -538,6 +539,7 @@ it("passes the selected milestone to both statistics queries and clears it on re
     "2026-06-01",
     "2026-06-30",
     "release",
+    false,
   );
   fireEvent.click(screen.getByRole("button", { name: "Reset filters" }));
   const resetNavigation = state.navigate.mock.lastCall?.[0];

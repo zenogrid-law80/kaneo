@@ -65,6 +65,7 @@ import updateTaskDueDate from "./controllers/update-task-due-date";
 import updateTaskPriority from "./controllers/update-task-priority";
 import updateTaskStatus from "./controllers/update-task-status";
 import updateTaskTitle from "./controllers/update-task-title";
+import supportingAssignees from "./supporting-assignees";
 import {
   getDeferredDescriptionMatches,
   getDescriptionPage,
@@ -1338,4 +1339,4 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     return c.json(updated, 200);
   });
 
-export default task;
+export default task.route("/supporting-assignees", supportingAssignees);

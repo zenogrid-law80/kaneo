@@ -1,5 +1,16 @@
+import WeekendVisibilityControl from "@/components/calendar/weekend-visibility-control";
+import { countHiddenWeekendTasks } from "@/lib/visible-schedule";
+import TaskAssigneeNames from "@/components/task/task-assignee-names";
+import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { addDays, format, isSameMonth, isToday, isWeekend } from "date-fns";
+import {
+  addDays,
+  differenceInCalendarDays,
+  format,
+  isSameMonth,
+  isToday,
+  isWeekend,
+} from "date-fns";
 import { Calendar, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import {
   useCallback,
@@ -49,7 +60,14 @@ function RouteComponent() {
   const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
   const navigate = useNavigate();
   const { data: project } = useGetTasks(projectId);
+  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(workspaceId);
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
+  const showWeekends = useUserPreferencesStore(
+    (state) => state.ganttShowWeekends,
+  );
+  const setShowWeekends = useUserPreferencesStore(
+    (state) => state.setGanttShowWeekends,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [windowStart, setWindowStart] = useState<{
     projectId: string;
@@ -155,8 +173,16 @@ function RouteComponent() {
         weekStartsOn,
         dayColumnWidthRem,
         requestedStart,
+        new Date(),
+        showWeekends,
       ),
-    [parsedTasks, weekStartsOn, dayColumnWidthRem, requestedStart],
+    [
+      parsedTasks,
+      weekStartsOn,
+      dayColumnWidthRem,
+      requestedStart,
+      showWeekends,
+    ],
   );
 
   // Whether "today" actually falls inside the computed date range. A project
@@ -250,6 +276,19 @@ function RouteComponent() {
                 onChange={setMilestoneId}
                 filter
                 includeClosed
+              />
+              <WeekendVisibilityControl
+                checked={showWeekends}
+                onCheckedChange={setShowWeekends}
+                hiddenCount={
+                  timeline
+                    ? countHiddenWeekendTasks(
+                        scheduledTasks,
+                        timeline.rangeStart,
+                        timeline.rangeEnd,
+                      )
+                    : 0
+                }
               />
               <h1 className="text-sm font-semibold text-foreground">
                 {t("tasks:gantt.title")}
@@ -406,6 +445,12 @@ function RouteComponent() {
                         className={cn(
                           "border-r border-border/70 px-0.5 py-2 text-center sm:px-1",
                           isWeekend(day) && "bg-muted/25",
+                          index > 0 &&
+                            differenceInCalendarDays(
+                              day,
+                              timeline.days[index - 1],
+                            ) > 1 &&
+                            "border-l-2 border-l-dashed border-l-border",
                         )}
                       >
                         <div className="h-4 text-[10px] font-medium text-muted-foreground">
@@ -440,12 +485,18 @@ function RouteComponent() {
                     width: `${timeline.timelineMinWidthRem}rem`,
                   }}
                 >
-                  {timeline.days.map((day) => (
+                  {timeline.days.map((day, index) => (
                     <div
                       key={`bg-line-${day.toISOString()}`}
                       className={cn(
                         "h-full min-h-0 border-r border-border/60",
                         isWeekend(day) && "bg-muted/25",
+                        index > 0 &&
+                          differenceInCalendarDays(
+                            day,
+                            timeline.days[index - 1],
+                          ) > 1 &&
+                          "border-l-2 border-l-dashed border-l-border",
                       )}
                     />
                   ))}
@@ -489,13 +540,17 @@ function RouteComponent() {
                               <p className="w-full line-clamp-1 text-xs font-medium leading-tight text-foreground">
                                 {task.title}
                               </p>
-                              <p className="w-full truncate text-[11px] leading-tight text-muted-foreground">
-                                {format(task.scheduleStart, "MMM d, yyyy")} -{" "}
-                                {format(task.scheduleEnd, "MMM d, yyyy")}
-                                {task.assigneeName
-                                  ? ` • ${task.assigneeName}`
-                                  : ""}
-                              </p>
+                              <div className="flex w-full min-w-0 items-center gap-2 text-[11px] leading-tight text-muted-foreground">
+                                <span className="shrink-0">
+                                  {format(task.scheduleStart, "MMM d, yyyy")} -{" "}
+                                  {format(task.scheduleEnd, "MMM d, yyyy")}
+                                </span>
+                                <TaskAssigneeNames
+                                  task={task}
+                                  members={workspaceUsers?.members}
+                                  className="ml-auto text-right"
+                                />
+                              </div>
                             </button>
                             {(task.scheduleEnd < timeline.rangeStart ||
                               task.scheduleStart > timeline.rangeEnd) && (

@@ -168,6 +168,30 @@ async function chooseFilter(label: string, optionName: string) {
 }
 
 describe("project statistics page", () => {
+  it("includes supporting assignees in both statistics queries and resets the selection", () => {
+    const { rerender } = render(<Component />);
+    const option = screen.getByRole("checkbox", {
+      name: "tasks:supportingAssignees.includeInStatistics",
+    });
+    expect(option).not.toBeChecked();
+    fireEvent.click(option);
+    m.search = nextSearch();
+    expect(m.search.includeSupportingAssignees).toBe(true);
+    rerender(<Component />);
+    expect(m.summary.mock.lastCall?.[5]).toBe(true);
+    expect(m.people.mock.lastCall?.[5]).toBe(true);
+    expect(
+      screen.getByText(/tasks:supportingAssignees.statisticsBasis/),
+    ).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("button", { name: "statistics:filters.reset" }),
+    );
+    m.search = nextSearch();
+    rerender(<Component />);
+    expect(m.search.includeSupportingAssignees).toBeUndefined();
+    expect(m.summary.mock.lastCall?.[5]).toBe(false);
+    expect(m.people.mock.lastCall?.[5]).toBe(false);
+  });
   it("disables statistics queries and hides cached data for non-admins", () => {
     m.canManage = false;
     render(<Component />);
@@ -178,6 +202,7 @@ describe("project statistics page", () => {
       "2026-09-01",
       "2026-09-30",
       undefined,
+      false,
     );
     expect(m.people).toHaveBeenLastCalledWith(
       "",
@@ -185,6 +210,7 @@ describe("project statistics page", () => {
       "2026-09-01",
       "2026-09-30",
       undefined,
+      false,
     );
     expect(screen.queryByRole("combobox")).toBeNull();
     expect(screen.queryByText("statistics:columns.assigned")).toBeNull();
@@ -199,6 +225,7 @@ describe("project statistics page", () => {
       "2026-09-01",
       "2026-09-30",
       undefined,
+      false,
     );
     metric("statistics:columns.assigned", "15");
     metric("statistics:columns.completed", "11");

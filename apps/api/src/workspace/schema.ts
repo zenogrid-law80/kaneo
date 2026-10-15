@@ -15,6 +15,10 @@ export const statisticsQuery = z.object({
 });
 
 export const memberStatisticsQuery = statisticsQuery.extend({
+  includeSupportingAssignees: z.enum(["true", "false"]).optional().openapi({
+    description:
+      "Include current supporting assignees in per-person statistics. Defaults to false. Each person is counted once per task; team totals sum member participation.",
+  }),
   milestoneId: z.string().min(1).optional().openapi({
     description:
       "Limit task statistics to the currently assigned milestone. Use 'none' for tasks without a milestone; omit for all milestones.",

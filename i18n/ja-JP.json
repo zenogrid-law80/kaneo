@@ -2198,6 +2198,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "{{name}}さんを補助担当者に追加しました",
+		"supportingAssigneeRemoved": "{{name}}さんを補助担当者から解除しました",
 		"assignedToSelf": "がタスクを自分に割り当てました",
 		"unassigned": "が担当者の割り当てを解除しました",
 		"assignedTo": "がタスクを {{name}} に割り当てました",
@@ -2312,6 +2314,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "すべて解除",
+			"primaryAssignee": "主担当者",
+			"label": "補助担当者",
+			"none": "なし",
+			"search": "メンバーを検索…",
+			"empty": "メンバーが見つかりません",
+			"loadError": "補助担当者を読み込めませんでした",
+			"updateError": "補助担当者を更新できませんでした",
+			"includeInStatistics": "補助担当者を含める",
+			"statisticsBasis": "現在の補助担当者を含みます。各タスクは1人につき1回集計し、合計は各人の参加数の合算です。",
+			"viewAll": "補助担当者をすべて表示（{{count}}人）"
+		},
 		"status": {
 			"label": "ステータス",
 			"to-do": "To Do",
@@ -2877,6 +2892,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "週末を表示",
+			"hiddenTasks": "週末のタスクを表示（{{count}}件）"
 		}
 	},
 	"invitations": {

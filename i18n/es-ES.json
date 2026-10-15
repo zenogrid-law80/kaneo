@@ -2223,6 +2223,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "añadió a {{name}} como responsable de apoyo",
+		"supportingAssigneeRemoved": "eliminó a {{name}} como responsable de apoyo",
 		"assignedToSelf": "se ha asignado la tarea a sí mismo",
 		"unassigned": "desasignado la tarea",
 		"assignedTo": "asignada la tarea a {{name}}",
@@ -2337,6 +2339,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Quitar todos",
+			"primaryAssignee": "Responsable principal",
+			"label": "Responsables de apoyo",
+			"none": "Ninguno",
+			"search": "Buscar miembros…",
+			"empty": "No se encontraron miembros",
+			"loadError": "No se pudieron cargar los responsables de apoyo",
+			"updateError": "No se pudieron actualizar los responsables de apoyo",
+			"includeInStatistics": "Incluir responsables de apoyo",
+			"statisticsBasis": "Incluye las asignaciones de apoyo actuales. Cada tarea cuenta una vez por persona; los totales suman las participaciones.",
+			"viewAll": "Ver todos los responsables de apoyo ({{count}})"
+		},
 		"status": {
 			"label": "Estado",
 			"to-do": "To Do",
@@ -2904,6 +2919,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Mostrar fines de semana",
+			"hiddenTasks": "Mostrar tareas del fin de semana ({{count}})"
 		}
 	},
 	"invitations": {

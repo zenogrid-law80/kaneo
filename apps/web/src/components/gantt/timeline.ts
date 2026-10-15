@@ -4,6 +4,7 @@ import {
   eachDayOfInterval,
   endOfWeek,
   parseISO,
+  isWeekend,
   startOfDay,
   startOfWeek,
   subDays,
@@ -35,6 +36,7 @@ export function buildGanttTimeline(
   dayColumnWidthRem: number,
   requestedStart: Date | null = null,
   today: Date = new Date(),
+  showWeekends = true,
 ) {
   if (tasks.length === 0) return null;
   let earliest = tasks[0].scheduleStart;
@@ -81,7 +83,9 @@ export function buildGanttTimeline(
   );
   // Bound BEFORE allocating Date objects or grid columns, including old/imported
   // tasks whose dates were never checked by today's API validation.
-  const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
+  const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).filter(
+    (day) => showWeekends || !isWeekend(day),
+  );
   return {
     days,
     rangeStart,

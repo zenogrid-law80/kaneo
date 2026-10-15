@@ -2210,6 +2210,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "heeft {{name}} toegevoegd als ondersteunende verantwoordelijke",
+		"supportingAssigneeRemoved": "heeft {{name}} verwijderd als ondersteunende verantwoordelijke",
 		"assignedToSelf": "heeft de taak aan zichzelf toegewezen",
 		"unassigned": "heeft de toewijzing verwijderd",
 		"assignedTo": "heeft de taak toegewezen aan {{name}}",
@@ -2324,6 +2326,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Alles verwijderen",
+			"primaryAssignee": "Hoofdverantwoordelijke",
+			"label": "Ondersteunende leden",
+			"none": "Geen",
+			"search": "Leden zoeken…",
+			"empty": "Geen leden gevonden",
+			"loadError": "Ondersteunende leden konden niet worden geladen",
+			"updateError": "Ondersteunende leden konden niet worden bijgewerkt",
+			"includeInStatistics": "Ondersteunende leden meetellen",
+			"statisticsBasis": "Telt huidige ondersteunende toewijzingen mee. Elke taak telt eenmaal per persoon; totalen tellen de deelnames op.",
+			"viewAll": "Alle ondersteunende verantwoordelijken bekijken ({{count}})"
+		},
 		"status": {
 			"label": "Status",
 			"to-do": "Te doen",
@@ -2890,6 +2905,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Weekenden tonen",
+			"hiddenTasks": "Weekendtaken tonen ({{count}})"
 		}
 	},
 	"invitations": {

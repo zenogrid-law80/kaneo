@@ -2210,6 +2210,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "{{name}} को सहायक जिम्मेदार के रूप में जोड़ा",
+		"supportingAssigneeRemoved": "{{name}} को सहायक जिम्मेदार से हटाया",
 		"assignedToSelf": "कार्य खुद को सौंपा",
 		"unassigned": "कार्य असाइन हटाया",
 		"assignedTo": "कार्य {{name}} को सौंपा",
@@ -2324,6 +2326,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "सभी हटाएँ",
+			"primaryAssignee": "मुख्य ज़िम्मेदार",
+			"label": "सहायक ज़िम्मेदार सदस्य",
+			"none": "कोई नहीं",
+			"search": "सदस्य खोजें…",
+			"empty": "कोई सदस्य नहीं मिला",
+			"loadError": "सहायक ज़िम्मेदार सदस्यों को लोड नहीं किया जा सका",
+			"updateError": "सहायक ज़िम्मेदार सदस्यों को अपडेट नहीं किया जा सका",
+			"includeInStatistics": "सहायक ज़िम्मेदार सदस्यों को शामिल करें",
+			"statisticsBasis": "वर्तमान सहायक नियुक्तियाँ शामिल हैं। हर कार्य प्रत्येक व्यक्ति के लिए एक बार गिना जाता है; कुल में सभी की भागीदारी जोड़ी जाती है।",
+			"viewAll": "सभी सहायक ज़िम्मेदार व्यक्ति देखें ({{count}})"
+		},
 		"status": {
 			"label": "स्थिति",
 			"to-do": "करना है",
@@ -2890,6 +2905,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "सप्ताहांत दिखाएँ",
+			"hiddenTasks": "सप्ताहांत के कार्य दिखाएँ ({{count}})"
 		}
 	},
 	"invitations": {

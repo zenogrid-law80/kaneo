@@ -1,7 +1,9 @@
-import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
+import { differenceInCalendarDays, startOfDay } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
+import { visibleScheduleColumns } from "@/lib/visible-schedule";
+import { moveGanttDates } from "./move-dates";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 import type Task from "@/types/task";
@@ -19,32 +21,13 @@ type GanttTaskBarProps = {
   timeline: {
     days: Date[];
     rangeStart: Date;
+    rangeEnd?: Date;
     gridTemplateColumns: string;
   };
   pixelsPerDay: number;
   isMobile?: boolean;
   onOpenTask: () => void;
 };
-
-function getBarGridColumns(
-  scheduleStart: Date,
-  scheduleEnd: Date,
-  rangeStart: Date,
-  trackCount: number,
-): { barInView: boolean; lineStart: number; lineEnd: number } {
-  const startIndex = differenceInCalendarDays(scheduleStart, rangeStart);
-  const endIndex = differenceInCalendarDays(scheduleEnd, rangeStart);
-  const barInView = endIndex >= 0 && startIndex < trackCount && trackCount > 0;
-  if (!barInView) {
-    return { barInView: false, lineStart: 1, lineEnd: 1 };
-  }
-  const lineStart = Math.max(1, Math.min(startIndex + 1, trackCount));
-  const lineEnd = Math.max(
-    lineStart + 1,
-    Math.min(endIndex + 2, trackCount + 1),
-  );
-  return { barInView: true, lineStart, lineEnd };
-}
 
 function toIsoDay(d: Date) {
   return startOfDay(d).toISOString();
@@ -80,18 +63,21 @@ export function GanttTaskBar({
   const displayEnd = dragDisplay?.end ?? task.scheduleEnd;
 
   const trackCount = timeline.days.length;
-  const { barInView, lineStart, lineEnd } = getBarGridColumns(
-    displayStart,
-    displayEnd,
-    timeline.rangeStart,
-    trackCount,
+  const {
+    visible: barInView,
+    first,
+    last,
+  } = visibleScheduleColumns(timeline.days, displayStart, displayEnd);
+  const lineStart = first + 1;
+  const lineEnd = last + 2;
+  const startIndex = timeline.days.findIndex(
+    (day) => differenceInCalendarDays(day, task.scheduleStart) === 0,
   );
-
-  const startIsVisible =
-    differenceInCalendarDays(task.scheduleStart, timeline.rangeStart) >= 0;
-  const endIsVisible =
-    differenceInCalendarDays(task.scheduleEnd, timeline.rangeStart) <
-    trackCount;
+  const endIndex = timeline.days.findIndex(
+    (day) => differenceInCalendarDays(day, task.scheduleEnd) === 0,
+  );
+  const startIsVisible = startIndex >= 0;
+  const endIsVisible = endIndex >= 0;
 
   const persistDates = useCallback(
     async (nextStart: Date, nextEnd: Date): Promise<boolean> => {
@@ -125,17 +111,20 @@ export function GanttTaskBar({
     const originX = event.clientX;
     const initialStart = task.scheduleStart;
     const initialEnd = task.scheduleEnd;
-    const startIdx = differenceInCalendarDays(
+    const { first: startIdx, last: endIdx } = visibleScheduleColumns(
+      timeline.days,
       initialStart,
-      timeline.rangeStart,
+      initialEnd,
     );
-    const endIdx = differenceInCalendarDays(initialEnd, timeline.rangeStart);
 
     const onMove = (ev: PointerEvent) => {
       const deltaDays = Math.round((ev.clientX - originX) / pxPerDay);
       let nextStartIdx = startIdx + deltaDays;
       nextStartIdx = Math.max(0, Math.min(nextStartIdx, endIdx));
-      const nextStart = timeline.days[nextStartIdx] ?? initialStart;
+      const nextStart =
+        deltaDays === 0
+          ? initialStart
+          : (timeline.days[nextStartIdx] ?? initialStart);
       const nextEnd = initialEnd;
       setDragDisplay({ start: nextStart, end: nextEnd });
     };
@@ -151,7 +140,10 @@ export function GanttTaskBar({
       const deltaDays = Math.round((ev.clientX - originX) / pxPerDay);
       let nextStartIdx = startIdx + deltaDays;
       nextStartIdx = Math.max(0, Math.min(nextStartIdx, endIdx));
-      const nextStart = timeline.days[nextStartIdx] ?? initialStart;
+      const nextStart =
+        deltaDays === 0
+          ? initialStart
+          : (timeline.days[nextStartIdx] ?? initialStart);
       if (nextStart.getTime() === initialStart.getTime()) {
         setDragDisplay(null);
         return;
@@ -175,17 +167,20 @@ export function GanttTaskBar({
     const originX = event.clientX;
     const initialStart = task.scheduleStart;
     const initialEnd = task.scheduleEnd;
-    const startIdx = differenceInCalendarDays(
+    const { first: startIdx, last: endIdx } = visibleScheduleColumns(
+      timeline.days,
       initialStart,
-      timeline.rangeStart,
+      initialEnd,
     );
-    const endIdx = differenceInCalendarDays(initialEnd, timeline.rangeStart);
 
     const onMove = (ev: PointerEvent) => {
       const deltaDays = Math.round((ev.clientX - originX) / pxPerDay);
       let nextEndIdx = endIdx + deltaDays;
       nextEndIdx = Math.max(startIdx, Math.min(nextEndIdx, trackCount - 1));
-      const nextEnd = timeline.days[nextEndIdx] ?? initialEnd;
+      const nextEnd =
+        deltaDays === 0
+          ? initialEnd
+          : (timeline.days[nextEndIdx] ?? initialEnd);
       const nextStart = initialStart;
       setDragDisplay({ start: nextStart, end: nextEnd });
     };
@@ -201,7 +196,10 @@ export function GanttTaskBar({
       const deltaDays = Math.round((ev.clientX - originX) / pxPerDay);
       let nextEndIdx = endIdx + deltaDays;
       nextEndIdx = Math.max(startIdx, Math.min(nextEndIdx, trackCount - 1));
-      const nextEnd = timeline.days[nextEndIdx] ?? initialEnd;
+      const nextEnd =
+        deltaDays === 0
+          ? initialEnd
+          : (timeline.days[nextEndIdx] ?? initialEnd);
       if (nextEnd.getTime() === initialEnd.getTime()) {
         setDragDisplay(null);
         return;
@@ -225,24 +223,28 @@ export function GanttTaskBar({
     const originX = event.clientX;
     const initialStart = task.scheduleStart;
     const initialEnd = task.scheduleEnd;
-    if (!startIsVisible || !endIsVisible) {
+    if (
+      differenceInCalendarDays(initialStart, timeline.rangeStart) < 0 ||
+      differenceInCalendarDays(
+        initialEnd,
+        timeline.rangeEnd ?? timeline.days[trackCount - 1],
+      ) > 0
+    ) {
       onOpenTask();
       return;
     }
-    const durationDays = differenceInCalendarDays(initialEnd, initialStart);
-    const startIdx = differenceInCalendarDays(
-      initialStart,
-      timeline.rangeStart,
-    );
+    const datesAt = (clientX: number) =>
+      moveGanttDates(
+        timeline.days,
+        initialStart,
+        initialEnd,
+        Math.round((clientX - originX) / pxPerDay),
+        timeline.rangeEnd ?? timeline.days[trackCount - 1],
+        timeline.rangeStart,
+      );
 
     const onMove = (ev: PointerEvent) => {
-      const deltaDays = Math.round((ev.clientX - originX) / pxPerDay);
-      let nextStartIdx = startIdx + deltaDays;
-      const maxStart = trackCount - 1 - durationDays;
-      nextStartIdx = Math.max(0, Math.min(nextStartIdx, maxStart));
-      const nextStart = timeline.days[nextStartIdx] ?? initialStart;
-      const nextEnd = addDays(nextStart, durationDays);
-      setDragDisplay({ start: nextStart, end: nextEnd });
+      setDragDisplay(datesAt(ev.clientX));
     };
 
     const onUp = async (ev: PointerEvent) => {
@@ -254,12 +256,7 @@ export function GanttTaskBar({
         return;
       }
       const moved = Math.abs(ev.clientX - originX);
-      const deltaDays = Math.round((ev.clientX - originX) / pxPerDay);
-      let nextStartIdx = startIdx + deltaDays;
-      const maxStart = trackCount - 1 - durationDays;
-      nextStartIdx = Math.max(0, Math.min(nextStartIdx, maxStart));
-      const nextStart = timeline.days[nextStartIdx] ?? initialStart;
-      const nextEnd = addDays(nextStart, durationDays);
+      const { start: nextStart, end: nextEnd } = datesAt(ev.clientX);
 
       if (moved < moveThresholdPx) {
         setDragDisplay(null);

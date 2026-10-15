@@ -2210,6 +2210,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "{{name}} adlı şəxsi köməkçi məsul kimi əlavə etdi",
+		"supportingAssigneeRemoved": "{{name}} adlı şəxsi köməkçi məsul rolundan çıxardı",
 		"assignedToSelf": "Tapşırığı özünə təyin etdi",
 		"unassigned": "Tapşırığın icraçısını çıxardı",
 		"assignedTo": "Tapşırığı {{name}} adlı şəxsə təyin etdi",
@@ -2324,6 +2326,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Hamısını sil",
+			"primaryAssignee": "Əsas məsul şəxs",
+			"label": "Köməkçi məsul şəxslər",
+			"none": "Yoxdur",
+			"search": "Üzvləri axtar…",
+			"empty": "Üzv tapılmadı",
+			"loadError": "Köməkçi məsul şəxslər yüklənə bilmədi",
+			"updateError": "Köməkçi məsul şəxslər yenilənə bilmədi",
+			"includeInStatistics": "Köməkçi məsul şəxsləri daxil et",
+			"statisticsBasis": "Cari köməkçi təyinatları daxil edilir. Hər tapşırıq hər şəxs üçün bir dəfə sayılır; cəmlər iştirakların toplamıdır.",
+			"viewAll": "Bütün köməkçi məsul şəxsləri göstər ({{count}})"
+		},
 		"title": "Tapşırıqlar",
 		"status": {
 			"label": "Vəziyyət",
@@ -2890,6 +2905,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Həftə sonlarını göstər",
+			"hiddenTasks": "Həftə sonu tapşırıqlarını göstər ({{count}})"
 		}
 	},
 	"invitations": {

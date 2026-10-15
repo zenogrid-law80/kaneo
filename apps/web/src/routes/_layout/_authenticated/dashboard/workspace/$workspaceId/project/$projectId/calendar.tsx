@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { addMonths, startOfMonth, subMonths } from "date-fns";
+import { addMonths, endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import WeekendVisibilityControl from "@/components/calendar/weekend-visibility-control";
+import { countHiddenWeekendTasks } from "@/lib/visible-schedule";
 import CalendarToolbar from "@/components/calendar/calendar-toolbar";
 import MonthGrid from "@/components/calendar/month-grid";
 import { buildMonthWeeks } from "@/components/calendar/month-grid-model";
@@ -43,6 +45,12 @@ function RouteComponent() {
   const navigate = useNavigate();
   const { data: project, isLoading, isError } = useGetTasks(projectId);
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
+  const showWeekends = useUserPreferencesStore(
+    (state) => state.calendarShowWeekends,
+  );
+  const setShowWeekends = useUserPreferencesStore(
+    (state) => state.setCalendarShowWeekends,
+  );
   const setViewMode = useUserPreferencesStore((state) => state.setViewMode);
   const isMobile = useIsMobile();
   const [visibleMonth, setVisibleMonth] = useState(() =>
@@ -58,8 +66,8 @@ function RouteComponent() {
   );
 
   const weeks = useMemo(
-    () => buildMonthWeeks(visibleMonth, weekStartsOn),
-    [visibleMonth, weekStartsOn],
+    () => buildMonthWeeks(visibleMonth, weekStartsOn, showWeekends),
+    [visibleMonth, weekStartsOn, showWeekends],
   );
 
   const handlePreviousMonth = useCallback(() => {
@@ -142,6 +150,15 @@ function RouteComponent() {
             onChange={setMilestoneId}
             filter
             includeClosed
+          />
+          <WeekendVisibilityControl
+            checked={showWeekends}
+            onCheckedChange={setShowWeekends}
+            hiddenCount={countHiddenWeekendTasks(
+              scheduledTasks,
+              startOfMonth(visibleMonth),
+              endOfMonth(visibleMonth),
+            )}
           />
         </CalendarToolbar>
 

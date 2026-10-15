@@ -39,6 +39,12 @@ vi.mock("@/components/page-title", () => ({ default: () => null }));
 vi.mock("@/components/task/task-details-sheet", () => ({
   default: () => null,
 }));
+vi.mock(
+  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  () => ({
+    useGetActiveWorkspaceUsers: () => ({ data: { members: [] } }),
+  }),
+);
 vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
   useGetTasks: () => ({
     data: {
@@ -54,7 +60,14 @@ vi.mock("@/hooks/mutations/task/use-update-task", () => ({
 }));
 vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => false }));
 vi.mock("@/store/user-preferences", () => ({
-  useUserPreferencesStore: () => 1,
+  useUserPreferencesStore: (
+    selector: (state: Record<string, unknown>) => unknown,
+  ) =>
+    selector({
+      weekStartsOn: 1,
+      ganttShowWeekends: true,
+      setGanttShowWeekends: vi.fn(),
+    }),
 }));
 vi.mock("@/lib/i18n/domain", () => ({
   getStatusLabel: (status: string) => status,

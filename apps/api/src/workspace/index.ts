@@ -172,7 +172,13 @@ const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
     c.json(await getWorkspaceTeamsCtrl(c.get("workspaceId")), 200),
   )
   .openapi(getWorkspaceMemberStatisticsRoute, async (c) => {
-    const { projectId, startDate, endDate, milestoneId } = c.req.valid("query");
+    const {
+      projectId,
+      startDate,
+      endDate,
+      milestoneId,
+      includeSupportingAssignees,
+    } = c.req.valid("query");
     return c.json(
       await getWorkspaceMemberStatisticsCtrl(
         c.get("workspaceId"),
@@ -180,6 +186,7 @@ const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
         startDate,
         endDate,
         milestoneId,
+        includeSupportingAssignees === "true",
       ),
       200,
     );
@@ -197,7 +204,13 @@ const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
     );
   })
   .openapi(getMemberTeamMonthlyStatisticsRoute, async (c) => {
-    const { projectId, startDate, endDate, milestoneId } = c.req.valid("query");
+    const {
+      projectId,
+      startDate,
+      endDate,
+      milestoneId,
+      includeSupportingAssignees,
+    } = c.req.valid("query");
     return c.json(
       await getMemberTeamMonthlyStatisticsCtrl(
         c.get("workspaceId"),
@@ -205,6 +218,7 @@ const workspace = apiRouter<BaseVariables & { workspaceId: string }>()
         startDate,
         endDate,
         milestoneId,
+        includeSupportingAssignees === "true",
       ),
       200,
     );

@@ -7,6 +7,7 @@ function useMemberTeamMonthlyStatistics(
   startDate?: string,
   endDate?: string,
   milestoneId?: string,
+  includeSupportingAssignees = false,
 ) {
   return useQuery({
     queryKey: [
@@ -16,6 +17,7 @@ function useMemberTeamMonthlyStatistics(
       startDate,
       endDate,
       milestoneId,
+      includeSupportingAssignees,
     ],
     queryFn: () =>
       getMemberTeamMonthlyStatistics(
@@ -24,6 +26,7 @@ function useMemberTeamMonthlyStatistics(
         startDate,
         endDate,
         milestoneId,
+        includeSupportingAssignees,
       ),
     enabled: Boolean(workspaceId),
   });

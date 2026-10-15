@@ -889,6 +889,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "dodano {{name}} jako osobę wspierającą",
+		"supportingAssigneeRemoved": "usunięto {{name}} jako osobę wspierającą",
 		"assignedTo": "przypisał(a) zadanie użytkownikowi {{name}}",
 		"assignedToSelf": "przypisał(a) zadanie sobie",
 		"changedDueDate": "zmienił(a) termin z {{from}} na {{to}}",
@@ -2609,6 +2611,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Usuń wszystkich",
+			"primaryAssignee": "Główny wykonawca",
+			"label": "Osoby wspierające",
+			"none": "Brak",
+			"search": "Szukaj członków…",
+			"empty": "Nie znaleziono członków",
+			"loadError": "Nie udało się wczytać osób wspierających",
+			"updateError": "Nie udało się zaktualizować osób wspierających",
+			"includeInStatistics": "Uwzględnij osoby wspierające",
+			"statisticsBasis": "Uwzględnia bieżące przypisania wspierające. Każde zadanie jest liczone raz na osobę; sumy obejmują udział wszystkich osób.",
+			"viewAll": "Pokaż wszystkie osoby wspierające ({{count}})"
+		},
 		"title": "Zadania",
 		"actions": {
 			"archive": "Archiwizuj",
@@ -3177,6 +3192,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Pokaż weekendy",
+			"hiddenTasks": "Pokaż zadania weekendowe ({{count}})"
 		}
 	},
 	"press": {

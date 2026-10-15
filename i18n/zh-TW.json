@@ -2197,6 +2197,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "將 {{name}} 新增為輔助負責人",
+		"supportingAssigneeRemoved": "移除了輔助負責人 {{name}}",
 		"assignedToSelf": "將任務指派給自己",
 		"unassigned": "取消了任務指派",
 		"assignedTo": "將任務指派給 {{name}}",
@@ -2311,6 +2313,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "全部移除",
+			"primaryAssignee": "主要負責人",
+			"label": "協助人員",
+			"none": "無",
+			"search": "搜尋成員…",
+			"empty": "找不到成員",
+			"loadError": "無法載入協助人員",
+			"updateError": "無法更新協助人員",
+			"includeInStatistics": "包含協助人員",
+			"statisticsBasis": "包含目前協助人員。每項任務對每人計數一次，合計為所有人的參與次數總和。",
+			"viewAll": "查看所有輔助負責人（{{count}}人）"
+		},
 		"title": "任務",
 		"status": {
 			"label": "狀態",
@@ -2876,6 +2891,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "顯示週末",
+			"hiddenTasks": "顯示週末任務（{{count}}）"
 		}
 	},
 	"invitations": {

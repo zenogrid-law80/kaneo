@@ -171,7 +171,7 @@ describe("packWeekLanes", () => {
     );
 
     expect(segments).toEqual([]);
-    expect(hiddenCountByDay).toEqual(new Array(DAYS_PER_WEEK).fill(0));
+    expect(hiddenCountByDay).toEqual([]);
   });
 
   it("does not clip a task that starts exactly on the first day of the week", () => {
@@ -251,5 +251,43 @@ describe("packWeekLanes tasksByDay", () => {
     );
 
     expect(tasksByDay.every((entry) => entry.length === 0)).toBe(true);
+  });
+});
+
+describe("calendar without weekends", () => {
+  it.each([0, 1, 6] as WeekStartsOn[])(
+    "keeps five weekday columns with week start %s",
+    (weekStartsOn) => {
+      const weeks = buildMonthWeeks(AUGUST_2026, weekStartsOn, false);
+      expect(
+        weeks.every(
+          (week) =>
+            week.length === 5 &&
+            week.every((date) => date.getDay() >= 1 && date.getDay() <= 5),
+        ),
+      ).toBe(true);
+      expect(weeks.flat().filter((date) => date.getMonth() === 7)).toHaveLength(
+        21,
+      );
+    },
+  );
+
+  it("clips at visible columns and omits weekend-only tasks without changing dates", () => {
+    const week = buildMonthWeeks(AUGUST_2026, 1, false)[1]; // Aug 3-7
+    const tasks = [
+      scheduled("across", day(2026, 7, 2), day(2026, 7, 9)),
+      scheduled("weekend", day(2026, 7, 8), day(2026, 7, 9)),
+    ];
+    const layout = packWeekLanes(week, tasks, 3);
+    expect(layout.segments).toHaveLength(1);
+    expect(layout.segments[0]).toMatchObject({
+      columnStart: 1,
+      columnEnd: 6,
+      continuesBefore: true,
+      continuesAfter: true,
+    });
+    expect(layout.tasksByDay).toHaveLength(5);
+    expect(tasks[0].scheduleStart).toEqual(day(2026, 7, 2));
+    expect(tasks[0].scheduleEnd).toEqual(day(2026, 7, 9));
   });
 });

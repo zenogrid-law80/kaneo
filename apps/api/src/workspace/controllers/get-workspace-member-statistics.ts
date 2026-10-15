@@ -10,6 +10,10 @@ import {
 import { resolveStatisticsDateRange } from "./statistics-date-range";
 import { statisticsMilestoneFilter } from "./statistics-milestone-filter";
 import { statisticsTaskOwner } from "./statistics-task-owner";
+import {
+  statisticsTaskParticipants,
+  statisticsTaskUserIds,
+} from "./statistics-task-participants";
 
 async function getWorkspaceMemberStatistics(
   workspaceId: string,
@@ -17,7 +21,9 @@ async function getWorkspaceMemberStatistics(
   startDate?: string,
   endDate?: string,
   milestoneId?: string,
+  includeSupportingAssignees = false,
 ) {
+  const participants = statisticsTaskParticipants(includeSupportingAssignees);
   const range = resolveStatisticsDateRange(startDate, endDate);
   const [rows, overdueRows] = await Promise.all([
     db
@@ -44,7 +50,9 @@ async function getWorkspaceMemberStatistics(
         taskTable,
         and(
           eq(taskTable.projectId, projectTable.id),
-          eq(statisticsTaskOwner, workspaceUserTable.userId),
+          includeSupportingAssignees
+            ? sql`${workspaceUserTable.userId} = any(${statisticsTaskUserIds(true)})`
+            : eq(statisticsTaskOwner, workspaceUserTable.userId),
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
           statisticsMilestoneFilter(milestoneId),
@@ -59,10 +67,11 @@ async function getWorkspaceMemberStatistics(
         id: taskTable.id,
         title: taskTable.title,
         projectId: taskTable.projectId,
-        userId: statisticsTaskOwner,
+        userId: participants.userId,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+      .innerJoinLateral(participants, sql`true`)
       .leftJoin(columnTable, eq(taskTable.columnId, columnTable.id))
       .where(
         and(
@@ -72,7 +81,7 @@ async function getWorkspaceMemberStatistics(
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
           statisticsMilestoneFilter(milestoneId),
-          sql`${statisticsTaskOwner} is not null`,
+          sql`${participants.userId} is not null`,
           sql`${taskTable.dueDate} < now()`,
           sql`${taskTable.status} <> 'archived'`,
           sql`coalesce(${columnTable.isFinal}, false) = false`,

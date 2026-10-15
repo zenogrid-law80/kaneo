@@ -9,6 +9,7 @@ import {
   labelTable,
   projectTable,
   taskRelationTable,
+  taskSupportingAssigneeTable,
   taskTable,
   userNotificationWorkspaceProjectTable,
   workspaceUserTable,
@@ -104,6 +105,19 @@ async function moveProject(
             userNotificationWorkspaceProjectTable.workspaceId,
             sourceWorkspaceId,
           ),
+        ),
+      );
+
+    // Supporting assignments belong to memberships in the source workspace.
+    await tx
+      .delete(taskSupportingAssigneeTable)
+      .where(
+        inArray(
+          taskSupportingAssigneeTable.taskId,
+          tx
+            .select({ id: taskTable.id })
+            .from(taskTable)
+            .where(eq(taskTable.projectId, id)),
         ),
       );
 

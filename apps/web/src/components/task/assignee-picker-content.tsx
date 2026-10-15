@@ -1,3 +1,4 @@
+import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { Check, ChevronRight, Search, UsersRound } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,67 +24,10 @@ import type { WorkspaceTeam } from "@/hooks/queries/workspace/use-workspace-team
 import { getInitials } from "@/lib/get-initials";
 import type WorkspaceUser from "@/types/workspace-user";
 
-type MemberGroup = {
-  value: string;
-  label: string;
-  members: WorkspaceUser[];
-};
-
-export function matchesAssigneeSearch(
-  itemValue: unknown,
-  query: string,
-  itemToString?: (itemValue: unknown) => string,
-) {
-  const candidate = (
-    itemToString?.(itemValue) ?? String(itemValue)
-  ).toLocaleLowerCase();
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-
-  if (!normalizedQuery) return true;
-  if (!normalizedQuery.includes("%") && !normalizedQuery.includes("_")) {
-    return candidate.includes(normalizedQuery);
-  }
-
-  const pattern = normalizedQuery
-    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    .replaceAll("%", ".*")
-    .replaceAll("_", ".");
-
-  return new RegExp(`^${pattern}$`, "u").test(candidate);
-}
-
-export function groupAssigneeMembers(
-  members: WorkspaceUser[],
-  teams: WorkspaceTeam[],
-  allMembersLabel: string,
-  otherMembersLabel: string,
-) {
-  if (teams.length === 0) {
-    return [{ value: "all-members", label: allMembersLabel, members }];
-  }
-
-  const groupedUserIds = new Set(teams.flatMap((team) => team.userIds));
-  const groups: MemberGroup[] = teams
-    .map((team) => ({
-      value: team.id,
-      label: team.name,
-      members: members.filter((member) => team.userIds.includes(member.userId)),
-    }))
-    .filter((group) => group.members.length > 0);
-  const otherMembers = members.filter(
-    (member) => !groupedUserIds.has(member.userId),
-  );
-
-  if (otherMembers.length > 0) {
-    groups.push({
-      value: "other-members",
-      label: otherMembersLabel,
-      members: otherMembers,
-    });
-  }
-
-  return groups;
-}
+import {
+  groupAssigneeMembers,
+  matchesAssigneeSearch,
+} from "./assignee-picker-model";
 
 export default function AssigneePickerContent({
   members,
@@ -99,6 +43,8 @@ export default function AssigneePickerContent({
   onSelect: (userId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const currentMember = members.find((member) => member.userId === user?.id);
   const [query, setQuery] = useState("");
   const groups = useMemo(
     () =>
@@ -115,16 +61,21 @@ export default function AssigneePickerContent({
       groups
         .map((group) => ({
           ...group,
-          members: group.members.filter((member) =>
-            matchesAssigneeSearch(member.user.name, query),
+          members: group.members.filter(
+            (member) =>
+              member.userId !== currentMember?.userId &&
+              matchesAssigneeSearch(member.user.name, query),
           ),
         }))
         .filter((group) => group.members.length > 0),
-    [groups, query],
+    [groups, query, currentMember?.userId],
   );
   const unassignedLabel = t("tasks:popover.assignee.unassigned");
   const showUnassigned = matchesAssigneeSearch(unassignedLabel, query);
-  const hasResults = showUnassigned || filteredGroups.length > 0;
+  const showCurrentMember =
+    currentMember && matchesAssigneeSearch(currentMember.user.name, query);
+  const hasResults =
+    showUnassigned || showCurrentMember || filteredGroups.length > 0;
   const isSearching = query.trim().length > 0;
 
   return (
@@ -168,10 +119,30 @@ export default function AssigneePickerContent({
                 </CommandCollection>
               </CommandGroup>
             )}
+            {showCurrentMember && (
+              <CommandGroup items={[currentMember]}>
+                <CommandCollection>
+                  {(member: WorkspaceUser) => (
+                    <CommandItem
+                      value={`${member.user.name} ${member.user.email}`}
+                      onClick={() => onSelect(member.userId)}
+                      className="flex items-start gap-3 px-3 py-3"
+                    >
+                      <MemberIdentity member={member} />
+                      {selectedUserId === member.userId && (
+                        <Check className="size-4" />
+                      )}
+                    </CommandItem>
+                  )}
+                </CommandCollection>
+              </CommandGroup>
+            )}
             {isSearching
               ? filteredGroups.map((group, index) => (
                   <Fragment key={group.value}>
-                    {(showUnassigned || index > 0) && <CommandSeparator />}
+                    {(showUnassigned || showCurrentMember || index > 0) && (
+                      <CommandSeparator />
+                    )}
                     <CommandGroup items={group.members}>
                       <CommandGroupLabel className="flex items-center gap-1.5">
                         <UsersRound className="size-3.5" />
@@ -197,7 +168,9 @@ export default function AssigneePickerContent({
                 ))
               : groups.map((group, index) => (
                   <Fragment key={group.value}>
-                    {(showUnassigned || index > 0) && <CommandSeparator />}
+                    {(showUnassigned || showCurrentMember || index > 0) && (
+                      <CommandSeparator />
+                    )}
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button

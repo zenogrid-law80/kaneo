@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RotateCcw } from "lucide-react";
 import { useEffect, useId, useState } from "react";
@@ -82,6 +83,7 @@ function RouteComponent() {
     effectiveStart,
     endDate,
     milestoneId ?? undefined,
+    search.includeSupportingAssignees ?? false,
   );
   const people = useMemberTeamMonthlyStatistics(
     canView ? workspaceId : "",
@@ -89,6 +91,7 @@ function RouteComponent() {
     effectiveStart,
     endDate,
     milestoneId ?? undefined,
+    search.includeSupportingAssignees ?? false,
   );
   const teams = people.data?.teams ?? [];
   const selectedTeam = teams.find((team) => team.teamId === teamId);
@@ -305,6 +308,17 @@ function RouteComponent() {
                     },
                   ]}
                 />
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={search.includeSupportingAssignees ?? false}
+                    onCheckedChange={(checked) =>
+                      update({
+                        includeSupportingAssignees: checked || undefined,
+                      })
+                    }
+                  />
+                  {t("tasks:supportingAssignees.includeInStatistics")}
+                </label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -317,6 +331,7 @@ function RouteComponent() {
                       team: "all",
                       schedule: "all",
                       milestone: undefined,
+                      includeSupportingAssignees: undefined,
                     });
                   }}
                 >
@@ -371,6 +386,9 @@ function RouteComponent() {
                 </div>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   {t("statistics:renewal.summaryBasis")}
+                  {search.includeSupportingAssignees && (
+                    <> {t("tasks:supportingAssignees.statisticsBasis")}</>
+                  )}
                 </p>
                 {memberId === "none" || teamId === "none" ? (
                   <EmptyState text={t("statistics:renewal.noneSelected")} />

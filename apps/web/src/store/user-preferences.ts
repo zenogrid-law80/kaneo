@@ -49,6 +49,11 @@ type UserPreferencesStore = {
   sidebarDefaultOpen: boolean;
   setSidebarDefaultOpen: (open: boolean) => void;
 
+  calendarShowWeekends: boolean;
+  setCalendarShowWeekends: (show: boolean) => void;
+  ganttShowWeekends: boolean;
+  setGanttShowWeekends: (show: boolean) => void;
+
   weekStartsOn: WeekStartDay;
   setWeekStartsOn: (weekStartsOn: WeekStartDay) => void;
 };
@@ -131,6 +136,11 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
 
       sidebarDefaultOpen: true,
       setSidebarDefaultOpen: (open) => set({ sidebarDefaultOpen: open }),
+
+      calendarShowWeekends: false,
+      setCalendarShowWeekends: (show) => set({ calendarShowWeekends: show }),
+      ganttShowWeekends: false,
+      setGanttShowWeekends: (show) => set({ ganttShowWeekends: show }),
 
       weekStartsOn: 0,
       setWeekStartsOn: (weekStartsOn) => set({ weekStartsOn }),

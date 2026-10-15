@@ -267,3 +267,25 @@ vi.mock(
     default: () => ({ data: [] }),
   }),
 );
+
+it.each(["backlog", "board", "list"])(
+  "shows supporting names outside details in %s",
+  (view) => {
+    const item = {
+      ...task,
+      supportingAssignees: [{ userId: "helper", name: "Helper" }],
+    };
+    render(
+      <DndContext>
+        {view === "backlog" ? (
+          <BacklogTaskRow task={item} />
+        ) : view === "board" ? (
+          <TaskCard task={item} />
+        ) : (
+          <TaskRow task={item} projectSlug="kan" />
+        )}
+      </DndContext>,
+    );
+    expect(screen.getByRole("group", { name: /Helper/ })).toBeVisible();
+  },
+);

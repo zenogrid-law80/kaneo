@@ -8,6 +8,7 @@ import SortControl from "@/components/common/sort-control";
 import HierarchyView from "@/components/hierarchy-view";
 import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
+import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +59,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
   const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
@@ -257,6 +259,15 @@ function RouteComponent() {
             <DropdownMenuItem onClick={() => setAssigneeFilters([])}>
               {t("tasks:hierarchy.filters.allAssignees")}
             </DropdownMenuItem>
+            {user && (
+              <DropdownMenuCheckboxItem
+                checked={assigneeFilters.includes(user.id)}
+                indicatorVariant="checkbox"
+                onCheckedChange={() => toggleAssigneeFilter(user.id)}
+              >
+                {user.name}
+              </DropdownMenuCheckboxItem>
+            )}
             <DropdownMenuCheckboxItem
               checked={assigneeFilters.includes(UNASSIGNED_FILTER_VALUE)}
               indicatorVariant="checkbox"

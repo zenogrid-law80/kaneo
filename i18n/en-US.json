@@ -2210,6 +2210,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "added {{name}} as a supporting assignee",
+		"supportingAssigneeRemoved": "removed {{name}} as a supporting assignee",
 		"assignedToSelf": "assigned the task to themselves",
 		"unassigned": "unassigned the task",
 		"assignedTo": "assigned the task to {{name}}",
@@ -2324,6 +2326,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Clear all",
+			"primaryAssignee": "Primary assignee",
+			"label": "Supporting assignees",
+			"none": "None",
+			"search": "Search members…",
+			"empty": "No members found",
+			"loadError": "Could not load supporting assignees",
+			"updateError": "Could not update supporting assignees",
+			"includeInStatistics": "Include supporting assignees",
+			"statisticsBasis": "Includes current supporting assignments. Each task counts once per person; totals sum participation across people.",
+			"viewAll": "View all supporting assignees ({{count}})"
+		},
 		"status": {
 			"label": "Status",
 			"to-do": "To Do",
@@ -2890,6 +2905,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Show weekends",
+			"hiddenTasks": "Show weekend tasks ({{count}})"
 		}
 	},
 	"invitations": {

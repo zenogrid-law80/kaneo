@@ -1,3 +1,4 @@
+import { clearPrimarySupportingAssignees } from "../supporting-assignees/clear-primary-supporting-assignees";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
@@ -290,10 +291,12 @@ async function bulkUpdateTasks({
           throw new HTTPException(409, {
             message: "Tasks changed projects; retry the operation",
           });
+        await clearPrimarySupportingAssignees(tx, foundIds);
         await tx
           .update(taskTable)
           .set({ userId: assigneeId })
           .where(inArray(taskTable.id, foundIds));
+        await clearPrimarySupportingAssignees(tx, foundIds);
         return locked;
       });
       updatedCount = before.length;

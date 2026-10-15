@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import SortControl from "@/components/common/sort-control";
+import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import type { CustomFieldDefinition } from "@/components/project/custom-field-editor";
 import MilestoneSelect from "@/components/milestone/milestone-select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -178,6 +179,7 @@ export default function BoardToolbar({
   usedCustomFieldValues = {},
 }: BoardToolbarProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const selectedStatusIds = filters.status ?? [];
   const selectedPriorityIds = filters.priority ?? [];
   const selectedAssigneeIds = filters.assignee ?? [];
@@ -470,6 +472,23 @@ export default function BoardToolbar({
                         <CheckSlot checked={selectedAssigneeIds.length === 0} />
                         {t("tasks:boardFilters.allAssignees")}
                       </button>
+                      {user && (
+                        <button
+                          className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
+                            selectedAssigneeIds.includes(user.id)
+                              ? "bg-accent text-accent-foreground"
+                              : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
+                          }`}
+                          onClick={() => toggleAssigneeFilter(user.id)}
+                          type="button"
+                        >
+                          <CheckSlot
+                            checked={selectedAssigneeIds.includes(user.id)}
+                          />
+                          {getAssigneeAvatar(user.id)}
+                          {user.name}
+                        </button>
+                      )}
                       <button
                         className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
                           selectedAssigneeIds.includes(UNASSIGNED_FILTER_VALUE)

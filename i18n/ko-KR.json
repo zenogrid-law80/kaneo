@@ -2197,6 +2197,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "{{name}}님을 보조 담당자로 지정했습니다",
+		"supportingAssigneeRemoved": "{{name}}님을 보조 담당자에서 해제했습니다",
 		"assignedToSelf": "이 작업을 자신에게 할당함",
 		"unassigned": "작업 할당을 해제함",
 		"assignedTo": "이 작업을 {{name}}님에게 할당함",
@@ -2311,6 +2313,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "모두 해제",
+			"primaryAssignee": "주 담당자",
+			"label": "보조 담당자",
+			"none": "없음",
+			"search": "멤버 검색…",
+			"empty": "검색된 멤버가 없습니다",
+			"loadError": "보조 담당자를 불러오지 못했습니다",
+			"updateError": "보조 담당자를 변경하지 못했습니다",
+			"includeInStatistics": "보조 담당 포함",
+			"statisticsBasis": "현재 지정된 보조 담당자의 참여를 포함합니다. 작업은 사람별로 한 번 집계하며, 합계는 참여 인원별 집계를 더한 값입니다.",
+			"viewAll": "보조 담당자 전체 보기 ({{count}}명)"
+		},
 		"status": {
 			"label": "상태",
 			"to-do": "할 일",
@@ -2876,6 +2891,10 @@
 			"currentDescription": "프로젝트 뷰 필터와 새 작업의 기본값으로 사용합니다. 기존 현재 마일스톤을 대체합니다.",
 			"useDefault": "기본값 사용",
 			"newTaskDefault": "작업 생성 시 프로젝트의 현재 마일스톤을 사용합니다."
+		},
+		"weekends": {
+			"show": "주말 표시",
+			"hiddenTasks": "주말 일정 {{count}}개 보기"
 		}
 	},
 	"invitations": {

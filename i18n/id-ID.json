@@ -2198,6 +2198,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "menambahkan {{name}} sebagai penanggung jawab pendukung",
+		"supportingAssigneeRemoved": "menghapus {{name}} sebagai penanggung jawab pendukung",
 		"assignedToSelf": "menugaskan tugas kepada dirinya sendiri",
 		"unassigned": "menghapus penugasan tugas",
 		"assignedTo": "menugaskan tugas kepada {{name}}",
@@ -2312,6 +2314,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Hapus semua",
+			"primaryAssignee": "Penanggung jawab utama",
+			"label": "Penanggung jawab pendukung",
+			"none": "Tidak ada",
+			"search": "Cari anggota…",
+			"empty": "Tidak ada anggota ditemukan",
+			"loadError": "Gagal memuat penanggung jawab pendukung",
+			"updateError": "Gagal memperbarui penanggung jawab pendukung",
+			"includeInStatistics": "Sertakan penanggung jawab pendukung",
+			"statisticsBasis": "Mencakup penugasan pendukung saat ini. Setiap tugas dihitung sekali per orang; total menjumlahkan partisipasi semua orang.",
+			"viewAll": "Lihat semua penanggung jawab pendukung ({{count}})"
+		},
 		"status": {
 			"label": "Status",
 			"to-do": "Perlu Dikerjakan",
@@ -2877,6 +2892,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Tampilkan akhir pekan",
+			"hiddenTasks": "Tampilkan tugas akhir pekan ({{count}})"
 		}
 	},
 	"invitations": {

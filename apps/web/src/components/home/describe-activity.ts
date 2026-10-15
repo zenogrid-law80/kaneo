@@ -56,6 +56,17 @@ export function describeActivity(activity: WorkspaceActivity, t: Translate) {
         });
       }
       break;
+    case "supporting_assignee_added":
+    case "supporting_assignee_removed":
+      if (eventData) {
+        return t(
+          activity.type === "supporting_assignee_added"
+            ? "activity:supportingAssigneeAdded"
+            : "activity:supportingAssigneeRemoved",
+          { name: String(eventData.supportingAssigneeName ?? "") },
+        );
+      }
+      break;
     case "assignee_changed":
       if (eventData) {
         return eventData.isSelfAssigned

@@ -1,6 +1,7 @@
 import { boundedTaskRead } from "../bounded-read";
 import { alias } from "drizzle-orm/pg-core";
 import { boardDescription, descriptionDeferred } from "../description-pages";
+import { getSupportingAssigneesByTask } from "../supporting-assignees/get-supporting-assignees-by-task";
 import { getSubtaskCounts } from "../get-subtask-counts";
 import { and, eq, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
@@ -64,16 +65,21 @@ async function getTask(taskId: string, board = false) {
         eq(parent.projectId, result.projectId),
       ),
     );
-  const counts = await boundedTaskRead((tx) =>
-    getSubtaskCounts(
+  const { counts, supportingAssignees } = await boundedTaskRead(async (tx) => ({
+    counts: await getSubtaskCounts(
       tx,
       [taskId, ...parents.map((task) => task.id)],
       workspaceId,
       false,
     ),
-  );
+    supportingAssignees:
+      (await getSupportingAssigneesByTask(tx, [taskId], workspaceId)).get(
+        taskId,
+      ) ?? [],
+  }));
   return {
     ...result,
+    supportingAssignees,
     subtaskCounts: counts.get(taskId) ?? { completed: 0, total: 0 },
     parentSubtaskCounts: parents.map(({ id }) => ({
       taskId: id,

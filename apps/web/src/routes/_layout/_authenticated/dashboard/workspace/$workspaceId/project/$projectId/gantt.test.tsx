@@ -51,6 +51,12 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 const useGetTasks = vi.fn();
+vi.mock(
+  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  () => ({
+    useGetActiveWorkspaceUsers: () => ({ data: { members: [] } }),
+  }),
+);
 vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
   useGetTasks: (projectId: string) => useGetTasks(projectId),
 }));
@@ -61,8 +67,17 @@ vi.mock("@/hooks/use-mobile", () => ({
 
 vi.mock("@/store/user-preferences", () => ({
   useUserPreferencesStore: (
-    selector: (state: { weekStartsOn: number }) => unknown,
-  ) => selector({ weekStartsOn: 0 }),
+    selector: (state: {
+      weekStartsOn: number;
+      ganttShowWeekends: boolean;
+      setGanttShowWeekends: (show: boolean) => void;
+    }) => unknown,
+  ) =>
+    selector({
+      weekStartsOn: 0,
+      ganttShowWeekends: true,
+      setGanttShowWeekends: vi.fn(),
+    }),
 }));
 
 vi.mock("@/components/common/project-layout", () => ({
@@ -335,4 +350,27 @@ describe("Gantt jump-to-today", () => {
     const container = screen.getByTestId("gantt-scroll-container");
     expect(container.style.scrollPaddingLeft).toBe("20rem");
   });
+});
+
+it("lists the primary name followed by supporting names without avatars in the task rail", () => {
+  mockProjectWithTask(
+    makeTask({
+      startDate: "2026-08-28",
+      dueDate: "2026-09-02",
+      userId: "owner",
+      assigneeName: "Owner",
+      supportingAssignees: [{ userId: "helper", name: "Helper" }],
+    }),
+  );
+  render(<GanttRoute />);
+  const names = screen.getByRole("group", { name: "Owner, Helper" });
+  expect(names).toBeVisible();
+  expect(names).toHaveTextContent("Owner, Helper");
+  expect(names).toHaveAttribute("title", "Owner, Helper");
+  expect(
+    screen.queryByRole("img", { name: "Primary assignee: Owner" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("img", { name: "Supporting assignees: Helper" }),
+  ).not.toBeInTheDocument();
 });

@@ -622,6 +622,7 @@ const taskUpdateEvents = [
   "task.priority_changed",
   "task.unassigned",
   "task.assignee_changed",
+  "task.supporting_assignees_changed",
   "task.due_date_changed",
   "task.title_changed",
   "task.description_changed",
@@ -740,6 +741,9 @@ for (const eventName of taskUpdateEvents) {
     if (!projectId || !taskId) return;
     let type: string;
     switch (eventName) {
+      case "task.supporting_assignees_changed":
+        type = "TASK_SUPPORTING_ASSIGNEES_UPDATED";
+        break;
       case "task.created":
         type = "TASK_CREATED";
         break;

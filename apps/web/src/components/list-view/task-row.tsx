@@ -1,3 +1,4 @@
+import TaskSupportingAssigneeAvatars from "@/components/task/task-supporting-assignee-avatars";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useNavigate } from "@tanstack/react-router";
@@ -236,14 +237,14 @@ function TaskRow({ task, projectSlug }: TaskRowProps) {
             )}
 
             {showAssignees && (
-              <div className="flex-shrink-0">
+              <div className="ml-auto flex shrink-0 items-center gap-1.5">
                 {task.userId ? (
                   <Avatar className="h-6 w-6">
                     <AvatarImage
                       src={assignee?.user?.image ?? ""}
                       alt={assignee?.user?.name || ""}
                     />
-                    <AvatarFallback className="text-xs font-medium border border-border/30">
+                    <AvatarFallback className="whitespace-nowrap border border-border/30 text-[10px] font-medium leading-none">
                       {getInitials(assignee?.user?.name)}
                     </AvatarFallback>
                   </Avatar>
@@ -257,6 +258,10 @@ function TaskRow({ task, projectSlug }: TaskRowProps) {
                     </span>
                   </div>
                 )}
+                <TaskSupportingAssigneeAvatars
+                  task={task}
+                  members={workspaceUsers?.members}
+                />
               </div>
             )}
           </div>

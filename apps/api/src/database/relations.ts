@@ -19,6 +19,7 @@ import {
   sessionTable,
   taskRelationTable,
   taskReminderSentTable,
+  taskSupportingAssigneeTable,
   taskTable,
   teamMemberTable,
   teamTable,
@@ -174,6 +175,7 @@ export const taskTableRelations = relations(taskTable, ({ one, many }) => ({
   sourceRelations: many(taskRelationTable, { relationName: "sourceTask" }),
   targetRelations: many(taskRelationTable, { relationName: "targetTask" }),
   remindersSent: many(taskReminderSentTable),
+  supportingAssignees: many(taskSupportingAssigneeTable),
   customFieldValues: many(customFieldValueTable),
 }));
 
@@ -433,6 +435,20 @@ export const customFieldValueTableRelations = relations(
     task: one(taskTable, {
       fields: [customFieldValueTable.taskId],
       references: [taskTable.id],
+    }),
+  }),
+);
+
+export const taskSupportingAssigneeTableRelations = relations(
+  taskSupportingAssigneeTable,
+  ({ one }) => ({
+    task: one(taskTable, {
+      fields: [taskSupportingAssigneeTable.taskId],
+      references: [taskTable.id],
+    }),
+    membership: one(workspaceUserTable, {
+      fields: [taskSupportingAssigneeTable.membershipId],
+      references: [workspaceUserTable.id],
     }),
   }),
 );

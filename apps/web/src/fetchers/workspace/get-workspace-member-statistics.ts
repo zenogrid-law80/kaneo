@@ -6,12 +6,21 @@ async function getWorkspaceMemberStatistics(
   startDate?: string,
   endDate?: string,
   milestoneId?: string,
+  includeSupportingAssignees = false,
 ) {
   const response = await client.workspace[":workspaceId"][
     "member-statistics"
   ].$get({
     param: { workspaceId },
-    query: { projectId, startDate, endDate, milestoneId },
+    query: {
+      projectId,
+      startDate,
+      endDate,
+      milestoneId,
+      includeSupportingAssignees: includeSupportingAssignees
+        ? "true"
+        : undefined,
+    },
   });
 
   if (!response.ok) throw new Error(await response.text());

@@ -31,7 +31,12 @@ export default function MonthGrid({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-auto overscroll-x-contain">
-      <div className="sticky top-0 z-20 grid grid-cols-7 border-b border-border bg-background/95 backdrop-blur">
+      <div
+        className="sticky top-0 z-20 grid border-b border-border bg-background/95 backdrop-blur"
+        style={{
+          gridTemplateColumns: `repeat(${weekdayTemplate.length}, minmax(0, 1fr))`,
+        }}
+      >
         {weekdayTemplate.map((day) => (
           <div
             key={`weekday-${day.toISOString()}`}
@@ -49,10 +54,11 @@ export default function MonthGrid({
           return (
             <div
               key={`week-${week[0].toISOString()}`}
-              className="relative grid min-h-24 flex-1 grid-cols-7 border-b border-border/70 sm:min-h-28"
+              className="relative grid min-h-24 flex-1 border-b border-border/70 sm:min-h-28"
               style={{
                 // Row 1 carries the date numbers, then one row per lane, then a
                 // trailing row for the per-day overflow hint.
+                gridTemplateColumns: `repeat(${week.length}, minmax(0, 1fr))`,
                 gridTemplateRows: `auto repeat(${maxLanes}, min-content) auto`,
               }}
             >

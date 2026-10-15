@@ -1,3 +1,4 @@
+import { clearPrimarySupportingAssignees } from "../supporting-assignees/clear-primary-supporting-assignees";
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { withLockedTask } from "./with-locked-task";
@@ -21,6 +22,7 @@ async function updateTaskAssignee({
     id,
     async (tx, existingTask) => {
       const nextAssigneeId = userId?.trim() || null;
+      await clearPrimarySupportingAssignees(tx, [id]);
       if (existingTask.userId === nextAssigneeId) {
         return existingTask;
       }
@@ -45,6 +47,7 @@ async function updateTaskAssignee({
         });
       }
 
+      await clearPrimarySupportingAssignees(tx, [id]);
       return updatedTask;
     },
   );

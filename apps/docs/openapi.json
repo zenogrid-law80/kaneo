@@ -171,6 +171,25 @@
               "null"
             ]
           },
+          "supportingAssignees": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "userId",
+                "name"
+              ]
+            },
+            "description": "Supporting assignees in the current workspace, excluding the primary assignee. Included for authenticated boards; omitted from public board responses."
+          },
           "projectId": {
             "type": "string"
           },
@@ -425,6 +444,25 @@
               "string",
               "null"
             ]
+          },
+          "supportingAssignees": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "userId",
+                "name"
+              ]
+            },
+            "description": "Supporting assignees in the current workspace, excluding the primary assignee. Included for authenticated boards; omitted from public board responses."
           },
           "projectId": {
             "type": "string"
@@ -1451,6 +1489,25 @@
                   ]
                 }
               },
+              "supportingAssignees": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "name"
+                  ]
+                },
+                "description": "Supporting assignees for authenticated compact task refreshes."
+              },
               "assigneeName": {
                 "type": [
                   "string",
@@ -1640,6 +1697,31 @@
           "failed",
           "tasks"
         ]
+      },
+      "TaskSupportingAssignees": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "userId": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "image": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "userId",
+            "name",
+            "image"
+          ]
+        }
       },
       "CurrentMilestoneResponse": {
         "anyOf": [
@@ -1885,7 +1967,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed."
+            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, supporting_assignee_added, supporting_assignee_removed, unassigned, due_date_changed, title_changed, description_changed."
           },
           "createdAt": {
             "type": "string",
@@ -1978,7 +2060,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, unassigned, due_date_changed, title_changed, description_changed."
+            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, supporting_assignee_added, supporting_assignee_removed, unassigned, due_date_changed, title_changed, description_changed."
           },
           "createdAt": {
             "type": "string",
@@ -12174,6 +12256,281 @@
         }
       }
     },
+    "/task/supporting-assignees/{id}": {
+      "get": {
+        "operationId": "getTaskSupportingAssignees",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "List task supporting assignees",
+        "description": "Lists current workspace members designated as supporting assignees. This role does not grant permissions or subscribe members to notifications.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supporting assignees",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSupportingAssignees"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown task",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No task read access",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "clearTaskSupportingAssignees",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Remove all task supporting assignees",
+        "description": "Atomically removes all supporting assignments and records removal activity for each member. Repeating the request is a no-op. The primary assignee is unchanged.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Supporting assignment saved"
+          },
+          "400": {
+            "description": "Unknown task, non-member or primary assignee selected",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or missing task:assign permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found in the authorized workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Task moved concurrently; retry the request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/task/supporting-assignees/{id}/{userId}": {
+      "put": {
+        "operationId": "addTaskSupportingAssignee",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Add a task supporting assignee",
+        "description": "Idempotently adds a current workspace member other than the primary assignee. The primary assignee, permissions and notifications are unchanged. Statistics can opt in to include supporting participation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Supporting assignment saved"
+          },
+          "400": {
+            "description": "Unknown task, non-member or primary assignee selected",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or missing task:assign permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found in the authorized workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Task moved concurrently; retry the request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeTaskSupportingAssignee",
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Remove a task supporting assignee",
+        "description": "Idempotently removes a supporting assignment. The primary assignee is unchanged.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Supporting assignment saved"
+          },
+          "400": {
+            "description": "Unknown task, non-member or primary assignee selected",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or missing task:assign permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found in the authorized workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Task moved concurrently; retry the request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/milestone/project/{projectId}/current": {
       "get": {
         "operationId": "getCurrentMilestone",
@@ -21056,6 +21413,20 @@
           {
             "schema": {
               "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "description": "Include current supporting assignees in per-person statistics. Defaults to false. Each person is counted once per task; team totals sum member participation."
+            },
+            "required": false,
+            "description": "Include current supporting assignees in per-person statistics. Defaults to false. Each person is counted once per task; team totals sum member participation.",
+            "name": "includeSupportingAssignees",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
               "minLength": 1,
               "description": "Limit task statistics to the currently assigned milestone. Use 'none' for tasks without a milestone; omit for all milestones."
             },
@@ -21242,6 +21613,20 @@
             "required": false,
             "description": "Include statistics on or before this date (YYYY-MM-DD).",
             "name": "endDate",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "description": "Include current supporting assignees in per-person statistics. Defaults to false. Each person is counted once per task; team totals sum member participation."
+            },
+            "required": false,
+            "description": "Include current supporting assignees in per-person statistics. Defaults to false. Each person is counted once per task; team totals sum member participation.",
+            "name": "includeSupportingAssignees",
             "in": "query"
           },
           {

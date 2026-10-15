@@ -14,6 +14,7 @@ import getLabelsByTask from "@/fetchers/label/get-labels-by-task";
 import getExternalLinks from "@/fetchers/external-link/get-external-links";
 import type { ResumePreview } from "@/fetchers/integration-sync/types";
 import { patchBoardTask } from "@/lib/patch-board-task";
+import { invalidateTaskSupportingAssignees } from "@/lib/invalidate-task-supporting-assignees";
 import type { ProjectWithTasks } from "@/types/project";
 import {
   hasSyncTaskSample,
@@ -210,6 +211,14 @@ export function useProjectWebSocket(projectId: string) {
         if (disposed || activeSocket !== ws) return;
         try {
           const message = JSON.parse(event.data);
+          if (message.type === "TASK_SUPPORTING_ASSIGNEES_UPDATED") {
+            void invalidateTaskSupportingAssignees(
+              queryClient,
+              projectId,
+              message.taskId,
+            );
+            return;
+          }
           if (
             message.type.startsWith("TASK") ||
             message.type === "PROJECT_UPDATED"
@@ -317,6 +326,7 @@ export function useProjectWebSocket(projectId: string) {
               ["tasks", projectId],
               ["task"],
               ["task-relations"],
+              ["task-supporting-assignees", projectId],
               ["external-links"],
             ]) {
               queryClient.invalidateQueries({ queryKey });
@@ -625,6 +635,7 @@ export function useProjectWebSocket(projectId: string) {
           queueMilestoneRefresh();
         if (needsReconcile) {
           needsReconcile = false;
+          void invalidateTaskSupportingAssignees(queryClient, projectId);
           markBoardCacheChanged(queryClient, projectId);
           void queryClient.invalidateQueries({
             queryKey: ["tasks", projectId],

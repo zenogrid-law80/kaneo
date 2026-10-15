@@ -2198,6 +2198,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "将 {{name}} 添加为辅助负责人",
+		"supportingAssigneeRemoved": "移除了辅助负责人 {{name}}",
 		"assignedToSelf": "将任务指派给了自己",
 		"unassigned": "取消了任务指派",
 		"assignedTo": "将任务指派给 {{name}}",
@@ -2312,6 +2314,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "全部移除",
+			"primaryAssignee": "主要负责人",
+			"label": "协助人员",
+			"none": "无",
+			"search": "搜索成员…",
+			"empty": "未找到成员",
+			"loadError": "无法加载协助人员",
+			"updateError": "无法更新协助人员",
+			"includeInStatistics": "包含协助人员",
+			"statisticsBasis": "包含当前协助人员。每项任务对每人计数一次，合计为所有人的参与次数之和。",
+			"viewAll": "查看所有辅助负责人（{{count}}人）"
+		},
 		"status": {
 			"label": "状态",
 			"to-do": "待办",
@@ -2877,6 +2892,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "显示周末",
+			"hiddenTasks": "显示周末任务（{{count}}）"
 		}
 	},
 	"invitations": {

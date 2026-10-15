@@ -2210,6 +2210,8 @@
 		}
 	},
 	"activity": {
+		"supportingAssigneeAdded": "hat {{name}} als unterstützende zuständige Person hinzugefügt",
+		"supportingAssigneeRemoved": "hat {{name}} als unterstützende zuständige Person entfernt",
 		"assignedToSelf": "hat sich die Aufgabe selbst zugewiesen",
 		"unassigned": "hat die Zuweisung der Aufgabe entfernt",
 		"assignedTo": "hat die Aufgabe {{name}} zugewiesen",
@@ -2324,6 +2326,19 @@
 		}
 	},
 	"tasks": {
+		"supportingAssignees": {
+			"clearAll": "Alle entfernen",
+			"primaryAssignee": "Hauptverantwortliche Person",
+			"label": "Unterstützende Mitglieder",
+			"none": "Keine",
+			"search": "Mitglieder suchen…",
+			"empty": "Keine Mitglieder gefunden",
+			"loadError": "Unterstützende Mitglieder konnten nicht geladen werden",
+			"updateError": "Unterstützende Mitglieder konnten nicht aktualisiert werden",
+			"includeInStatistics": "Unterstützende Mitglieder einbeziehen",
+			"statisticsBasis": "Aktuelle unterstützende Zuweisungen werden einbezogen. Jede Aufgabe zählt einmal pro Person; Summen addieren die Beteiligungen.",
+			"viewAll": "Alle unterstützenden Zuständigen anzeigen ({{count}})"
+		},
 		"status": {
 			"label": "Status",
 			"to-do": "Zu erledigen",
@@ -2890,6 +2905,10 @@
 			"currentDescription": "Use as the default for project view filters and new tasks. Replaces the previous current milestone.",
 			"useDefault": "Use default",
 			"newTaskDefault": "Uses the project’s current milestone when created."
+		},
+		"weekends": {
+			"show": "Wochenenden anzeigen",
+			"hiddenTasks": "Wochenendaufgaben anzeigen ({{count}})"
 		}
 	},
 	"invitations": {

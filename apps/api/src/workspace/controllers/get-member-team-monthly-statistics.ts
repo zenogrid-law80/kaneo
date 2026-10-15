@@ -15,7 +15,7 @@ import {
   resolveStatisticsDateRange,
 } from "./statistics-date-range";
 import { statisticsMilestoneFilter } from "./statistics-milestone-filter";
-import { statisticsTaskOwner } from "./statistics-task-owner";
+import { statisticsTaskParticipants } from "./statistics-task-participants";
 
 type MonthlyCounts = { createdTasks: number; completedTasks: number };
 
@@ -25,7 +25,9 @@ async function getMemberTeamMonthlyStatistics(
   startDate?: string,
   endDate?: string,
   milestoneId?: string,
+  includeSupportingAssignees = false,
 ) {
+  const participants = statisticsTaskParticipants(includeSupportingAssignees);
   const range = resolveStatisticsDateRange(startDate, endDate);
   const monthKeys = getMonthKeys(range.start, range.endExclusive);
   const taskMonth = sql<string>`to_char(date_trunc('month', ${taskTable.createdAt}), 'YYYY-MM')`;
@@ -65,12 +67,13 @@ async function getMemberTeamMonthlyStatistics(
       .where(eq(teamTable.workspaceId, workspaceId)),
     db
       .select({
-        userId: statisticsTaskOwner,
+        userId: participants.userId,
         month: taskMonth,
         count: count(),
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+      .innerJoinLateral(participants, sql`true`)
       .where(
         and(
           eq(projectTable.workspaceId, workspaceId),
@@ -79,19 +82,20 @@ async function getMemberTeamMonthlyStatistics(
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
           statisticsMilestoneFilter(milestoneId),
-          sql`${statisticsTaskOwner} is not null`,
+          sql`${participants.userId} is not null`,
         ),
       )
-      .groupBy(statisticsTaskOwner, taskMonth),
+      .groupBy(participants.userId, taskMonth),
     db
       .select({
-        userId: statisticsTaskOwner,
+        userId: participants.userId,
         month: activityMonth,
         count: sql<number>`count(distinct ${taskTable.id})`,
       })
       .from(activityTable)
       .innerJoin(taskTable, eq(activityTable.taskId, taskTable.id))
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+      .innerJoinLateral(participants, sql`true`)
       .leftJoin(
         columnTable,
         and(
@@ -108,27 +112,28 @@ async function getMemberTeamMonthlyStatistics(
           gte(activityTable.createdAt, range.start),
           lt(activityTable.createdAt, range.endExclusive),
           statisticsMilestoneFilter(milestoneId),
-          sql`${statisticsTaskOwner} is not null`,
+          sql`${participants.userId} is not null`,
           sql`(${activityTable.eventData}->>'newStatus' = 'archived' or ${columnTable.isFinal} = true)`,
         ),
       )
-      .groupBy(statisticsTaskOwner, activityMonth),
+      .groupBy(participants.userId, activityMonth),
     db
       .select({
         id: taskTable.id,
         title: taskTable.title,
         projectId: taskTable.projectId,
-        userId: statisticsTaskOwner,
+        userId: participants.userId,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+      .innerJoinLateral(participants, sql`true`)
       .leftJoin(columnTable, eq(taskTable.columnId, columnTable.id))
       .where(
         and(
           eq(projectTable.workspaceId, workspaceId),
           projectId ? eq(projectTable.id, projectId) : undefined,
           isNull(projectTable.archivedAt),
-          sql`${statisticsTaskOwner} is not null`,
+          sql`${participants.userId} is not null`,
           gte(taskTable.createdAt, range.start),
           lt(taskTable.createdAt, range.endExclusive),
           statisticsMilestoneFilter(milestoneId),
