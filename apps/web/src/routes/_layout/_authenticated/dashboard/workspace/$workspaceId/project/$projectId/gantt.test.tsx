@@ -34,6 +34,16 @@ const navigate = vi.fn();
 // do retroactively.
 const routeParams = { workspaceId: "workspace-1", projectId: "project-1" };
 
+vi.mock("@/components/providers/auth-provider/hooks/use-auth", () => ({
+  default: () => ({ user: null }),
+}));
+vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
+  default: () => ({ data: [] }),
+}));
+vi.mock("@/hooks/queries/workspace/use-workspace-teams", () => ({
+  default: () => ({ data: [] }),
+}));
+
 vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
   useCurrentMilestone: () => ({ data: null }),
 }));

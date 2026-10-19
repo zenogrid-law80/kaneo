@@ -10,6 +10,7 @@ type CalendarToolbarProps = {
   onNextMonth: () => void;
   onToday: () => void;
   children?: ReactNode;
+  trailingControls?: ReactNode;
 };
 
 export default function CalendarToolbar({
@@ -18,6 +19,7 @@ export default function CalendarToolbar({
   onNextMonth,
   onToday,
   children,
+  trailingControls,
 }: CalendarToolbarProps): JSX.Element {
   const { t } = useTranslation();
 
@@ -37,33 +39,36 @@ export default function CalendarToolbar({
           </span>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            variant="outline"
-            size="icon-xs"
-            className="min-h-11 touch-manipulation sm:min-h-0"
-            aria-label={t("tasks:calendar.previousMonth")}
-            onClick={onPreviousMonth}
-          >
-            <ChevronLeft />
-          </Button>
-          <Button
-            variant="outline"
-            size="xs"
-            className="min-h-11 touch-manipulation sm:min-h-0"
-            onClick={onToday}
-          >
-            {t("tasks:calendar.today")}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-xs"
-            className="min-h-11 touch-manipulation sm:min-h-0"
-            aria-label={t("tasks:calendar.nextMonth")}
-            onClick={onNextMonth}
-          >
-            <ChevronRight />
-          </Button>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon-xs"
+              className="min-h-11 touch-manipulation sm:min-h-0"
+              aria-label={t("tasks:calendar.previousMonth")}
+              onClick={onPreviousMonth}
+            >
+              <ChevronLeft />
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              className="min-h-11 touch-manipulation sm:min-h-0"
+              onClick={onToday}
+            >
+              {t("tasks:calendar.today")}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-xs"
+              className="min-h-11 touch-manipulation sm:min-h-0"
+              aria-label={t("tasks:calendar.nextMonth")}
+              onClick={onNextMonth}
+            >
+              <ChevronRight />
+            </Button>
+          </div>
+          {trailingControls}
         </div>
       </div>
     </div>

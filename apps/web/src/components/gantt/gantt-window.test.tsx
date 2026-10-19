@@ -15,6 +15,16 @@ const m = vi.hoisted(() => ({
   update: vi.fn(),
   tasks: [] as Record<string, unknown>[],
 }));
+vi.mock("@/components/providers/auth-provider/hooks/use-auth", () => ({
+  default: () => ({ user: null }),
+}));
+vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
+  default: () => ({ data: [] }),
+}));
+vi.mock("@/hooks/queries/workspace/use-workspace-teams", () => ({
+  default: () => ({ data: [] }),
+}));
+
 vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
   useCurrentMilestone: () => ({ data: null }),
 }));

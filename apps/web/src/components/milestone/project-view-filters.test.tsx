@@ -5,6 +5,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { createInstance } from "i18next";
 import type { ComponentType, ReactNode } from "react";
@@ -189,7 +190,7 @@ function task(id: string, milestoneId: string | null, dueDate: string): Task {
     projectId: "project",
   };
 }
-const project = {
+const initialProject = {
   id: "project",
   name: "Project",
   slug: "PRJ",
@@ -216,6 +217,8 @@ const project = {
   ],
 };
 
+let project = initialProject;
+
 const i18n = createInstance();
 void i18n.init({
   lng: "en-US",
@@ -224,6 +227,7 @@ void i18n.init({
   initAsync: false,
 });
 beforeEach(() => {
+  project = initialProject;
   Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
     configurable: true,
     value: vi.fn(),
@@ -641,6 +645,97 @@ describe.each(views)("%s milestone filter", (_name, route) => {
     expect(hasTask("Parent")).toBe(true);
     expect(hasTask("Child")).toBe(true);
     expect(hasTask("Unassigned")).toBe(true);
+  });
+  it("filters by project status slugs, combines selections, clears empty results, and resets for another project", async () => {
+    project = {
+      ...initialProject,
+      columns: [
+        {
+          id: "todo-column-id",
+          slug: "to-do",
+          name: "To Do",
+          isFinal: false,
+          tasks: [{ ...task("Todo", "beta", "2026-10-20"), status: "to-do" }],
+        },
+        {
+          id: "progress-column-id",
+          slug: "in-progress",
+          name: "In Progress",
+          isFinal: false,
+          tasks: [
+            {
+              ...task("Progress", "release", "2026-10-21"),
+              status: "in-progress",
+            },
+          ],
+        },
+        {
+          id: "custom-column-id",
+          slug: "qa-ready",
+          name: "Ready for QA",
+          isFinal: true,
+          tasks: [{ ...task("QA", "beta", "2026-10-22"), status: "qa-ready" }],
+        },
+      ],
+      plannedTasks: [
+        { ...task("Planned", null, "2026-10-23"), status: "planned" },
+      ],
+    };
+    const { rerender } = render(view());
+    const openFilters = async () => {
+      const menu = screen.queryByRole("menu");
+      if (menu) fireEvent.keyDown(menu, { key: "Escape" });
+      await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+      fireEvent.click(screen.getByRole("button", { name: "Filter" }));
+      await screen.findByRole("menuitem", { name: "All statuses" });
+    };
+    await openFilters();
+    expect(screen.queryByText("Completion status")).toBeNull();
+    expect(
+      screen.queryByRole("menuitemradio", { name: "Open tasks" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("menuitemradio", { name: "Completed tasks" }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "To Do" }));
+    expect(hasTask("Todo")).toBe(true);
+    expect(hasTask("Progress")).toBe(false);
+    expect(hasTask("Planned")).toBe(false);
+    fireEvent.click(
+      screen.getByRole("menuitemcheckbox", { name: "In Progress" }),
+    );
+    expect(hasTask("Todo")).toBe(true);
+    expect(hasTask("Progress")).toBe(true);
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "To Do" }));
+    expect(hasTask("Todo")).toBe(false);
+    expect(hasTask("Progress")).toBe(true);
+    fireEvent.click(screen.getByRole("menuitem", { name: "All statuses" }));
+    expect(hasTask("Todo")).toBe(true);
+    expect(hasTask("Planned")).toBe(true);
+    await openFilters();
+    fireEvent.click(
+      screen.getByRole("menuitemcheckbox", { name: "Ready for QA" }),
+    );
+    expect(hasTask("QA")).toBe(true);
+    expect(hasTask("Todo")).toBe(false);
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "No due date" }));
+    expect(hasTask("QA")).toBe(false);
+    expect(hasTask("Todo")).toBe(false);
+    await openFilters();
+    fireEvent.click(
+      screen.getByRole("menuitem", { name: "Clear all filters" }),
+    );
+    expect(hasTask("Todo")).toBe(true);
+    expect(hasTask("QA")).toBe(true);
+    await openFilters();
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Planned" }));
+    expect(hasTask("Planned")).toBe(true);
+    expect(hasTask("Todo")).toBe(false);
+    state.projectId = "another-project";
+    rerender(view());
+    expect(hasTask("Todo")).toBe(true);
+    expect(hasTask("Progress")).toBe(true);
+    expect(hasTask("QA")).toBe(true);
   });
   it("keeps empty filters usable and clears the selection when changing projects", async () => {
     const { rerender } = render(view());

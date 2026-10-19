@@ -30,11 +30,12 @@ import {
 } from "@/components/gantt/timeline";
 import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
+import ProjectTaskFilters from "@/components/project-task-filters";
+import { useProjectTaskFilters } from "@/components/project-task-filters/use-project-task-filters";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
-import { useMilestoneFilter } from "@/hooks/use-milestone-filter";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/cn";
 import { getStatusLabel } from "@/lib/i18n/domain";
@@ -57,9 +58,10 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
-  const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
   const navigate = useNavigate();
   const { data: project } = useGetTasks(projectId);
+  const filters = useProjectTaskFilters(project, projectId);
+  const { milestoneId, setMilestoneId, visibleTasks: allTasks } = filters;
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(workspaceId);
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
   const showWeekends = useUserPreferencesStore(
@@ -113,17 +115,6 @@ function RouteComponent() {
 
     setIsTaskRailOpen(false);
   }, [isMobile]);
-
-  const allTasks = useMemo(
-    () =>
-      [
-        ...(project?.columns.flatMap((column) => column.tasks) ?? []),
-        ...(project?.plannedTasks ?? []),
-      ].filter(
-        (task) => !milestoneId || (task.milestoneId ?? "none") === milestoneId,
-      ),
-    [project, milestoneId],
-  );
 
   const parsedTasks = useMemo(() => {
     return allTasks
@@ -268,7 +259,7 @@ function RouteComponent() {
       />
       <div className="flex h-full min-h-0 flex-col bg-background">
         <div className="border-b border-border/80 px-3 py-3 sm:px-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <MilestoneSelect
                 projectId={projectId}
@@ -277,18 +268,10 @@ function RouteComponent() {
                 filter
                 includeClosed
               />
-              <WeekendVisibilityControl
-                checked={showWeekends}
-                onCheckedChange={setShowWeekends}
-                hiddenCount={
-                  timeline
-                    ? countHiddenWeekendTasks(
-                        scheduledTasks,
-                        timeline.rangeStart,
-                        timeline.rangeEnd,
-                      )
-                    : 0
-                }
+              <ProjectTaskFilters
+                project={project}
+                workspaceId={workspaceId}
+                filters={filters}
               />
               <h1 className="text-sm font-semibold text-foreground">
                 {t("tasks:gantt.title")}
@@ -373,6 +356,21 @@ function RouteComponent() {
                 ? t("tasks:gantt.hideTasks")
                 : t("tasks:gantt.showTasks")}
             </Button>
+            <div className="ml-auto flex justify-end">
+              <WeekendVisibilityControl
+                checked={showWeekends}
+                onCheckedChange={setShowWeekends}
+                hiddenCount={
+                  timeline
+                    ? countHiddenWeekendTasks(
+                        scheduledTasks,
+                        timeline.rangeStart,
+                        timeline.rangeEnd,
+                      )
+                    : 0
+                }
+              />
+            </div>
           </div>
         </div>
 
@@ -381,12 +379,14 @@ function RouteComponent() {
             <div className="max-w-sm text-center">
               <h2 className="text-sm font-semibold text-foreground">
                 {t(
-                  milestoneId
-                    ? "tasks:milestones.noTasks"
-                    : "tasks:gantt.noTasks",
+                  filters.activeFilterCount > 0
+                    ? "tasks:gantt.noTasksFound"
+                    : milestoneId
+                      ? "tasks:milestones.noTasks"
+                      : "tasks:gantt.noTasks",
                 )}
               </h2>
-              {!milestoneId && (
+              {!milestoneId && filters.activeFilterCount === 0 && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   {t("tasks:gantt.noTasksSubtitle")}
                 </p>

@@ -10,13 +10,14 @@ import { buildMonthWeeks } from "@/components/calendar/month-grid-model";
 import ProjectLayout from "@/components/common/project-layout";
 import MilestoneSelect from "@/components/milestone/milestone-select";
 import PageTitle from "@/components/page-title";
+import ProjectTaskFilters from "@/components/project-task-filters";
+import { useProjectTaskFilters } from "@/components/project-task-filters/use-project-task-filters";
 import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { shortcuts } from "@/constants/shortcuts";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { useMilestoneFilter } from "@/hooks/use-milestone-filter";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { toScheduledTasks } from "@/lib/task-schedule";
+import { toScheduledTask } from "@/lib/task-schedule";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 
 type CalendarSearchParams = {
@@ -41,9 +42,10 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { projectId, workspaceId } = Route.useParams();
   const { taskId } = Route.useSearch();
-  const { milestoneId, setMilestoneId } = useMilestoneFilter(projectId);
   const navigate = useNavigate();
   const { data: project, isLoading, isError } = useGetTasks(projectId);
+  const filters = useProjectTaskFilters(project, projectId);
+  const { milestoneId, setMilestoneId } = filters;
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
   const showWeekends = useUserPreferencesStore(
     (state) => state.calendarShowWeekends,
@@ -59,10 +61,14 @@ function RouteComponent() {
 
   const scheduledTasks = useMemo(
     () =>
-      toScheduledTasks(project).filter(
-        (task) => !milestoneId || (task.milestoneId ?? "none") === milestoneId,
-      ),
-    [project, milestoneId],
+      filters.visibleTasks
+        .map(toScheduledTask)
+        .filter((task) => task !== null)
+        .sort(
+          (left, right) =>
+            left.scheduleStart.getTime() - right.scheduleStart.getTime(),
+        ),
+    [filters.visibleTasks],
   );
 
   const weeks = useMemo(
@@ -143,6 +149,17 @@ function RouteComponent() {
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
           onToday={handleToday}
+          trailingControls={
+            <WeekendVisibilityControl
+              checked={showWeekends}
+              onCheckedChange={setShowWeekends}
+              hiddenCount={countHiddenWeekendTasks(
+                scheduledTasks,
+                startOfMonth(visibleMonth),
+                endOfMonth(visibleMonth),
+              )}
+            />
+          }
         >
           <MilestoneSelect
             projectId={projectId}
@@ -151,14 +168,10 @@ function RouteComponent() {
             filter
             includeClosed
           />
-          <WeekendVisibilityControl
-            checked={showWeekends}
-            onCheckedChange={setShowWeekends}
-            hiddenCount={countHiddenWeekendTasks(
-              scheduledTasks,
-              startOfMonth(visibleMonth),
-              endOfMonth(visibleMonth),
-            )}
+          <ProjectTaskFilters
+            project={project}
+            workspaceId={workspaceId}
+            filters={filters}
           />
         </CalendarToolbar>
 
@@ -178,12 +191,14 @@ function RouteComponent() {
           <div className="border-b border-border/80 px-4 py-3 text-center">
             <p className="text-sm font-semibold text-foreground">
               {t(
-                milestoneId
-                  ? "tasks:milestones.noTasks"
-                  : "tasks:calendar.noTasks",
+                filters.activeFilterCount > 0
+                  ? "tasks:gantt.noTasksFound"
+                  : milestoneId
+                    ? "tasks:milestones.noTasks"
+                    : "tasks:calendar.noTasks",
               )}
             </p>
-            {!milestoneId && (
+            {!milestoneId && filters.activeFilterCount === 0 && (
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {t("tasks:calendar.noTasksSubtitle")}
               </p>
