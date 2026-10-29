@@ -579,6 +579,7 @@ export function broadcastToProject(
 }
 
 type TaskEvent = {
+  targetProjectId?: string;
   titleChanged?: boolean;
   skipSubtaskParentRefresh?: boolean;
   id: string | undefined;
@@ -795,6 +796,24 @@ for (const eventName of taskUpdateEvents) {
       },
       initiatorId,
     );
+    if (
+      (eventName === "task-relation.created" ||
+        eventName === "task-relation.deleted") &&
+      data.targetProjectId &&
+      data.targetProjectId !== projectId
+    ) {
+      broadcastToProject(
+        data.targetProjectId,
+        {
+          type: "TASK_RELATION_UPDATED",
+          projectId: data.targetProjectId,
+          taskId: data.targetTaskId,
+          sourceTaskId: data.sourceTaskId,
+          targetTaskId: data.targetTaskId,
+        },
+        initiatorId,
+      );
+    }
     if (eventName === "task.status_changed" && !data.skipSubtaskParentRefresh) {
       refreshParentBoards(await getSubtaskParentProjects([taskId]), projectId);
     } else if (eventName === "task-relation.deleted" && data.sourceTaskId) {

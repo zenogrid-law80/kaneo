@@ -2402,6 +2402,23 @@
 			"ticketNotFoundDescription": "No task with the ID {{ticketId}} exists in this workspace, or you don't have access to it.",
 			"customFields": "Custom Fields"
 		},
+		"parent": {
+			"assign": "Set parent task",
+			"remove": "Remove parent task: {{title}}",
+			"searchPlaceholder": "Search tasks by title or ID...",
+			"searchHint": "Search for a parent task in this workspace.",
+			"searching": "Searching tasks...",
+			"noResults": "No available parent tasks found.",
+			"searchError": "Could not search tasks.",
+			"retry": "Try again",
+			"loading": "Loading parent task...",
+			"loadError": "Could not load the parent task.",
+			"assignSuccess": "Parent task set",
+			"assignError": "Could not set the parent task.",
+			"invalidHierarchy": "A task or its descendant cannot be its parent.",
+			"removeSuccess": "Parent task removed",
+			"removeError": "Could not remove the parent task."
+		},
 		"detail": {
 			"subtaskOf": "Subtask of",
 			"customFieldUpdated": "Field updated",

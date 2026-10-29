@@ -9763,6 +9763,74 @@
 						"customFields"
 					]
 				},
+				"parent": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"assign": {
+							"type": "string"
+						},
+						"remove": {
+							"type": "string"
+						},
+						"searchPlaceholder": {
+							"type": "string"
+						},
+						"searchHint": {
+							"type": "string"
+						},
+						"searching": {
+							"type": "string"
+						},
+						"noResults": {
+							"type": "string"
+						},
+						"searchError": {
+							"type": "string"
+						},
+						"retry": {
+							"type": "string"
+						},
+						"loading": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"assignSuccess": {
+							"type": "string"
+						},
+						"assignError": {
+							"type": "string"
+						},
+						"invalidHierarchy": {
+							"type": "string"
+						},
+						"removeSuccess": {
+							"type": "string"
+						},
+						"removeError": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"assign",
+						"remove",
+						"searchPlaceholder",
+						"searchHint",
+						"searching",
+						"noResults",
+						"searchError",
+						"retry",
+						"loading",
+						"loadError",
+						"assignSuccess",
+						"assignError",
+						"invalidHierarchy",
+						"removeSuccess",
+						"removeError"
+					]
+				},
 				"detail": {
 					"type": "object",
 					"additionalProperties": false,
@@ -11997,6 +12065,7 @@
 				"view",
 				"hierarchy",
 				"common",
+				"parent",
 				"detail",
 				"entity",
 				"relations",

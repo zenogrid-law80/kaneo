@@ -8,15 +8,19 @@ function useCreateTaskRelation() {
 
   return useMutation({
     mutationFn: createTaskRelation,
-    onSuccess: (_, variables) => {
-      void invalidateRelationTaskProject(queryClient, variables.sourceTaskId);
-      queryClient.invalidateQueries({
-        queryKey: ["task-relations", variables.sourceTaskId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["task-relations", variables.targetTaskId],
-      });
-    },
+    onSuccess: (_, variables) =>
+      Promise.all([
+        invalidateRelationTaskProject(queryClient, variables.sourceTaskId),
+        queryClient.invalidateQueries({
+          queryKey: ["task", variables.sourceTaskId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["task-relations", variables.sourceTaskId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["task-relations", variables.targetTaskId],
+        }),
+      ]),
   });
 }
 

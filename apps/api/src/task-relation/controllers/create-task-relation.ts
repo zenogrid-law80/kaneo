@@ -1,4 +1,4 @@
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
@@ -27,7 +27,13 @@ async function createTaskRelation({
     });
   }
 
-  const { relation, sourceTask } = await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
+    if (relationType === "subtask") {
+      // Concurrent links must not both pass the cycle check before either commits.
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext('task-subtask'), hashtext(${workspaceId}))`,
+      );
+    }
     // Serialize relation creation with project moves before validating either
     // workspace. A move must see this relation or this request must see the move.
     await tx
@@ -110,6 +116,26 @@ async function createTaskRelation({
       });
     }
 
+    if (relationType === "subtask") {
+      // UNION also terminates safely if an existing installation contains a cycle.
+      const descendants = await tx.execute(sql`
+        WITH RECURSIVE descendants(id) AS (
+          SELECT ${targetTaskId}::text
+          UNION
+          SELECT ${taskRelationTable.targetTaskId}
+          FROM ${taskRelationTable}
+          INNER JOIN descendants ON ${taskRelationTable.sourceTaskId} = descendants.id
+          WHERE ${taskRelationTable.relationType} = 'subtask'
+        )
+        SELECT id FROM descendants WHERE id = ${sourceTaskId} LIMIT 1
+      `);
+      if (descendants.rows.length > 0) {
+        throw new HTTPException(400, {
+          message: "Cannot create a circular subtask hierarchy",
+        });
+      }
+    }
+
     const [relation] = await tx
       .insert(taskRelationTable)
       .values({
@@ -125,13 +151,16 @@ async function createTaskRelation({
       });
     }
 
-    return { relation, sourceTask };
+    return { relation, sourceTask, targetTask };
   });
+
+  const { relation, sourceTask, targetTask } = result;
 
   await publishEvent("task-relation.created", {
     ...relation,
     taskId: sourceTaskId,
     projectId: sourceTask.projectId,
+    targetProjectId: targetTask.projectId,
     userId,
   });
 

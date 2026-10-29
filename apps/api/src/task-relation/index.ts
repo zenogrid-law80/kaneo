@@ -120,7 +120,7 @@ const createTaskRelationRoute = createRoute({
   tags: ["Task Relations"],
   summary: "Create task relation",
   description:
-    "Link two tasks. Authorization is scoped to the source task's workspace.",
+    "Link two tasks in the same workspace. For subtask relations, sourceTaskId is the parent and targetTaskId is the child; creation order does not matter. Circular subtask hierarchies are rejected. Authorization is scoped to the source task's workspace.",
   middleware: [
     scopeToSourceTask,
     requireWorkspacePermission({ task: ["update"] }),
@@ -133,7 +133,9 @@ const createTaskRelationRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The created relation", taskRelationSchema),
-    400: errorResponse("Invalid body"),
+    400: errorResponse(
+      "Invalid body, self-relation, or circular subtask hierarchy",
+    ),
     403: errorResponse(
       "No workspace access, or missing task:update permission",
     ),

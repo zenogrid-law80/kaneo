@@ -2389,6 +2389,23 @@
 			"ticketNotFoundDescription": "이 워크스페이스에 ID가 {{ticketId}}인 작업이 없거나 해당 작업에 대한 접근 권한이 없습니다.",
 			"customFields": "Custom Fields"
 		},
+		"parent": {
+			"assign": "상위 일감 지정",
+			"remove": "상위 일감 연결 해제: {{title}}",
+			"searchPlaceholder": "제목 또는 일감 번호로 검색...",
+			"searchHint": "이 워크스페이스에서 상위로 지정할 일감을 검색하세요.",
+			"searching": "일감 검색 중...",
+			"noResults": "상위로 지정할 수 있는 일감이 없습니다.",
+			"searchError": "일감을 검색하지 못했습니다.",
+			"retry": "다시 시도",
+			"loading": "상위 일감 로딩 중...",
+			"loadError": "상위 일감을 불러오지 못했습니다.",
+			"assignSuccess": "상위 일감을 지정했습니다",
+			"assignError": "상위 일감을 지정하지 못했습니다.",
+			"invalidHierarchy": "자기 자신이나 하위 일감을 상위로 지정할 수 없습니다.",
+			"removeSuccess": "상위 일감 연결을 해제했습니다",
+			"removeError": "상위 일감 연결을 해제하지 못했습니다."
+		},
 		"detail": {
 			"subtaskOf": "상위 작업",
 			"activity": "활동",

@@ -20518,7 +20518,7 @@
           "Task Relations"
         ],
         "summary": "Create task relation",
-        "description": "Link two tasks. Authorization is scoped to the source task's workspace.",
+        "description": "Link two tasks in the same workspace. For subtask relations, sourceTaskId is the parent and targetTaskId is the child; creation order does not matter. Circular subtask hierarchies are rejected. Authorization is scoped to the source task's workspace.",
         "requestBody": {
           "required": true,
           "content": {
@@ -20562,7 +20562,7 @@
             }
           },
           "400": {
-            "description": "Invalid body",
+            "description": "Invalid body, self-relation, or circular subtask hierarchy",
             "content": {
               "text/plain": {
                 "schema": {

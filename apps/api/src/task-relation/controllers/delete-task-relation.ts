@@ -38,23 +38,25 @@ async function deleteTaskRelation(
     });
   }
 
-  const [task] = await db
-    .select({ projectId: taskTable.projectId })
+  const tasks = await db
+    .select({ id: taskTable.id, projectId: taskTable.projectId })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
     .where(
       and(
-        eq(taskTable.id, relation.sourceTaskId),
+        inArray(taskTable.id, [relation.sourceTaskId, relation.targetTaskId]),
         eq(projectTable.workspaceId, workspaceId),
       ),
-    )
-    .limit(1);
+    );
+  const task = tasks.find((task) => task.id === relation.sourceTaskId);
+  const targetTask = tasks.find((task) => task.id === relation.targetTaskId);
 
   if (task) {
     await publishEvent("task-relation.deleted", {
       ...relation,
       taskId: relation.sourceTaskId,
       projectId: task.projectId,
+      targetProjectId: targetTask?.projectId,
       userId,
     });
   }
