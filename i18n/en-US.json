@@ -2542,6 +2542,9 @@
 			"task": "Task"
 		},
 		"relations": {
+			"searching": "Searching tasks...",
+			"searchError": "Could not search tasks.",
+			"retry": "Try again",
 			"title": "Relations",
 			"tasksInProject": "Tasks in project",
 			"linkError": "Failed to link task",
@@ -2560,6 +2563,15 @@
 			}
 		},
 		"subtasks": {
+			"linkExisting": "Link existing task",
+			"linkHint": "Search this workspace by title or task ID to link an existing subtask.",
+			"noTasksToLink": "No available tasks to link.",
+			"linkSuccess": "Subtask linked",
+			"linkError": "Could not link the subtask.",
+			"invalidHierarchy": "A task or its ancestor cannot be its subtask.",
+			"unlink": "Unlink subtask: {{title}}",
+			"unlinkSuccess": "Subtask unlinked",
+			"unlinkError": "Could not unlink the subtask.",
 			"progress": "{{completed}} of {{total}} subtasks completed",
 			"noCompletionColumn": "This project has no matching column for completing or reopening this subtask.",
 			"title": "Sub-tasks",

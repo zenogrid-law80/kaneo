@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   canUpdateTasks: vi.fn(),
   createTask: vi.fn(),
   createRelation: vi.fn(),
+  deleteRelation: vi.fn(),
   getColumns: vi.fn(),
   getRelations: vi.fn(),
   fetchColumns: vi.fn(),
@@ -39,12 +40,16 @@ vi.mock("framer-motion", () => ({
 }));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
+  initReactI18next: { type: "3rdParty", init: () => {} },
 }));
 vi.mock("@/hooks/mutations/task/use-create-task", () => ({
   default: () => ({ mutateAsync: mocks.createTask, isPending: false }),
 }));
 vi.mock("@/hooks/mutations/task-relation/use-create-task-relation", () => ({
-  default: () => ({ mutateAsync: mocks.createRelation }),
+  default: () => ({ mutateAsync: mocks.createRelation, isPending: false }),
+}));
+vi.mock("@/hooks/mutations/task-relation/use-delete-task-relation", () => ({
+  default: () => ({ mutateAsync: mocks.deleteRelation, isPending: false }),
 }));
 vi.mock("@/hooks/mutations/task/use-delete-task", () => ({
   useDeleteTask: () => ({ mutateAsync: vi.fn() }),

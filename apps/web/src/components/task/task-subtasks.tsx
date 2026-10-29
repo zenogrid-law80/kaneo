@@ -25,6 +25,7 @@ import useCreateTask from "@/hooks/mutations/task/use-create-task";
 import { useDeleteTask } from "@/hooks/mutations/task/use-delete-task";
 import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-status";
 import useCreateTaskRelation from "@/hooks/mutations/task-relation/use-create-task-relation";
+import useDeleteTaskRelation from "@/hooks/mutations/task-relation/use-delete-task-relation";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-relations";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
@@ -34,6 +35,7 @@ import { toast } from "@/lib/toast";
 import queryClient from "@/query-client";
 import type Task from "@/types/task";
 import SubtaskRow from "./subtask-row";
+import TaskSubtaskLinker from "./task-subtask-linker";
 
 type TaskSubtasksProps = {
   taskId: string;
@@ -65,6 +67,7 @@ export default function TaskSubtasks({
   );
   const createTask = useCreateTask();
   const createRelation = useCreateTaskRelation();
+  const deleteRelation = useDeleteTaskRelation(taskId);
   const { mutateAsync: deleteTask } = useDeleteTask();
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatus();
   const { data: columns = [], isLoading: isLoadingColumns } =
@@ -311,6 +314,22 @@ export default function TaskSubtasks({
     }
   };
 
+  const handleUnlinkSubtask = async (relationId: string, childId: string) => {
+    if (!canEdit || deleteRelation.isPending) return;
+    try {
+      await deleteRelation.mutateAsync(relationId);
+      setSelectedIds((previous) => {
+        const next = new Set(previous);
+        next.delete(childId);
+        return next;
+      });
+      setFocusedIndex(-1);
+      toast.success(t("tasks:subtasks.unlinkSuccess"));
+    } catch {
+      toast.error(t("tasks:subtasks.unlinkError"));
+    }
+  };
+
   return (
     <>
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
@@ -341,17 +360,30 @@ export default function TaskSubtasks({
               </span>
             )}
           </div>
-          {canEdit && canCreate && (
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-muted-foreground"
-              aria-label={`${t("tasks:subtasks.addAction")} ${t("tasks:subtasks.title")}`}
-              onClick={() => setIsAdding(true)}
-              disabled={!canCreateSubtask}
-            >
-              <Plus className="size-3.5" />
-            </Button>
+          {canEdit && (
+            <div className="flex items-center gap-1">
+              <TaskSubtaskLinker
+                key={taskId}
+                taskId={taskId}
+                workspaceId={workspaceId}
+                onLinked={() => setIsOpen(true)}
+              />
+              {canCreate && (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  className="text-muted-foreground"
+                  aria-label={`${t("tasks:subtasks.addAction")} ${t("tasks:subtasks.title")}`}
+                  onClick={() => {
+                    setIsOpen(true);
+                    setIsAdding(true);
+                  }}
+                  disabled={!canCreateSubtask}
+                >
+                  <Plus className="size-3.5" />
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
@@ -397,6 +429,13 @@ export default function TaskSubtasks({
                       })
                     }
                     onDeleteClick={() => setDeleteTaskId(subtask.task.id)}
+                    onUnlink={() =>
+                      void handleUnlinkSubtask(
+                        subtask.relation.id,
+                        subtask.task.id,
+                      )
+                    }
+                    isUnlinking={deleteRelation.isPending}
                   />
                 );
               })}

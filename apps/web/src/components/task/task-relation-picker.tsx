@@ -14,7 +14,10 @@ import {
 import { DialogTitle } from "@/components/ui/dialog";
 import useGlobalSearch from "@/hooks/queries/search/use-global-search";
 
-type TaskParentPickerProps = {
+type TaskRelationPickerProps = {
+  title: string;
+  searchHint: string;
+  emptyMessage: string;
   workspaceId: string;
   excludedTaskIds: string[];
   isPending: boolean;
@@ -22,13 +25,16 @@ type TaskParentPickerProps = {
   onClose: () => void;
 };
 
-export default function TaskParentPicker({
+export default function TaskRelationPicker({
+  title,
+  searchHint,
+  emptyMessage,
   workspaceId,
   excludedTaskIds,
   isPending,
   onSelect,
   onClose,
-}: TaskParentPickerProps) {
+}: TaskRelationPickerProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -61,13 +67,11 @@ export default function TaskParentPicker({
       }}
     >
       <CommandDialogPopup aria-describedby={undefined}>
-        <DialogTitle className="sr-only">
-          {t("tasks:parent.assign")}
-        </DialogTitle>
+        <DialogTitle className="sr-only">{title}</DialogTitle>
         <Command items={items} filter={null}>
           <CommandInput
-            aria-label={t("tasks:parent.searchPlaceholder")}
-            placeholder={t("tasks:parent.searchPlaceholder")}
+            aria-label={t("tasks:relations.searchPlaceholder")}
+            placeholder={t("tasks:relations.searchPlaceholder")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             maxLength={512}
@@ -76,22 +80,22 @@ export default function TaskParentPicker({
           <CommandPanel>
             <CommandEmpty>
               {searching ? (
-                <span role="status">{t("tasks:parent.searching")}</span>
+                <span role="status">{t("tasks:relations.searching")}</span>
               ) : isError ? (
                 <div role="alert">
-                  {t("tasks:parent.searchError")}{" "}
+                  {t("tasks:relations.searchError")}{" "}
                   <Button
                     variant="ghost"
                     size="xs"
                     onClick={() => void refetch()}
                   >
-                    {t("tasks:parent.retry")}
+                    {t("tasks:relations.retry")}
                   </Button>
                 </div>
               ) : normalizedQuery ? (
-                t("tasks:parent.noResults")
+                emptyMessage
               ) : (
-                t("tasks:parent.searchHint")
+                searchHint
               )}
             </CommandEmpty>
             <CommandList>

@@ -1,7 +1,9 @@
 import { motion, useReducedMotion } from "framer-motion";
+import { Unlink } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import TaskCardContextMenuContent from "@/components/kanban-board/task-card-context-menu/task-card-context-menu-content";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { getColumnIcon } from "@/lib/column";
@@ -27,6 +29,8 @@ type SubtaskRowProps = {
   onToggleComplete: () => void;
   onNavigate: () => void;
   onDeleteClick: () => void;
+  onUnlink: () => void;
+  isUnlinking: boolean;
 };
 
 export default function SubtaskRow({
@@ -44,6 +48,8 @@ export default function SubtaskRow({
   onToggleComplete,
   onNavigate,
   onDeleteClick,
+  onUnlink,
+  isUnlinking,
 }: SubtaskRowProps) {
   const reduceMotion = useReducedMotion();
   const { t } = useTranslation();
@@ -125,6 +131,20 @@ export default function SubtaskRow({
                 )}
               </button>
             </SubtaskAssigneePopover>
+            {canEdit && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="shrink-0 text-muted-foreground"
+                aria-label={t("tasks:subtasks.unlink", { title: task.title })}
+                title={t("tasks:subtasks.unlink", { title: task.title })}
+                disabled={isUnlinking}
+                onClick={onUnlink}
+              >
+                <Unlink className="size-3.5" />
+              </Button>
+            )}
           </div>
         </ContextMenuTrigger>
 

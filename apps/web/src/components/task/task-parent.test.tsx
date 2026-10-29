@@ -123,7 +123,7 @@ async function openSearch(query = "PAR-2") {
     await screen.findByRole("button", { name: "tasks:parent.assign" }),
   );
   const input = screen.getByRole("combobox", {
-    name: "tasks:parent.searchPlaceholder",
+    name: "tasks:relations.searchPlaceholder",
   });
   fireEvent.change(input, { target: { value: query } });
   return input;
@@ -291,8 +291,10 @@ describe("parent task assignment", () => {
     mocks.search.mockResolvedValue({ results: [] });
     renderParent();
     await openSearch("No match");
-    await screen.findByText("tasks:parent.searchError");
-    fireEvent.click(screen.getByRole("button", { name: "tasks:parent.retry" }));
+    await screen.findByText("tasks:relations.searchError");
+    fireEvent.click(
+      screen.getByRole("button", { name: "tasks:relations.retry" }),
+    );
     await screen.findByText("tasks:parent.noResults");
     expect(mocks.search).toHaveBeenCalledTimes(2);
   });

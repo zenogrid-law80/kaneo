@@ -9,7 +9,7 @@ import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-rela
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { HttpError } from "@/lib/http-error";
 import { toast } from "@/lib/toast";
-import TaskParentPicker from "./task-parent-picker";
+import TaskRelationPicker from "./task-relation-picker";
 
 type TaskParentProps = {
   taskId: string;
@@ -149,7 +149,10 @@ export default function TaskParent({ taskId, workspaceId }: TaskParentProps) {
         </Button>
       )}
       {pickerOpen && canEdit && (
-        <TaskParentPicker
+        <TaskRelationPicker
+          title={t("tasks:parent.assign")}
+          searchHint={t("tasks:parent.searchHint")}
+          emptyMessage={t("tasks:parent.noResults")}
           workspaceId={workspaceId}
           excludedTaskIds={excludedTaskIds}
           isPending={isPending}

@@ -10314,6 +10314,15 @@
 					"type": "object",
 					"additionalProperties": false,
 					"properties": {
+						"searching": {
+							"type": "string"
+						},
+						"searchError": {
+							"type": "string"
+						},
+						"retry": {
+							"type": "string"
+						},
 						"title": {
 							"type": "string"
 						},
@@ -10365,6 +10374,9 @@
 						}
 					},
 					"required": [
+						"searching",
+						"searchError",
+						"retry",
 						"title",
 						"tasksInProject",
 						"linkError",
@@ -10383,6 +10395,33 @@
 					"type": "object",
 					"additionalProperties": false,
 					"properties": {
+						"linkExisting": {
+							"type": "string"
+						},
+						"linkHint": {
+							"type": "string"
+						},
+						"noTasksToLink": {
+							"type": "string"
+						},
+						"linkSuccess": {
+							"type": "string"
+						},
+						"linkError": {
+							"type": "string"
+						},
+						"invalidHierarchy": {
+							"type": "string"
+						},
+						"unlink": {
+							"type": "string"
+						},
+						"unlinkSuccess": {
+							"type": "string"
+						},
+						"unlinkError": {
+							"type": "string"
+						},
 						"progress": {
 							"type": "string"
 						},
@@ -10424,6 +10463,15 @@
 						}
 					},
 					"required": [
+						"linkExisting",
+						"linkHint",
+						"noTasksToLink",
+						"linkSuccess",
+						"linkError",
+						"invalidHierarchy",
+						"unlink",
+						"unlinkSuccess",
+						"unlinkError",
 						"progress",
 						"noCompletionColumn",
 						"title",
