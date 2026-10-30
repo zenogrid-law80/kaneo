@@ -36,6 +36,7 @@ import {
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { toast } from "@/lib/toast";
 import MilestoneForm from "./milestone-form";
+import MilestoneBugLink from "./milestone-bug-link";
 
 function LinkTasks({
   projectId,
@@ -255,6 +256,11 @@ export default function MilestoneDetail({
       {milestone.description && (
         <p className="whitespace-pre-wrap text-sm">{milestone.description}</p>
       )}
+      <MilestoneBugLink
+        workspaceId={workspaceId}
+        projectId={projectId}
+        milestoneId={id}
+      />
       <div className="space-y-2 rounded-lg border p-4">
         <p className="text-sm font-medium">
           {t("tasks:milestones.progress", {

@@ -2,6 +2,8 @@ import { and, asc, eq, getTableColumns, inArray, ne, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import {
+  bugTable,
+  bugHistoryTable,
   columnTable,
   milestoneTable,
   projectTable,
@@ -267,6 +269,33 @@ export async function deleteMilestone(id: string, userId: string) {
         ),
       )
       .returning({ id: taskTable.id, projectId: taskTable.projectId });
+    const bugs = await tx
+      .update(bugTable)
+      .set({ milestoneId: null })
+      .where(
+        and(
+          eq(bugTable.projectId, existing.projectId),
+          eq(bugTable.milestoneId, id),
+        ),
+      )
+      .returning({ id: bugTable.id });
+    if (bugs.length)
+      await tx.insert(bugHistoryTable).values(
+        bugs.map((bug) => ({
+          bugId: bug.id,
+          userId,
+          type: "updated" as const,
+          changes: [
+            {
+              field: "milestoneId" as const,
+              before: id,
+              after: null,
+              beforeLabel: current.name,
+              afterLabel: null,
+            },
+          ],
+        })),
+      );
     await tx.delete(milestoneTable).where(eq(milestoneTable.id, id));
     return { tasks, current };
   });

@@ -186,6 +186,10 @@ export function useProjectWebSocket(projectId: string) {
       ws.onopen = () => {
         if (disposed || activeSocket !== ws) return;
         queueMilestoneRefresh();
+        void queryClient.invalidateQueries({ queryKey: ["bugs", projectId] });
+        void queryClient.invalidateQueries({
+          queryKey: ["bug-template", projectId],
+        });
         needsReconcile = true;
         flushPending();
         if (healthyTimeout !== null) clearTimeout(healthyTimeout);
@@ -211,6 +215,18 @@ export function useProjectWebSocket(projectId: string) {
         if (disposed || activeSocket !== ws) return;
         try {
           const message = JSON.parse(event.data);
+          if (
+            message.type === "BUGS_UPDATED" ||
+            message.type === "BUG_TEMPLATE_UPDATED"
+          ) {
+            void queryClient.invalidateQueries({
+              queryKey: [
+                message.type === "BUGS_UPDATED" ? "bugs" : "bug-template",
+                projectId,
+              ],
+            });
+            return;
+          }
           if (message.type === "TASK_SUPPORTING_ASSIGNEES_UPDATED") {
             void invalidateTaskSupportingAssignees(
               queryClient,

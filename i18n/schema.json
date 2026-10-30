@@ -12103,6 +12103,275 @@
 						}
 					},
 					"required": ["show"]
+				},
+				"bugs": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"title": {
+							"type": "string"
+						},
+						"new": {
+							"type": "string"
+						},
+						"inProgress": {
+							"type": "string"
+						},
+						"resolved": {
+							"type": "string"
+						},
+						"subtitle": {
+							"type": "string"
+						},
+						"create": {
+							"type": "string"
+						},
+						"details": {
+							"type": "string"
+						},
+						"formDescription": {
+							"type": "string"
+						},
+						"issueTitle": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"status": {
+							"type": "string"
+						},
+						"save": {
+							"type": "string"
+						},
+						"saving": {
+							"type": "string"
+						},
+						"saveError": {
+							"type": "string"
+						},
+						"loadError": {
+							"type": "string"
+						},
+						"detailError": {
+							"type": "string"
+						},
+						"templateLoadError": {
+							"type": "string"
+						},
+						"retry": {
+							"type": "string"
+						},
+						"empty": {
+							"type": "string"
+						},
+						"deleteTitle": {
+							"type": "string"
+						},
+						"deleteDescription": {
+							"type": "string"
+						},
+						"deleteError": {
+							"type": "string"
+						},
+						"templateTitle": {
+							"type": "string"
+						},
+						"templateHint": {
+							"type": "string"
+						},
+						"saveTemplate": {
+							"type": "string"
+						},
+						"resetTemplate": {
+							"type": "string"
+						},
+						"templateSaved": {
+							"type": "string"
+						},
+						"reporter": {
+							"type": "string"
+						},
+						"fixer": {
+							"type": "string"
+						},
+						"verifier": {
+							"type": "string"
+						},
+						"reporterAutomatic": {
+							"type": "string"
+						},
+						"unrecorded": {
+							"type": "string"
+						},
+						"unassigned": {
+							"type": "string"
+						},
+						"unknownPerson": {
+							"type": "string"
+						},
+						"peopleLoadError": {
+							"type": "string"
+						},
+						"allPeople": {
+							"type": "string"
+						},
+						"view": {
+							"type": "string"
+						},
+						"cardView": {
+							"type": "string"
+						},
+						"listView": {
+							"type": "string"
+						},
+						"clearFilters": {
+							"type": "string"
+						},
+						"noResults": {
+							"type": "string"
+						},
+						"resultCount": {
+							"type": "string"
+						},
+						"resultCount_zero": {
+							"type": "string"
+						},
+						"resultCount_one": {
+							"type": "string"
+						},
+						"resultCount_two": {
+							"type": "string"
+						},
+						"resultCount_few": {
+							"type": "string"
+						},
+						"resultCount_many": {
+							"type": "string"
+						},
+						"resultCount_other": {
+							"type": "string"
+						},
+						"dragBug": {
+							"type": "string"
+						},
+						"dragHint": {
+							"type": "string"
+						},
+						"dragInstructions": {
+							"type": "string"
+						},
+						"moving": {
+							"type": "string"
+						},
+						"moveError": {
+							"type": "string"
+						},
+						"milestoneFilter": {
+							"type": "string"
+						},
+						"selectedMilestone": {
+							"type": "string"
+						},
+						"milestoneBugs": {
+							"type": "string"
+						},
+						"editorHint": {
+							"type": "string"
+						},
+						"descriptionTooLong": {
+							"type": "string"
+						},
+						"history": {
+							"type": "string"
+						},
+						"historyEmpty": {
+							"type": "string"
+						},
+						"historyError": {
+							"type": "string"
+						},
+						"historyUnknownUser": {
+							"type": "string"
+						},
+						"historyCreated": {
+							"type": "string"
+						},
+						"historyBefore": {
+							"type": "string"
+						},
+						"historyAfter": {
+							"type": "string"
+						},
+						"historyDescriptionChanged": {
+							"type": "string"
+						},
+						"historyEmptyValue": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"title",
+						"new",
+						"inProgress",
+						"resolved",
+						"subtitle",
+						"create",
+						"details",
+						"formDescription",
+						"issueTitle",
+						"description",
+						"status",
+						"save",
+						"saving",
+						"saveError",
+						"loadError",
+						"detailError",
+						"templateLoadError",
+						"retry",
+						"empty",
+						"deleteTitle",
+						"deleteDescription",
+						"deleteError",
+						"templateTitle",
+						"templateHint",
+						"saveTemplate",
+						"resetTemplate",
+						"templateSaved",
+						"reporter",
+						"fixer",
+						"verifier",
+						"reporterAutomatic",
+						"unrecorded",
+						"unassigned",
+						"unknownPerson",
+						"peopleLoadError",
+						"allPeople",
+						"view",
+						"cardView",
+						"listView",
+						"clearFilters",
+						"noResults",
+						"dragBug",
+						"dragHint",
+						"dragInstructions",
+						"moving",
+						"moveError",
+						"milestoneFilter",
+						"selectedMilestone",
+						"milestoneBugs",
+						"editorHint",
+						"descriptionTooLong",
+						"history",
+						"historyEmpty",
+						"historyError",
+						"historyUnknownUser",
+						"historyCreated",
+						"historyBefore",
+						"historyAfter",
+						"historyDescriptionChanged",
+						"historyEmptyValue"
+					]
 				}
 			},
 			"required": [
@@ -12150,7 +12419,8 @@
 				"descriptionLoadError",
 				"board",
 				"milestones",
-				"weekends"
+				"weekends",
+				"bugs"
 			]
 		},
 		"invitations": {

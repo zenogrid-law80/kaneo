@@ -59,6 +59,7 @@ import { toast } from "@/lib/toast";
 import { uploadTaskImage } from "@/lib/upload-task-image";
 
 type CommentEditorProps = {
+  ariaLabel?: string;
   value: string;
   onChange?: (value: string) => void;
   placeholder?: string;
@@ -136,6 +137,7 @@ type EmbedComposerState = {
 };
 
 export default function CommentEditor({
+  ariaLabel,
   value,
   onChange,
   placeholder,
@@ -529,6 +531,13 @@ export default function CommentEditor({
       }),
       editorProps: {
         attributes: {
+          ...(ariaLabel
+            ? {
+                role: "textbox",
+                "aria-label": ariaLabel,
+                "aria-multiline": "true",
+              }
+            : {}),
           class: cn(
             proseClassName || "kaneo-comment-editor-prose",
             readOnly && "kaneo-comment-editor-prose-readonly",
@@ -904,7 +913,8 @@ export default function CommentEditor({
 
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!readOnly && !disabled);
+    // Toggling editability must not emit an empty document before hydration.
+    editor.setEditable(!readOnly && !disabled, false);
   }, [disabled, editor, readOnly]);
 
   useEffect(() => {
@@ -1301,9 +1311,10 @@ export default function CommentEditor({
     <section
       ref={editorShellRef}
       aria-label={
-        readOnly
+        ariaLabel ??
+        (readOnly
           ? t("activity:comment.editor.ariaCommentContent")
-          : t("activity:comment.editor.ariaCommentEditor")
+          : t("activity:comment.editor.ariaCommentEditor"))
       }
       className={cn(
         "kaneo-comment-editor-shell",

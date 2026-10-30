@@ -1,4 +1,4 @@
-import { Filter, UserRoundX, UsersRound } from "lucide-react";
+import { Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,6 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
 import labelColors from "@/constants/label-colors";
@@ -26,6 +23,7 @@ import {
   UNASSIGNED_FILTER_VALUE,
 } from "@/hooks/use-task-filters";
 import type { ProjectWithTasks } from "@/types/project";
+import AssigneeFilterItems from "./assignee-filter-items";
 import type { DueDateFilter } from "./types";
 import type { useProjectTaskFilters } from "./use-project-task-filters";
 
@@ -61,22 +59,6 @@ export default function ProjectTaskFilters({
   const selectedAssignee = workspaceUsers?.members?.find(
     (member) => member.userId === assigneeFilters[0],
   );
-  const toggleAssigneeFilter = (userId: string) => {
-    setAssigneeFilters((current) =>
-      current.includes(userId)
-        ? current.filter((id) => id !== userId)
-        : [...current, userId],
-    );
-  };
-  const toggleTeamMembers = (userIds: string[]) => {
-    if (userIds.length === 0) return;
-    setAssigneeFilters((current) => {
-      const allSelected = userIds.every((userId) => current.includes(userId));
-      return allSelected
-        ? current.filter((userId) => !userIds.includes(userId))
-        : [...new Set([...current, ...userIds])];
-    });
-  };
   const filterLabel =
     activeFilterCount === 0
       ? t("tasks:hierarchy.filters.all")
@@ -151,81 +133,14 @@ export default function ProjectTaskFilters({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => setAssigneeFilters([])}>
-            {t("tasks:hierarchy.filters.allAssignees")}
-          </DropdownMenuItem>
-          {user && (
-            <DropdownMenuCheckboxItem
-              checked={assigneeFilters.includes(user.id)}
-              indicatorVariant="checkbox"
-              onCheckedChange={() => toggleAssigneeFilter(user.id)}
-            >
-              {user.name}
-            </DropdownMenuCheckboxItem>
-          )}
-          <DropdownMenuCheckboxItem
-            checked={assigneeFilters.includes(UNASSIGNED_FILTER_VALUE)}
-            indicatorVariant="checkbox"
-            onCheckedChange={() =>
-              toggleAssigneeFilter(UNASSIGNED_FILTER_VALUE)
-            }
-          >
-            <UserRoundX className="size-4 text-muted-foreground" />
-            {t("tasks:hierarchy.filters.unassigned")}
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuSeparator />
-          {workspaceTeams.map((team) => {
-            const teamMembers = (workspaceUsers?.members ?? []).filter(
-              (member) => team.userIds.includes(member.userId),
-            );
-            const teamUserIds = teamMembers.map((member) => member.userId);
-            return (
-              <DropdownMenuSub key={team.id}>
-                <DropdownMenuSubTrigger>
-                  <UsersRound className="size-4 text-muted-foreground" />
-                  <span className="truncate">{team.name}</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-64">
-                  {teamMembers.length > 0 ? (
-                    <>
-                      <DropdownMenuCheckboxItem
-                        checked={teamUserIds.every((userId) =>
-                          assigneeFilters.includes(userId),
-                        )}
-                        indicatorVariant="checkbox"
-                        onCheckedChange={() => toggleTeamMembers(teamUserIds)}
-                      >
-                        <UsersRound className="size-4 text-muted-foreground" />
-                        {t("tasks:boardFilters.allTeamMembers")}
-                      </DropdownMenuCheckboxItem>
-                      <DropdownMenuSeparator />
-                      {teamMembers.map((member) => (
-                        <DropdownMenuCheckboxItem
-                          key={member.userId}
-                          checked={assigneeFilters.includes(member.userId)}
-                          indicatorVariant="checkbox"
-                          onCheckedChange={() =>
-                            toggleAssigneeFilter(member.userId)
-                          }
-                        >
-                          {member.user?.name ?? member.user?.email}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </>
-                  ) : (
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                      {t("tasks:boardFilters.noTeamMembers")}
-                    </div>
-                  )}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            );
-          })}
-          {workspaceTeams.length === 0 && (
-            <div className="px-2 py-1.5 text-xs text-muted-foreground">
-              {t("tasks:boardFilters.noTeams")}
-            </div>
-          )}
+          <AssigneeFilterItems
+            members={workspaceUsers?.members ?? []}
+            teams={workspaceTeams}
+            user={user}
+            selectedIds={assigneeFilters}
+            onChange={setAssigneeFilters}
+            unassignedValue={UNASSIGNED_FILTER_VALUE}
+          />
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

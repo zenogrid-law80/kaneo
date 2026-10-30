@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   BarChart3,
+  Bug,
   CalendarDays,
   CalendarRange,
   Flag,
@@ -44,7 +45,8 @@ type ProjectLayoutProps = {
     | "gantt"
     | "hierarchy"
     | "statistics"
-    | "milestones";
+    | "milestones"
+    | "bugs";
 };
 
 export default function ProjectLayout({
@@ -69,19 +71,28 @@ export default function ProjectLayout({
 
   const resolvedView =
     activeView ??
-    (location.pathname.includes("/milestones")
-      ? "milestones"
-      : location.pathname.includes("/backlog")
-        ? "backlog"
-        : location.pathname.includes("/calendar")
-          ? "calendar"
-          : location.pathname.includes("/hierarchy")
-            ? "hierarchy"
-            : location.pathname.includes("/gantt")
-              ? "gantt"
-              : location.pathname.includes("/statistics")
-                ? "statistics"
-                : "board");
+    (location.pathname.includes("/bugs")
+      ? "bugs"
+      : location.pathname.includes("/milestones")
+        ? "milestones"
+        : location.pathname.includes("/backlog")
+          ? "backlog"
+          : location.pathname.includes("/calendar")
+            ? "calendar"
+            : location.pathname.includes("/hierarchy")
+              ? "hierarchy"
+              : location.pathname.includes("/gantt")
+                ? "gantt"
+                : location.pathname.includes("/statistics")
+                  ? "statistics"
+                  : "board");
+
+  const handleNavigateToBugs = () => {
+    navigate({
+      to: "/dashboard/workspace/$workspaceId/project/$projectId/bugs",
+      params: { workspaceId, projectId },
+    });
+  };
 
   const handleNavigateToMilestones = () => {
     navigate({
@@ -135,19 +146,21 @@ export default function ProjectLayout({
   const handleProjectSwitch = (nextProjectId: string) => {
     navigate({
       to:
-        resolvedView === "milestones"
-          ? "/dashboard/workspace/$workspaceId/project/$projectId/milestones"
-          : resolvedView === "backlog"
-            ? "/dashboard/workspace/$workspaceId/project/$projectId/backlog"
-            : resolvedView === "calendar"
-              ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
-              : resolvedView === "gantt"
-                ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
-                : resolvedView === "statistics"
-                  ? "/dashboard/workspace/$workspaceId/project/$projectId/statistics"
-                  : resolvedView === "hierarchy"
-                    ? "/dashboard/workspace/$workspaceId/project/$projectId/hierarchy"
-                    : "/dashboard/workspace/$workspaceId/project/$projectId/board",
+        resolvedView === "bugs"
+          ? "/dashboard/workspace/$workspaceId/project/$projectId/bugs"
+          : resolvedView === "milestones"
+            ? "/dashboard/workspace/$workspaceId/project/$projectId/milestones"
+            : resolvedView === "backlog"
+              ? "/dashboard/workspace/$workspaceId/project/$projectId/backlog"
+              : resolvedView === "calendar"
+                ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
+                : resolvedView === "gantt"
+                  ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
+                  : resolvedView === "statistics"
+                    ? "/dashboard/workspace/$workspaceId/project/$projectId/statistics"
+                    : resolvedView === "hierarchy"
+                      ? "/dashboard/workspace/$workspaceId/project/$projectId/hierarchy"
+                      : "/dashboard/workspace/$workspaceId/project/$projectId/board",
       params: {
         workspaceId,
         projectId: nextProjectId,
@@ -212,6 +225,7 @@ export default function ProjectLayout({
                 }
                 onSelectHierarchy={handleNavigateToHierarchy}
                 onSelectMilestones={handleNavigateToMilestones}
+                onSelectBugs={handleNavigateToBugs}
                 onSelectProject={handleProjectSwitch}
                 onAddProject={() => setIsCreateProjectModalOpen(true)}
               />
@@ -298,6 +312,16 @@ export default function ProjectLayout({
             >
               <Flag className="size-3.5" />
               {t("tasks:milestones.title")}
+            </Button>
+            <Button
+              variant={resolvedView === "bugs" ? "secondary" : "ghost"}
+              size="xs"
+              aria-current={resolvedView === "bugs" ? "page" : undefined}
+              onClick={handleNavigateToBugs}
+              className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs"
+            >
+              <Bug className="size-3.5" />
+              {t("tasks:bugs.title")}
             </Button>
             {canManageWorkspace() && (
               <Button

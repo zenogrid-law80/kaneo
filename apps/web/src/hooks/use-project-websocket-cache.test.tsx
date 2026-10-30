@@ -255,7 +255,18 @@ it("reconciles the initial handshake after active pagination completes", async (
   renderHook(() => useProjectWebSocket("p"));
   Socket.current.onopen?.();
   await Promise.resolve();
-  expect(mocks.client.invalidateQueries).not.toHaveBeenCalled();
+  expect(mocks.client.invalidateQueries).not.toHaveBeenCalledWith({
+    queryKey: ["tasks", "p"],
+  });
+  expect(mocks.client.invalidateQueries).not.toHaveBeenCalledWith({
+    queryKey: ["task-supporting-assignees", "p"],
+  });
+  expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
+    queryKey: ["bugs", "p"],
+  });
+  expect(mocks.client.invalidateQueries).toHaveBeenCalledWith({
+    queryKey: ["bug-template", "p"],
+  });
   mocks.client.getQueryState.mockReturnValue({ fetchStatus: "idle" });
   mocks.subscribe.mock.calls[0][0]({
     query: { queryKey: ["tasks", "p"], state: { fetchStatus: "idle" } },

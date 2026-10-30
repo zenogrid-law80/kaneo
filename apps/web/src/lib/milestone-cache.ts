@@ -19,6 +19,7 @@ export function invalidateMilestoneTasks(
 ) {
   invalidateMilestones(client, projectId);
   for (const key of [
+    ["bugs", projectId],
     ["tasks", projectId],
     ["task"],
     ["my-tasks"],

@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Bug,
   CalendarDays,
   CalendarRange,
   Check,
@@ -30,13 +31,15 @@ type MobileProjectNavProps = {
     | "gantt"
     | "hierarchy"
     | "statistics"
-    | "milestones";
+    | "milestones"
+    | "bugs";
   onSelectBoard: () => void;
   onSelectBacklog: () => void;
   onSelectCalendar: () => void;
   onSelectGantt: () => void;
   onSelectStatistics?: () => void;
   onSelectMilestones: () => void;
+  onSelectBugs: () => void;
   onSelectHierarchy: () => void;
   onSelectProject: (projectId: string) => void;
   onAddProject: () => void;
@@ -53,6 +56,7 @@ export default function MobileProjectNav({
   onSelectStatistics,
   onSelectHierarchy,
   onSelectMilestones,
+  onSelectBugs,
   onSelectProject,
   onAddProject,
 }: MobileProjectNavProps) {
@@ -80,6 +84,20 @@ export default function MobileProjectNav({
               {t("navigation:keyboardShortcuts.categories.views")}
             </p>
             <div className="grid grid-cols-2 gap-1">
+              <button
+                type="button"
+                onClick={onSelectBugs}
+                aria-current={activeView === "bugs" ? "page" : undefined}
+                className={cn(
+                  "flex w-full items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs font-medium",
+                  activeView === "bugs"
+                    ? "border-border bg-secondary text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-accent",
+                )}
+              >
+                <Bug className="size-3.5" />
+                {t("tasks:bugs.title")}
+              </button>
               <button
                 type="button"
                 onClick={onSelectBacklog}

@@ -24,7 +24,7 @@ export function isSupportedTaskAsset(file: File) {
   return file.size > 0;
 }
 
-function getTaskAssetContentType(file: File) {
+export function getTaskAssetContentType(file: File) {
   if (file.type) return file.type;
 
   const extension = file.name.split(".").pop()?.toLowerCase();

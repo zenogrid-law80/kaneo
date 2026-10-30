@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { Extension } from "@tiptap/core";
 import TaskItem from "@tiptap/extension-task-item";
@@ -287,4 +288,34 @@ describe("CommentEditor image upload insertion", () => {
       "activity:comment.editor.failedToUploadFile",
     );
   });
+});
+
+it("hydrates a controlled Markdown report without replacing its content on editor initialization or locking", async () => {
+  const changes = vi.fn();
+  function ControlledReport({ disabled = false }: { disabled?: boolean }) {
+    const [value, setValue] = useState(
+      "## Reproduction\n\n**Expected** result",
+    );
+    return (
+      <CommentEditor
+        value={value}
+        disabled={disabled}
+        ariaLabel="Bug report"
+        onChange={(next) => {
+          changes(next);
+          setValue(next);
+        }}
+      />
+    );
+  }
+  const view = render(<ControlledReport />);
+  await waitFor(() =>
+    expect(latestEditor()?.getHTML()).toContain("<h2>Reproduction</h2>"),
+  );
+  expect(latestEditor().getHTML()).toContain("<strong>Expected</strong>");
+  expect(changes).not.toHaveBeenCalled();
+  view.rerender(<ControlledReport disabled />);
+  view.rerender(<ControlledReport />);
+  expect(latestEditor().getHTML()).toContain("<h2>Reproduction</h2>");
+  expect(changes).not.toHaveBeenCalled();
 });

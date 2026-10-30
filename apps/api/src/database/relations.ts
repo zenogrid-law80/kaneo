@@ -14,6 +14,9 @@ import {
   invitationTable,
   labelTable,
   milestoneTable,
+  bugTable,
+  bugHistoryTable,
+  bugTemplateTable,
   notificationTable,
   projectTable,
   sessionTable,
@@ -106,6 +109,8 @@ export const projectTableRelations = relations(
     }),
     tasks: many(taskTable),
     milestones: many(milestoneTable),
+    bugs: many(bugTable),
+    bugTemplate: one(bugTemplateTable),
     assets: many(assetTable),
     columns: many(columnTable),
     workflowRules: many(workflowRuleTable),
@@ -202,6 +207,7 @@ export const activityTableRelations = relations(activityTable, ({ one }) => ({
 }));
 
 export const assetTableRelations = relations(assetTable, ({ one }) => ({
+  bug: one(bugTable, { fields: [assetTable.bugId], references: [bugTable.id] }),
   workspace: one(workspaceTable, {
     fields: [assetTable.workspaceId],
     references: [workspaceTable.id],
@@ -449,6 +455,57 @@ export const taskSupportingAssigneeTableRelations = relations(
     membership: one(workspaceUserTable, {
       fields: [taskSupportingAssigneeTable.membershipId],
       references: [workspaceUserTable.id],
+    }),
+  }),
+);
+
+export const bugTableRelations = relations(bugTable, ({ one, many }) => ({
+  history: many(bugHistoryTable),
+  assets: many(assetTable),
+  milestone: one(milestoneTable, {
+    fields: [bugTable.projectId, bugTable.milestoneId],
+    references: [milestoneTable.projectId, milestoneTable.id],
+  }),
+  project: one(projectTable, {
+    fields: [bugTable.projectId],
+    references: [projectTable.id],
+  }),
+  reporter: one(userTable, {
+    fields: [bugTable.reporterId],
+    references: [userTable.id],
+    relationName: "bugReporter",
+  }),
+  fixer: one(userTable, {
+    fields: [bugTable.fixerId],
+    references: [userTable.id],
+    relationName: "bugFixer",
+  }),
+  verifier: one(userTable, {
+    fields: [bugTable.verifierId],
+    references: [userTable.id],
+    relationName: "bugVerifier",
+  }),
+}));
+export const bugTemplateTableRelations = relations(
+  bugTemplateTable,
+  ({ one }) => ({
+    project: one(projectTable, {
+      fields: [bugTemplateTable.projectId],
+      references: [projectTable.id],
+    }),
+  }),
+);
+
+export const bugHistoryTableRelations = relations(
+  bugHistoryTable,
+  ({ one }) => ({
+    bug: one(bugTable, {
+      fields: [bugHistoryTable.bugId],
+      references: [bugTable.id],
+    }),
+    user: one(userTable, {
+      fields: [bugHistoryTable.userId],
+      references: [userTable.id],
     }),
   }),
 );

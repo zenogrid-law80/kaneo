@@ -1,14 +1,14 @@
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
-import db from "../../database";
-import { assetTable, projectTable } from "../../database/schema";
+import db from "../database";
+import { assetTable, projectTable } from "../database/schema";
 import {
   createTaskImageUploadUrl,
   InvalidUploadedAssetError,
   isImageContentType,
   validateTaskAssetUploadInput,
   verifyTaskAssetUpload,
-} from "../../storage/s3";
+} from "./s3";
 
 type Upload = { filename: string; contentType: string; size: number };
 async function uploadContext(projectId: string, userId: string) {
@@ -32,7 +32,7 @@ function validate(input: Upload) {
     });
   }
 }
-export async function stageTaskAssetUpload(
+export async function stageAssetUpload(
   projectId: string,
   userId: string,
   input: Upload,
@@ -70,7 +70,7 @@ export async function stageTaskAssetUpload(
   });
   return upload;
 }
-export async function finalizeStagedTaskAsset(
+export async function finalizeStagedAsset(
   projectId: string,
   userId: string,
   input: Upload & { key: string },
@@ -88,7 +88,8 @@ export async function finalizeStagedTaskAsset(
     !["draft", "draft-pending"].includes(existing.surface) ||
     existing.createdBy !== userId ||
     existing.projectId !== projectId ||
-    existing.taskId !== null
+    existing.taskId !== null ||
+    existing.bugId !== null
   )
     throw new HTTPException(409, {
       message: "Upload is unavailable or already attached",
@@ -117,6 +118,7 @@ export async function finalizeStagedTaskAsset(
       and(
         eq(assetTable.id, existing.id),
         isNull(assetTable.taskId),
+        isNull(assetTable.bugId),
         inArray(assetTable.surface, ["draft", "draft-pending"]),
       ),
     )

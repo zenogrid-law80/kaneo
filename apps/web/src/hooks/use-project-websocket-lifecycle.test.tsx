@@ -80,17 +80,24 @@ describe("project WebSocket lifecycle", () => {
     act(() => old.open());
     rerender({ id: "project-b" });
     const current = TestSocket.instances[1];
+    act(() => current.open());
+    client.invalidateQueries.mockClear();
     act(() => {
-      current.open();
       old.onclose?.();
       old.onopen?.();
-      old.onmessage?.({
-        data: JSON.stringify({
-          type: "TASK_UPDATED",
-          projectId: "project-a",
-          taskId: "old-task",
-        }),
-      });
+      for (const type of [
+        "TASK_UPDATED",
+        "BUGS_UPDATED",
+        "BUG_TEMPLATE_UPDATED",
+      ]) {
+        old.onmessage?.({
+          data: JSON.stringify({
+            type,
+            projectId: "project-a",
+            taskId: "old-task",
+          }),
+        });
+      }
       vi.advanceTimersByTime(30_000);
     });
     expect(

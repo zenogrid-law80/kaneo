@@ -1,13 +1,7 @@
-import {
-  Filter,
-  PanelsTopLeft,
-  Rows3,
-  UserRoundX,
-  UsersRound,
-  X,
-} from "lucide-react";
+import { Filter, PanelsTopLeft, Rows3, UserRoundX, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import AssigneeFilterItems from "@/components/project-task-filters/assignee-filter-items";
 import SortControl from "@/components/common/sort-control";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import type { CustomFieldDefinition } from "@/components/project/custom-field-editor";
@@ -265,25 +259,6 @@ export default function BoardToolbar({
     updateFilter("priority", next.length > 0 ? next : null);
   };
 
-  const toggleAssigneeFilter = (userId: string) => {
-    const exists = selectedAssigneeIds.includes(userId);
-    const next = exists
-      ? selectedAssigneeIds.filter((id) => id !== userId)
-      : [...selectedAssigneeIds, userId];
-    updateFilter("assignee", next.length > 0 ? next : null);
-  };
-
-  const toggleTeamMembers = (userIds: string[]) => {
-    if (userIds.length === 0) return;
-    const allSelected = userIds.every((userId) =>
-      selectedAssigneeIds.includes(userId),
-    );
-    const next = allSelected
-      ? selectedAssigneeIds.filter((userId) => !userIds.includes(userId))
-      : [...new Set([...selectedAssigneeIds, ...userIds])];
-    updateFilter("assignee", next.length > 0 ? next : null);
-  };
-
   const toggleDueDateFilter = (dueDate: string) => {
     const exists = selectedDueDateFilters.includes(dueDate);
     const next = exists
@@ -459,151 +434,16 @@ export default function BoardToolbar({
                     {t("tasks:boardFilters.subjects.assignee")}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="w-64">
-                    <div className="grid grid-cols-1 gap-1 p-1">
-                      <button
-                        className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
-                          selectedAssigneeIds.length === 0
-                            ? "bg-accent text-accent-foreground"
-                            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
-                        }`}
-                        onClick={() => updateFilter("assignee", null)}
-                        type="button"
-                      >
-                        <CheckSlot checked={selectedAssigneeIds.length === 0} />
-                        {t("tasks:boardFilters.allAssignees")}
-                      </button>
-                      {user && (
-                        <button
-                          className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
-                            selectedAssigneeIds.includes(user.id)
-                              ? "bg-accent text-accent-foreground"
-                              : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
-                          }`}
-                          onClick={() => toggleAssigneeFilter(user.id)}
-                          type="button"
-                        >
-                          <CheckSlot
-                            checked={selectedAssigneeIds.includes(user.id)}
-                          />
-                          {getAssigneeAvatar(user.id)}
-                          {user.name}
-                        </button>
-                      )}
-                      <button
-                        className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
-                          selectedAssigneeIds.includes(UNASSIGNED_FILTER_VALUE)
-                            ? "bg-accent text-accent-foreground"
-                            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
-                        }`}
-                        onClick={() =>
-                          toggleAssigneeFilter(UNASSIGNED_FILTER_VALUE)
-                        }
-                        type="button"
-                      >
-                        <CheckSlot
-                          checked={selectedAssigneeIds.includes(
-                            UNASSIGNED_FILTER_VALUE,
-                          )}
-                        />
-                        <UserRoundX className="size-4 text-muted-foreground" />
-                        {t("tasks:boardFilters.unassigned")}
-                      </button>
-                      <div className="my-1 h-px bg-border" />
-                      {teams.map((team) => {
-                        const teamMembers = (users?.members ?? []).filter(
-                          (member) => team.userIds.includes(member.userId),
-                        );
-                        return (
-                          <DropdownMenuSub key={team.id}>
-                            <DropdownMenuSubTrigger className="h-7 rounded-md text-xs">
-                              <UsersRound className="size-4 text-muted-foreground" />
-                              <span className="truncate">{team.name}</span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent className="w-64">
-                              <div className="grid grid-cols-1 gap-1 p-1">
-                                {teamMembers.length > 0 ? (
-                                  <>
-                                    <button
-                                      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
-                                        teamMembers.every((member) =>
-                                          selectedAssigneeIds.includes(
-                                            member.userId,
-                                          ),
-                                        )
-                                          ? "bg-accent text-accent-foreground"
-                                          : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
-                                      }`}
-                                      onClick={() =>
-                                        toggleTeamMembers(
-                                          teamMembers.map(
-                                            (member) => member.userId,
-                                          ),
-                                        )
-                                      }
-                                      type="button"
-                                    >
-                                      <CheckSlot
-                                        checked={teamMembers.every((member) =>
-                                          selectedAssigneeIds.includes(
-                                            member.userId,
-                                          ),
-                                        )}
-                                      />
-                                      <UsersRound className="size-5 text-muted-foreground" />
-                                      {t("tasks:boardFilters.allTeamMembers")}
-                                    </button>
-                                    <div className="my-1 h-px bg-border" />
-                                    {teamMembers.map((member) => (
-                                      <button
-                                        key={member.userId}
-                                        className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
-                                          selectedAssigneeIds.includes(
-                                            member.userId,
-                                          )
-                                            ? "bg-accent text-accent-foreground"
-                                            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
-                                        }`}
-                                        onClick={() =>
-                                          toggleAssigneeFilter(member.userId)
-                                        }
-                                        type="button"
-                                      >
-                                        <CheckSlot
-                                          checked={selectedAssigneeIds.includes(
-                                            member.userId,
-                                          )}
-                                        />
-                                        <Avatar className="h-5 w-5">
-                                          <AvatarImage
-                                            src={member.user?.image ?? ""}
-                                            alt={member.user?.name || ""}
-                                          />
-                                          <AvatarFallback className="border border-border/30 text-[10px] font-medium">
-                                            {getInitials(member.user?.name)}
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <span className="truncate">
-                                          {member.user?.name}
-                                        </span>
-                                      </button>
-                                    ))}
-                                  </>
-                                ) : (
-                                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                                    {t("tasks:boardFilters.noTeamMembers")}
-                                  </div>
-                                )}
-                              </div>
-                            </DropdownMenuSubContent>
-                          </DropdownMenuSub>
-                        );
-                      })}
-                      {teams.length === 0 && (
-                        <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                          {t("tasks:boardFilters.noTeams")}
-                        </div>
-                      )}
-                    </div>
+                    <AssigneeFilterItems
+                      members={users?.members ?? []}
+                      teams={teams}
+                      user={user}
+                      selectedIds={selectedAssigneeIds}
+                      unassignedValue={UNASSIGNED_FILTER_VALUE}
+                      onChange={(ids) =>
+                        updateFilter("assignee", ids.length ? ids : null)
+                      }
+                    />
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
 

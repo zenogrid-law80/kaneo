@@ -855,3 +855,20 @@ for (const name of [
     },
   );
 }
+
+for (const name of ["bug.changed", "bug.template.updated"]) {
+  subscribeToEvent<{ projectId: string; initiatorId?: string }>(
+    name,
+    async (data) => {
+      broadcastToProject(
+        data.projectId,
+        {
+          type:
+            name === "bug.changed" ? "BUGS_UPDATED" : "BUG_TEMPLATE_UPDATED",
+          projectId: data.projectId,
+        },
+        data.initiatorId,
+      );
+    },
+  );
+}

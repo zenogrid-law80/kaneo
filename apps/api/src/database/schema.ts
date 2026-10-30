@@ -349,6 +349,107 @@ export const projectTable = pgTable(
   ],
 );
 
+// Bugs deliberately have no task/parent relation or task number sequence.
+export const bugTable = pgTable(
+  "bug",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    milestoneId: text("milestone_id"),
+    reporterId: text("reporter_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    fixerId: text("fixer_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    verifierId: text("verifier_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    status: text("status", { enum: ["new", "in-progress", "resolved"] })
+      .notNull()
+      .default("new"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    check(
+      "bug_status_check",
+      sql`${table.status} IN ('new', 'in-progress', 'resolved')`,
+    ),
+    foreignKey({
+      name: "bug_project_milestone_fk",
+      columns: [table.projectId, table.milestoneId],
+      foreignColumns: [milestoneTable.projectId, milestoneTable.id],
+    }),
+    index("bug_project_milestone_idx").on(table.projectId, table.milestoneId),
+    index("bug_project_reporter_idx").on(table.projectId, table.reporterId),
+    index("bug_project_fixer_idx").on(table.projectId, table.fixerId),
+    index("bug_project_verifier_idx").on(table.projectId, table.verifierId),
+    index("bug_project_status_created_idx").on(
+      table.projectId,
+      table.status,
+      table.createdAt,
+      table.id,
+    ),
+  ],
+);
+
+export const bugHistoryTable = pgTable(
+  "bug_history",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    bugId: text("bug_id")
+      .notNull()
+      .references(() => bugTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    type: text("type", { enum: ["created", "updated"] }).notNull(),
+    changes: jsonb("changes")
+      .$type<import("../bug/history-types").BugChange[]>()
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("bug_history_bug_created_idx").on(
+      table.bugId,
+      table.createdAt,
+      table.id,
+    ),
+  ],
+);
+
+export const bugTemplateTable = pgTable("bug_template", {
+  projectId: text("project_id")
+    .primaryKey()
+    .references(() => projectTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  template: text("template").notNull(),
+});
+
 export const columnTable = pgTable(
   "column",
   {
@@ -714,6 +815,10 @@ export const assetTable = pgTable(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+    bugId: text("bug_id").references(() => bugTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
     activityId: text("activity_id").references(() => activityTable.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
@@ -734,6 +839,7 @@ export const assetTable = pgTable(
     index("asset_workspaceId_idx").on(table.workspaceId),
     index("asset_projectId_idx").on(table.projectId),
     index("asset_taskId_idx").on(table.taskId),
+    index("asset_bugId_idx").on(table.bugId),
     index("asset_activityId_idx").on(table.activityId),
     index("asset_createdBy_idx").on(table.createdBy),
     index("asset_draft_expiry_idx")

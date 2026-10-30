@@ -194,3 +194,32 @@ it("reconciles a milestone event during initial pagination once without restarti
   expect(mocks.board).toHaveBeenCalledTimes(2);
   expect(result.current.isFetching).toBe(false);
 });
+
+it("refreshes bug caches independently while a task board request is in flight", async () => {
+  const bugs = vi.fn().mockResolvedValue([]);
+  const template = vi.fn().mockResolvedValue({ template: "Current" });
+  renderHook(
+    () => {
+      useGetTasks("project");
+      useQuery({
+        queryKey: ["bugs", "project", "list", "new", 1],
+        queryFn: bugs,
+      });
+      useQuery({ queryKey: ["bug-template", "project"], queryFn: template });
+      useProjectWebSocket("project");
+    },
+    {
+      wrapper: ({ children }: PropsWithChildren) => (
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      ),
+    },
+  );
+  await waitFor(() => expect(bugs).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(template).toHaveBeenCalledTimes(1));
+  act(() => Socket.current.message("BUGS_UPDATED"));
+  await waitFor(() => expect(bugs).toHaveBeenCalledTimes(2));
+  expect(template).toHaveBeenCalledTimes(1);
+  act(() => Socket.current.message("BUG_TEMPLATE_UPDATED"));
+  await waitFor(() => expect(template).toHaveBeenCalledTimes(2));
+  expect(mocks.board).toHaveBeenCalledTimes(1);
+});

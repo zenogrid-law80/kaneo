@@ -456,6 +456,34 @@
       "when": 1792049320674,
       "tag": "0064_tiresome_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1793358234658,
+      "tag": "0065_stormy_nighthawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1793359776405,
+      "tag": "0066_nervous_la_nuit",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1793360425512,
+      "tag": "0067_foamy_mole_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1793365616817,
+      "tag": "0068_curvy_aqueduct",
+      "breakpoints": true
     }
   ]
 }

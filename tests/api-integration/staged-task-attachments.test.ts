@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import db, { schema } from "../../apps/api/src/database";
 import createTask from "../../apps/api/src/task/controllers/create-task";
 import {
-  stageTaskAssetUpload,
-  finalizeStagedTaskAsset,
-} from "../../apps/api/src/task/controllers/stage-task-asset";
+  stageAssetUpload as stageTaskAssetUpload,
+  finalizeStagedAsset as finalizeStagedTaskAsset,
+} from "../../apps/api/src/storage/stage-asset";
 import { resetTestDatabase } from "./helpers/database";
 import {
   createProjectFixture,

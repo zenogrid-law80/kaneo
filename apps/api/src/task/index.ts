@@ -50,9 +50,9 @@ import importTasks from "./controllers/import-tasks";
 import moveTask from "./controllers/move-task";
 import reorderTasks from "./controllers/reorder-tasks";
 import {
-  stageTaskAssetUpload,
-  finalizeStagedTaskAsset,
-} from "./controllers/stage-task-asset";
+  stageAssetUpload as stageTaskAssetUpload,
+  finalizeStagedAsset as finalizeStagedTaskAsset,
+} from "../storage/stage-asset";
 import {
   requireBulkTaskEntitlement,
   requireBulkTaskPermission,

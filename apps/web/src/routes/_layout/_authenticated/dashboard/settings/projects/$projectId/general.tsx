@@ -17,6 +17,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import BugTemplateSettings from "@/components/bug/bug-template-settings";
 import PageTitle from "@/components/page-title";
 import { TasksImportExport } from "@/components/project/tasks-import-export.tsx";
 import {
@@ -791,6 +792,12 @@ function RouteComponent() {
               </div>
               {project && <TasksImportExport project={project} />}
             </div>
+            <Separator />
+            <BugTemplateSettings
+              key={projectId}
+              projectId={projectId}
+              canEdit={canEdit}
+            />
 
             {canShowMove && (
               <>

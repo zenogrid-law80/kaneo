@@ -22,6 +22,7 @@ import admin from "./admin";
 import { auth } from "./auth";
 import { organizationRoutes } from "./auth-openapi";
 import billing from "./billing";
+import bug from "./bug";
 import calendarFeed, { publicCalendarFeed } from "./calendar-feed";
 import column from "./column";
 import comment from "./comment";
@@ -744,6 +745,7 @@ export function createApp() {
   const projectApi = api.route("/project", project);
   const calendarFeedApi = api.route("/calendar-feed", calendarFeed);
   const taskApi = api.route("/task", task);
+  const bugApi = api.route("/bug", bug);
   const milestoneApi = api.route("/milestone", milestone);
   const columnApi = api.route("/column", column);
   const activityApi = api.route("/activity", activity);
@@ -914,6 +916,7 @@ export function createApp() {
     mattermostIntegrationApi,
     slackIntegrationApi,
     taskApi,
+    bugApi,
     milestoneApi,
     taskRelationApi,
     telegramIntegrationApi,
@@ -1048,6 +1051,7 @@ const {
   searchApi,
   slackIntegrationApi,
   taskApi,
+  bugApi,
   milestoneApi,
   taskRelationApi,
   telegramIntegrationApi,
@@ -1076,6 +1080,7 @@ export type AppType =
   | typeof projectApi
   | typeof calendarFeedApi
   | typeof taskApi
+  | typeof bugApi
   | typeof milestoneApi
   | typeof columnApi
   | typeof activityApi

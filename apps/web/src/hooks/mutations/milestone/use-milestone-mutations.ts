@@ -22,7 +22,7 @@ export function useMilestoneMutations(projectId: string) {
     update: useMutation({
       mutationFn: ({ id, input }: { id: string; input: MilestoneUpdate }) =>
         updateMilestone(id, input),
-      onSuccess: () => invalidateMilestones(client, projectId),
+      onSuccess: () => invalidateMilestoneTasks(client, projectId),
     }),
     remove: useMutation({
       mutationFn: deleteMilestone,

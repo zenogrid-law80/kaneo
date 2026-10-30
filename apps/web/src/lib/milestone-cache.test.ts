@@ -25,6 +25,8 @@ describe("milestone cache", () => {
   it("refreshes task details, boards, activities and candidates after deletion or bulk detach", () => {
     const client = new QueryClient();
     const keys = [
+      ["bugs", "p1", "list", "new", 2, { milestoneId: "m1" }],
+      ["bugs", "p1", "detail", "b1"],
       ["task", "t1"],
       ["tasks", "p1"],
       ["activities", "t1"],
