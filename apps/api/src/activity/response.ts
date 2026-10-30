@@ -29,30 +29,43 @@ export const activitySchema = z
 
 export const activityListSchema = z.array(activitySchema);
 
+const workspaceActivityBase = z.object({
+  id: z.string(),
+  type: z.string().openapi({
+    description: `${activityTypeDescription} Bug events: bug_created, bug_updated, bug_comment_created, bug_comment_updated.`,
+  }),
+  createdAt: responseTimestamp.openapi({
+    description: "Event time; for bug comments, the latest edit time.",
+  }),
+  eventData: z.unknown().openapi({
+    description:
+      "Type-specific payload. Task status changes include current configured column names when available. Null for bug events.",
+  }),
+  excerpt: z.string().nullable().openapi({
+    description: "Plain-text content preview, at most 240 characters.",
+  }),
+  userId: z.string().nullable(),
+  userName: z.string().nullable(),
+  userImage: z.string().nullable(),
+  externalUserName: z.string().nullable(),
+  externalUserAvatar: z.string().nullable(),
+  projectId: z.string(),
+  projectSlug: z.string(),
+});
 export const workspaceActivityListSchema = z.array(
   z
-    .object({
-      id: z.string(),
-      type: z.string().openapi({ description: activityTypeDescription }),
-      createdAt: responseTimestamp,
-      eventData: z.unknown().openapi({
-        description:
-          "Type-specific payload. For status_changed, oldStatus/newStatus are slugs and oldStatusName/newStatusName carry current configured column names when available.",
+    .discriminatedUnion("resourceType", [
+      workspaceActivityBase.extend({
+        resourceType: z.literal("task"),
+        taskId: z.string(),
+        taskTitle: z.string(),
+        taskNumber: z.number().nullable(),
       }),
-      excerpt: z.string().nullable().openapi({
-        description:
-          "Plain-text preview of the stored content, at most 240 characters: the comment body, or the description older system events carry instead of eventData.",
+      workspaceActivityBase.extend({
+        resourceType: z.literal("bug"),
+        bugId: z.string(),
+        bugTitle: z.string(),
       }),
-      userId: z.string().nullable(),
-      userName: z.string().nullable(),
-      userImage: z.string().nullable(),
-      externalUserName: z.string().nullable(),
-      externalUserAvatar: z.string().nullable(),
-      taskId: z.string(),
-      taskTitle: z.string(),
-      taskNumber: z.number().nullable(),
-      projectId: z.string(),
-      projectSlug: z.string(),
-    })
+    ])
     .openapi("WorkspaceActivity"),
 );

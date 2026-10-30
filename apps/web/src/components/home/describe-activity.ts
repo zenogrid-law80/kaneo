@@ -22,6 +22,14 @@ export function describeActivity(activity: WorkspaceActivity, t: Translate) {
   const eventData = eventDataOf(activity);
 
   switch (activity.type) {
+    case "bug_created":
+      return t("workspace:home.activity.bugCreated");
+    case "bug_updated":
+      return t("workspace:home.activity.bugUpdated");
+    case "bug_comment_created":
+      return t("workspace:home.activity.bugCommentCreated");
+    case "bug_comment_updated":
+      return t("workspace:home.activity.bugCommentUpdated");
     case "comment":
       return t("workspace:home.activity.commented");
     case "create":

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 import type { Notification } from "@/types/notification";
 import {
   getNotificationContent,
@@ -39,6 +39,32 @@ function notification(
 }
 
 describe("notification display content", () => {
+  it("renders localized Bug roles together in a single assignment notification", () => {
+    const translate = vi.fn(
+      (key: string, options?: Record<string, unknown>) => {
+        if (key === "notifications:bugRoles.fixer") return "수정자";
+        if (key === "notifications:bugRoles.verifier") return "검수자";
+        return `${key}:${options?.roles ?? ""}`;
+      },
+    );
+    const item = notification("bug_assigned", {
+      bugTitle: "Bug title",
+      roles: ["fixer", "verifier", "unexpected"],
+    });
+    expect(getNotificationTitle(item, translate)).toBe(
+      "notifications:events.bug_assigned.title:",
+    );
+    expect(getNotificationContent(item, translate)).toBe(
+      "notifications:events.bug_assigned.content:수정자, 검수자",
+    );
+    expect(translate).toHaveBeenCalledWith(
+      "notifications:events.bug_assigned.content",
+      expect.objectContaining({
+        bugTitle: "Bug title",
+        roles: "수정자, 검수자",
+      }),
+    );
+  });
   it("renders configured due-date lead times", () => {
     const item = notification("due_date_reminder", {
       taskTitle: "Launch website",

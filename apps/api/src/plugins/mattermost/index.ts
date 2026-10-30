@@ -1,5 +1,6 @@
 import type { IntegrationPlugin } from "../types";
 import { validateMattermostConfig } from "./config";
+import { handleBugCreated, handleBugAssigneesChanged } from "./bug-events";
 import {
   handleTaskCommentCreated,
   handleTaskCreated,
@@ -12,6 +13,8 @@ import {
 export const mattermostPlugin: IntegrationPlugin = {
   type: "mattermost",
   name: "Mattermost",
+  onBugCreated: handleBugCreated,
+  onBugAssigneesChanged: handleBugAssigneesChanged,
   onTaskCreated: handleTaskCreated,
   onTaskStatusChanged: handleTaskStatusChanged,
   onTaskPriorityChanged: handleTaskPriorityChanged,

@@ -2177,6 +2177,12 @@
 						},
 						"recipientHint": {
 							"type": "string"
+						},
+						"eventTaskAndBugAssignments": {
+							"type": "string"
+						},
+						"bugAssignmentHint": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -2280,7 +2286,9 @@
 						"toastPreferencesSaveFailed",
 						"toastRuleSavedGeneric",
 						"toastRuleRemovedGeneric",
-						"recipientHint"
+						"recipientHint",
+						"eventTaskAndBugAssignments",
+						"bugAssignmentHint"
 					]
 				},
 				"preferencesPage": {
@@ -7411,6 +7419,12 @@
 								},
 								"taskCommentCreated": {
 									"type": "string"
+								},
+								"bugCreated": {
+									"type": "string"
+								},
+								"bugAssigneesChanged": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -7419,7 +7433,9 @@
 								"taskPriorityChanged",
 								"taskTitleChanged",
 								"taskDescriptionChanged",
-								"taskCommentCreated"
+								"taskCommentCreated",
+								"bugCreated",
+								"bugAssigneesChanged"
 							]
 						},
 						"connect": {
@@ -7432,6 +7448,12 @@
 							"type": "string"
 						},
 						"disconnect": {
+							"type": "string"
+						},
+						"bugCreatedMessage": {
+							"type": "string"
+						},
+						"bugAssignedMessage": {
 							"type": "string"
 						}
 					},
@@ -7454,7 +7476,9 @@
 						"connect",
 						"saveChanges",
 						"update",
-						"disconnect"
+						"disconnect",
+						"bugCreatedMessage",
+						"bugAssignedMessage"
 					]
 				},
 				"security": {
@@ -8857,6 +8881,32 @@
 								}
 							},
 							"required": ["title", "contentWithTask", "contentWithoutTask"]
+						},
+						"bug_created": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
+						},
+						"bug_assigned": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"content": {
+									"type": "string"
+								}
+							},
+							"required": ["title", "content"]
 						}
 					},
 					"required": [
@@ -8868,7 +8918,9 @@
 						"task_comment",
 						"due_date_reminder",
 						"task_overdue",
-						"time_entry_created"
+						"time_entry_created",
+						"bug_created",
+						"bug_assigned"
 					]
 				},
 				"inbox": {
@@ -8929,6 +8981,9 @@
 						},
 						"taskLoadError": {
 							"type": "string"
+						},
+						"openBug": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -8944,8 +8999,22 @@
 						"openTask",
 						"recentActivity",
 						"taskUnavailable",
-						"taskLoadError"
+						"taskLoadError",
+						"openBug"
 					]
+				},
+				"bugRoles": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"fixer": {
+							"type": "string"
+						},
+						"verifier": {
+							"type": "string"
+						}
+					},
+					"required": ["fixer", "verifier"]
 				}
 			},
 			"required": [
@@ -8956,7 +9025,8 @@
 				"clearDialogDescription",
 				"reminderLeadTime",
 				"events",
-				"inbox"
+				"inbox",
+				"bugRoles"
 			]
 		},
 		"activity": {
@@ -12308,6 +12378,36 @@
 						},
 						"historyEmptyValue": {
 							"type": "string"
+						},
+						"comments": {
+							"type": "string"
+						},
+						"commentsEmpty": {
+							"type": "string"
+						},
+						"commentsError": {
+							"type": "string"
+						},
+						"addComment": {
+							"type": "string"
+						},
+						"commentPlaceholder": {
+							"type": "string"
+						},
+						"commentLimit": {
+							"type": "string"
+						},
+						"commentEdited": {
+							"type": "string"
+						},
+						"deleteCommentTitle": {
+							"type": "string"
+						},
+						"deleteCommentDescription": {
+							"type": "string"
+						},
+						"commentDeleteError": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -12370,7 +12470,17 @@
 						"historyBefore",
 						"historyAfter",
 						"historyDescriptionChanged",
-						"historyEmptyValue"
+						"historyEmptyValue",
+						"comments",
+						"commentsEmpty",
+						"commentsError",
+						"addComment",
+						"commentPlaceholder",
+						"commentLimit",
+						"commentEdited",
+						"deleteCommentTitle",
+						"deleteCommentDescription",
+						"commentDeleteError"
 					]
 				}
 			},
@@ -12995,6 +13105,18 @@
 								},
 								"loadError": {
 									"type": "string"
+								},
+								"bugCreated": {
+									"type": "string"
+								},
+								"bugUpdated": {
+									"type": "string"
+								},
+								"bugCommentCreated": {
+									"type": "string"
+								},
+								"bugCommentUpdated": {
+									"type": "string"
 								}
 							},
 							"required": [
@@ -13002,7 +13124,11 @@
 								"commented",
 								"updated",
 								"empty",
-								"loadError"
+								"loadError",
+								"bugCreated",
+								"bugUpdated",
+								"bugCommentCreated",
+								"bugCommentUpdated"
 							]
 						}
 					},

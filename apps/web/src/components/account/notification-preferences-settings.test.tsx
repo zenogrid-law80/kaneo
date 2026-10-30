@@ -88,7 +88,7 @@ describe("NotificationPreferencesSettings", () => {
 
     fireEvent.click(
       screen.getByRole("switch", {
-        name: "settings:notificationsPage.eventTaskAssignments",
+        name: "settings:notificationsPage.eventTaskAndBugAssignments",
       }),
     );
     fireEvent.change(

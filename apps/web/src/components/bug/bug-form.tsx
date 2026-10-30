@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import BugDescriptionEditor from "./bug-description-editor";
+import BugComments from "./bug-comments";
 import { Radio, RadioGroup } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { Bug, BugStatus, BugUpdate } from "@/fetchers/bug";
@@ -63,7 +64,12 @@ export default function BugForm({
   const status = statusDraft ?? bug?.status ?? "new";
   const [pending, setPending] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const busy = pending || uploading;
+  const [commentBusyCount, setCommentBusyCount] = useState(0);
+  const onCommentBusyChange = useCallback(
+    (change: number) => setCommentBusyCount((count) => count + change),
+    [],
+  );
+  const busy = pending || uploading || commentBusyCount > 0;
   const [failed, setFailed] = useState(false);
   const items = bugStatuses.map((value) => ({
     value,
@@ -228,6 +234,16 @@ export default function BugForm({
                 </p>
               )}
             </Field>
+            {bug && (
+              <BugComments
+                key={bug.id}
+                projectId={projectId}
+                bugId={bug.id}
+                readOnly={readOnly}
+                disabled={pending || uploading}
+                onBusyChange={onCommentBusyChange}
+              />
+            )}
             {history}
             {failed && (
               <p role="alert" className="text-sm text-destructive">

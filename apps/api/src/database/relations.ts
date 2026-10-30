@@ -15,6 +15,7 @@ import {
   labelTable,
   milestoneTable,
   bugTable,
+  bugCommentTable,
   bugHistoryTable,
   bugTemplateTable,
   notificationTable,
@@ -47,6 +48,7 @@ export const userTableRelations = relations(userTable, ({ many, one }) => ({
   timeEntries: many(timeEntryTable),
   activities: many(activityTable),
   comments: many(commentTable),
+  bugComments: many(bugCommentTable),
   assets: many(assetTable),
   notifications: many(notificationTable),
   notificationPreference: one(userNotificationPreferenceTable),
@@ -207,6 +209,10 @@ export const activityTableRelations = relations(activityTable, ({ one }) => ({
 }));
 
 export const assetTableRelations = relations(assetTable, ({ one }) => ({
+  bugComment: one(bugCommentTable, {
+    fields: [assetTable.bugCommentId],
+    references: [bugCommentTable.id],
+  }),
   bug: one(bugTable, { fields: [assetTable.bugId], references: [bugTable.id] }),
   workspace: one(workspaceTable, {
     fields: [assetTable.workspaceId],
@@ -460,6 +466,7 @@ export const taskSupportingAssigneeTableRelations = relations(
 );
 
 export const bugTableRelations = relations(bugTable, ({ one, many }) => ({
+  comments: many(bugCommentTable),
   history: many(bugHistoryTable),
   assets: many(assetTable),
   milestone: one(milestoneTable, {
@@ -507,5 +514,20 @@ export const bugHistoryTableRelations = relations(
       fields: [bugHistoryTable.userId],
       references: [userTable.id],
     }),
+  }),
+);
+
+export const bugCommentTableRelations = relations(
+  bugCommentTable,
+  ({ one, many }) => ({
+    bug: one(bugTable, {
+      fields: [bugCommentTable.bugId],
+      references: [bugTable.id],
+    }),
+    user: one(userTable, {
+      fields: [bugCommentTable.userId],
+      references: [userTable.id],
+    }),
+    assets: many(assetTable),
   }),
 );

@@ -15,5 +15,11 @@ export function notificationWorkspaceFilter(workspaceId?: string) {
       WHERE inbox_task.id = ${notificationTable.resourceId}
         AND inbox_project.workspace_id = ${workspaceId}
     ))
+    OR (${notificationTable.resourceType} = 'bug' AND EXISTS (
+      SELECT 1 FROM bug AS inbox_bug
+      JOIN project AS inbox_project ON inbox_project.id = inbox_bug.project_id
+      WHERE inbox_bug.id = ${notificationTable.resourceId}
+        AND inbox_project.workspace_id = ${workspaceId}
+    ))
   )`;
 }

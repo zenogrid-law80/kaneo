@@ -5,8 +5,11 @@ import { describeActivity } from "./describe-activity";
 const t = (key: string, options?: Record<string, unknown>) =>
   options ? `${key} ${JSON.stringify(options)}` : key;
 
-function activity(overrides: Partial<WorkspaceActivity>): WorkspaceActivity {
+function activity(
+  overrides: Partial<Extract<WorkspaceActivity, { resourceType: "task" }>>,
+): WorkspaceActivity {
   return {
+    resourceType: "task",
     id: "activity-1",
     type: "comment",
     createdAt: "2026-10-02T10:00:00.000Z",
@@ -117,4 +120,24 @@ describe("describeActivity", () => {
       "workspace:home.activity.updated",
     );
   });
+});
+
+it.each([
+  ["bug_created", "bugCreated"],
+  ["bug_updated", "bugUpdated"],
+  ["bug_comment_created", "bugCommentCreated"],
+  ["bug_comment_updated", "bugCommentUpdated"],
+])("describes %s without treating it as a task edit", (type, key) => {
+  expect(
+    describeActivity(
+      {
+        ...activity({}),
+        resourceType: "bug",
+        bugId: "bug",
+        bugTitle: "Bug",
+        type,
+      },
+      t,
+    ),
+  ).toBe(`workspace:home.activity.${key}`);
 });

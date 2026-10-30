@@ -571,7 +571,9 @@
 			"toastPreferencesSaveFailed": "儲存通知偏好設定失敗",
 			"toastRuleSavedGeneric": "工作區通知規則已儲存",
 			"toastRuleRemovedGeneric": "工作區通知規則已移除",
-			"recipientHint": "指派給你的任務有新留言或狀態變更時會通知你。提及則會通知被提及的成員。你自己的留言、提及與狀態變更不會通知你。"
+			"recipientHint": "指派給你的任務有新留言或狀態變更時會通知你。提及則會通知被提及的成員。你自己的留言、提及與狀態變更不會通知你。",
+			"eventTaskAndBugAssignments": "Task and bug assignments",
+			"bugAssignmentHint": "Also notify designated bug fixers and verifiers on creation and new assignments."
 		},
 		"preferencesPage": {
 			"title": "偏好設定",
@@ -1350,12 +1352,16 @@
 				"taskPriorityChanged": "優先順序變更",
 				"taskTitleChanged": "標題變更",
 				"taskDescriptionChanged": "說明變更",
-				"taskCommentCreated": "新留言"
+				"taskCommentCreated": "新留言",
+				"bugCreated": "New bugs",
+				"bugAssigneesChanged": "Bug fixer and verifier assignments"
 			},
 			"connect": "連線 Mattermost",
 			"saveChanges": "儲存變更",
 			"update": "更新 Mattermost",
-			"disconnect": "中斷連線"
+			"disconnect": "中斷連線",
+			"bugCreatedMessage": "{{actor}} created a bug.",
+			"bugAssignedMessage": "{{actor}} updated bug assignments."
 		},
 		"genericWebhookIntegration": {
 			"validation": {
@@ -2173,6 +2179,14 @@
 				"title": "已開始計時",
 				"contentWithTask": "已開始為任務 {{taskTitle}} 計時",
 				"contentWithoutTask": "已開始為某個任務計時"
+			},
+			"bug_created": {
+				"title": "New bug created",
+				"content": "Bug \"{{bugTitle}}\" was created. Your role: {{roles}}."
+			},
+			"bug_assigned": {
+				"title": "Bug assigned to you",
+				"content": "You were assigned as {{roles}} for bug \"{{bugTitle}}\"."
 			}
 		},
 		"inbox": {
@@ -2193,7 +2207,12 @@
 			"openTask": "開啟任務",
 			"recentActivity": "最近動態",
 			"taskUnavailable": "這個任務已無法存取。",
-			"taskLoadError": "無法載入這個任務。"
+			"taskLoadError": "無法載入這個任務。",
+			"openBug": "Open bug"
+		},
+		"bugRoles": {
+			"fixer": "fixer",
+			"verifier": "verifier"
 		}
 	},
 	"activity": {
@@ -2957,7 +2976,17 @@
 			"historyBefore": "Before",
 			"historyAfter": "After",
 			"historyDescriptionChanged": "Description changed — view before and after",
-			"historyEmptyValue": "None"
+			"historyEmptyValue": "None",
+			"comments": "Comments",
+			"commentsEmpty": "No comments yet. Start the conversation.",
+			"commentsError": "Could not load comments.",
+			"addComment": "Add comment",
+			"commentPlaceholder": "Write a comment…",
+			"commentLimit": "Comments can contain up to 10,000 characters.",
+			"commentEdited": "Edited",
+			"deleteCommentTitle": "Delete comment?",
+			"deleteCommentDescription": "This comment and its attachments will be permanently deleted.",
+			"commentDeleteError": "Could not delete the comment. Please try again."
 		}
 	},
 	"invitations": {
@@ -3071,7 +3100,11 @@
 				"commented": "已留言",
 				"updated": "更新了任務",
 				"empty": "過去 30 天沒有任何動態。",
-				"loadError": "無法載入動態。"
+				"loadError": "無法載入動態。",
+				"bugCreated": "created a bug",
+				"bugUpdated": "updated a bug",
+				"bugCommentCreated": "commented on a bug",
+				"bugCommentUpdated": "edited a bug comment"
 			}
 		},
 		"myWork": {

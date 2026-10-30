@@ -1,8 +1,10 @@
 import { ArrowLeft } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
   getNotificationContent,
   getNotificationTitle,
+  getEventDataRecord,
 } from "@/components/notification/notification-text";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
@@ -25,6 +27,7 @@ export function InboxDetail({
   const taskId =
     notification.resourceType === "task" ? notification.resourceId : null;
   const content = getNotificationContent(notification, t);
+  const eventData = getEventDataRecord(notification.eventData);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -65,6 +68,27 @@ export function InboxDetail({
           {taskId && (
             <InboxTask key={taskId} taskId={taskId} workspaceId={workspaceId} />
           )}
+          {notification.resourceType === "bug" &&
+            notification.resourceId &&
+            typeof eventData?.projectId === "string" && (
+              <Button
+                render={
+                  <Link
+                    to="/dashboard/workspace/$workspaceId/project/$projectId/bugs"
+                    params={{
+                      workspaceId:
+                        typeof eventData.workspaceId === "string"
+                          ? eventData.workspaceId
+                          : workspaceId,
+                      projectId: eventData.projectId,
+                    }}
+                    search={{ bugId: notification.resourceId }}
+                  />
+                }
+              >
+                {t("notifications:inbox.openBug")}
+              </Button>
+            )}
         </div>
       </div>
     </div>

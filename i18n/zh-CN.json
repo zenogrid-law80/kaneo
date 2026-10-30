@@ -571,7 +571,9 @@
 			"toastPreferencesSaveFailed": "保存通知偏好失败",
 			"toastRuleSavedGeneric": "工作区通知规则已保存",
 			"toastRuleRemovedGeneric": "工作区通知规则已移除",
-			"recipientHint": "评论和状态变更会向你发送有关分配给你的任务的通知。提及会通知所选成员。你自己的评论、提及和状态变更不会向你发送通知。"
+			"recipientHint": "评论和状态变更会向你发送有关分配给你的任务的通知。提及会通知所选成员。你自己的评论、提及和状态变更不会向你发送通知。",
+			"eventTaskAndBugAssignments": "Task and bug assignments",
+			"bugAssignmentHint": "Also notify designated bug fixers and verifiers on creation and new assignments."
 		},
 		"preferencesPage": {
 			"title": "偏好设置",
@@ -1592,12 +1594,16 @@
 				"taskPriorityChanged": "优先级变更",
 				"taskTitleChanged": "标题变更",
 				"taskDescriptionChanged": "描述变更",
-				"taskCommentCreated": "新评论"
+				"taskCommentCreated": "新评论",
+				"bugCreated": "New bugs",
+				"bugAssigneesChanged": "Bug fixer and verifier assignments"
 			},
 			"connect": "连接 Mattermost",
 			"saveChanges": "保存更改",
 			"update": "更新 Mattermost",
-			"disconnect": "断开连接"
+			"disconnect": "断开连接",
+			"bugCreatedMessage": "{{actor}} created a bug.",
+			"bugAssignedMessage": "{{actor}} updated bug assignments."
 		},
 		"customFields": {
 			"addButton": "添加",
@@ -2174,6 +2180,14 @@
 				"title": "已开始计时",
 				"contentWithTask": "已开始为任务 {{taskTitle}} 计时",
 				"contentWithoutTask": "已开始为某个任务计时"
+			},
+			"bug_created": {
+				"title": "New bug created",
+				"content": "Bug \"{{bugTitle}}\" was created. Your role: {{roles}}."
+			},
+			"bug_assigned": {
+				"title": "Bug assigned to you",
+				"content": "You were assigned as {{roles}} for bug \"{{bugTitle}}\"."
 			}
 		},
 		"inbox": {
@@ -2194,7 +2208,12 @@
 			"today": "今天",
 			"unread": "未读",
 			"loadError": "通知加载失败。",
-			"taskLoadError": "该任务加载失败。"
+			"taskLoadError": "该任务加载失败。",
+			"openBug": "Open bug"
+		},
+		"bugRoles": {
+			"fixer": "fixer",
+			"verifier": "verifier"
 		}
 	},
 	"activity": {
@@ -2958,7 +2977,17 @@
 			"historyBefore": "Before",
 			"historyAfter": "After",
 			"historyDescriptionChanged": "Description changed — view before and after",
-			"historyEmptyValue": "None"
+			"historyEmptyValue": "None",
+			"comments": "Comments",
+			"commentsEmpty": "No comments yet. Start the conversation.",
+			"commentsError": "Could not load comments.",
+			"addComment": "Add comment",
+			"commentPlaceholder": "Write a comment…",
+			"commentLimit": "Comments can contain up to 10,000 characters.",
+			"commentEdited": "Edited",
+			"deleteCommentTitle": "Delete comment?",
+			"deleteCommentDescription": "This comment and its attachments will be permanently deleted.",
+			"commentDeleteError": "Could not delete the comment. Please try again."
 		}
 	},
 	"invitations": {
@@ -3074,7 +3103,11 @@
 				"empty": "最近 30 天没有任何动态。",
 				"loadError": "动态加载失败。",
 				"title": "动态",
-				"updated": "更新了任务"
+				"updated": "更新了任务",
+				"bugCreated": "created a bug",
+				"bugUpdated": "updated a bug",
+				"bugCommentCreated": "commented on a bug",
+				"bugCommentUpdated": "edited a bug comment"
 			},
 			"greeting": {
 				"afternoon": "下午好",

@@ -1,6 +1,7 @@
 import {
   AtSign,
   Bell,
+  Bug,
   CalendarClock,
   CalendarX,
   History,
@@ -13,6 +14,8 @@ import {
 import { cn } from "@/lib/cn";
 
 const icons: Record<string, LucideIcon> = {
+  bug_created: Bug,
+  bug_assigned: UserRound,
   task_mention: AtSign,
   task_comment: MessageSquare,
   task_assignee_changed: UserRound,

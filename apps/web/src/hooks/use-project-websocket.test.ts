@@ -101,3 +101,41 @@ describe("getWsUrl", () => {
     );
   });
 });
+
+it("refreshes only the affected Bug comments and reconciles comments after reconnect", () => {
+  invalidateQueries.mockClear();
+  const sockets: FakeWebSocket[] = [];
+  class FakeWebSocket {
+    onmessage: ((event: { data: string }) => void) | null = null;
+    onopen: (() => void) | null = null;
+    close = vi.fn();
+    constructor() {
+      sockets.push(this);
+    }
+  }
+  vi.stubGlobal("WebSocket", FakeWebSocket);
+  try {
+    renderHook(() => useProjectWebSocket("project-1"));
+    sockets[0].onmessage?.({
+      data: JSON.stringify({
+        type: "BUG_COMMENTS_UPDATED",
+        projectId: "project-1",
+        bugId: "bug-1",
+      }),
+    });
+    expect(invalidateQueries).toHaveBeenCalledTimes(2);
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["workspace-activity"],
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["bug-comments", "project-1", "bug-1"],
+    });
+    sockets[0].onopen?.();
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["bug-comments", "project-1"],
+    });
+  } finally {
+    cleanup();
+    vi.unstubAllGlobals();
+  }
+});

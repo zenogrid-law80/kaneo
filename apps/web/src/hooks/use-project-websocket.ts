@@ -188,6 +188,9 @@ export function useProjectWebSocket(projectId: string) {
         queueMilestoneRefresh();
         void queryClient.invalidateQueries({ queryKey: ["bugs", projectId] });
         void queryClient.invalidateQueries({
+          queryKey: ["bug-comments", projectId],
+        });
+        void queryClient.invalidateQueries({
           queryKey: ["bug-template", projectId],
         });
         needsReconcile = true;
@@ -216,9 +219,25 @@ export function useProjectWebSocket(projectId: string) {
         try {
           const message = JSON.parse(event.data);
           if (
+            message.type === "BUG_COMMENTS_UPDATED" &&
+            typeof message.bugId === "string"
+          ) {
+            void queryClient.invalidateQueries({
+              queryKey: ["workspace-activity"],
+            });
+            void queryClient.invalidateQueries({
+              queryKey: ["bug-comments", projectId, message.bugId],
+            });
+            return;
+          }
+          if (
             message.type === "BUGS_UPDATED" ||
             message.type === "BUG_TEMPLATE_UPDATED"
           ) {
+            if (message.type === "BUGS_UPDATED")
+              void queryClient.invalidateQueries({
+                queryKey: ["workspace-activity"],
+              });
             void queryClient.invalidateQueries({
               queryKey: [
                 message.type === "BUGS_UPDATED" ? "bugs" : "bug-template",

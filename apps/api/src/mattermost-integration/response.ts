@@ -12,7 +12,9 @@ export const mattermostIntegrationSchema = z
       description:
         "The webhook URL with its secret path segment masked, or an empty string when none is set.",
     }),
-    events: integrationEventsSchema,
+    events: integrationEventsSchema
+      .extend({ bugCreated: z.boolean(), bugAssigneesChanged: z.boolean() })
+      .openapi("MattermostEvents"),
     isActive: z.boolean().nullable(),
     createdAt: responseTimestamp,
     updatedAt: responseTimestamp,

@@ -409,6 +409,35 @@ export const bugTable = pgTable(
   ],
 );
 
+export const bugCommentTable = pgTable(
+  "bug_comment",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    bugId: text("bug_id")
+      .notNull()
+      .references(() => bugTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("bug_comment_bug_created_idx").on(
+      table.bugId,
+      table.createdAt,
+      table.id,
+    ),
+  ],
+);
+
 export const bugHistoryTable = pgTable(
   "bug_history",
   {
@@ -819,6 +848,10 @@ export const assetTable = pgTable(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+    bugCommentId: text("bug_comment_id").references(() => bugCommentTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
     activityId: text("activity_id").references(() => activityTable.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
@@ -840,6 +873,7 @@ export const assetTable = pgTable(
     index("asset_projectId_idx").on(table.projectId),
     index("asset_taskId_idx").on(table.taskId),
     index("asset_bugId_idx").on(table.bugId),
+    index("asset_bugCommentId_idx").on(table.bugCommentId),
     index("asset_activityId_idx").on(table.activityId),
     index("asset_createdBy_idx").on(table.createdBy),
     index("asset_draft_expiry_idx")

@@ -1,41 +1,17 @@
-import { getApiUrl } from "@/fetchers/get-api-url";
+import { client } from "@kaneo/libs";
+import type { InferRequestType } from "hono/client";
 import { HttpError } from "@/lib/http-error";
-import type { MattermostIntegration } from "./get-mattermost-integration";
 
-export type CreateMattermostIntegrationRequest = {
-  webhookUrl: string;
-  channelName?: string;
-  events?: {
-    taskCreated?: boolean;
-    taskStatusChanged?: boolean;
-    taskPriorityChanged?: boolean;
-    taskTitleChanged?: boolean;
-    taskDescriptionChanged?: boolean;
-    taskCommentCreated?: boolean;
-  };
-};
+const api = client["mattermost-integration"].project[":projectId"];
+export type CreateMattermostIntegrationRequest = InferRequestType<
+  typeof api.$post
+>["json"];
 
-async function createMattermostIntegration(
+export default async function createMattermostIntegration(
   projectId: string,
   json: CreateMattermostIntegrationRequest,
 ) {
-  const response = await fetch(
-    getApiUrl(`/mattermost-integration/project/${projectId}`),
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(json),
-    },
-  );
-
-  if (!response.ok) {
-    throw new HttpError(response.status, await response.text());
-  }
-
-  return (await response.json()) as MattermostIntegration;
+  const response = await api.$post({ param: { projectId }, json });
+  if (!response.ok) throw new HttpError(response.status, await response.text());
+  return response.json();
 }
-
-export default createMattermostIntegration;

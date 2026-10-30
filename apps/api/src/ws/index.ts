@@ -533,7 +533,7 @@ export function broadcastToProject(
     projectBroadcastQueues.set(projectId, new Map());
   }
 
-  const messageKey = `${message.type === "TASKS_REORDERED" ? `${message.type}:${crypto.randomUUID()}` : message.type}:${message.taskId ?? ""}:${message.sourceTaskId ?? ""}:${message.targetTaskId ?? ""}`;
+  const messageKey = `${message.type === "TASKS_REORDERED" ? `${message.type}:${crypto.randomUUID()}` : message.type}:${message.taskId ?? ""}:${message.bugId ?? ""}:${message.sourceTaskId ?? ""}:${message.targetTaskId ?? ""}`;
   const previous = projectBroadcastQueues.get(projectId)?.get(messageKey);
   projectBroadcastQueues.get(projectId)?.set(messageKey, {
     message: {
@@ -872,3 +872,14 @@ for (const name of ["bug.changed", "bug.template.updated"]) {
     },
   );
 }
+
+subscribeToEvent<{ projectId: string; bugId: string }>(
+  "bug.comments.changed",
+  async (data) => {
+    broadcastToProject(data.projectId, {
+      type: "BUG_COMMENTS_UPDATED",
+      projectId: data.projectId,
+      bugId: data.bugId,
+    });
+  },
+);

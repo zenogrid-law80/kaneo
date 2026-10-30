@@ -572,7 +572,9 @@
 			"toastPreferencesSaveFailed": "Benachrichtigungseinstellungen konnten nicht gespeichert werden",
 			"toastRuleSavedGeneric": "Arbeitsbereichs-Benachrichtigungsregel gespeichert",
 			"toastRuleRemovedGeneric": "Arbeitsbereichs-Benachrichtigungsregel entfernt",
-			"recipientHint": "Kommentare und Statusänderungen benachrichtigen dich über dir zugewiesene Aufgaben. Erwähnungen benachrichtigen das ausgewählte Mitglied. Deine eigenen Kommentare, Erwähnungen und Statusänderungen lösen keine Benachrichtigung an dich aus."
+			"recipientHint": "Kommentare und Statusänderungen benachrichtigen dich über dir zugewiesene Aufgaben. Erwähnungen benachrichtigen das ausgewählte Mitglied. Deine eigenen Kommentare, Erwähnungen und Statusänderungen lösen keine Benachrichtigung an dich aus.",
+			"eventTaskAndBugAssignments": "Task and bug assignments",
+			"bugAssignmentHint": "Also notify designated bug fixers and verifiers on creation and new assignments."
 		},
 		"preferencesPage": {
 			"title": "Einstellungen",
@@ -1658,7 +1660,9 @@
 				"taskDescriptionChanged": "Description changes",
 				"taskPriorityChanged": "Priority changes",
 				"taskStatusChanged": "Status changes",
-				"taskTitleChanged": "Title changes"
+				"taskTitleChanged": "Title changes",
+				"bugCreated": "New bugs",
+				"bugAssigneesChanged": "Bug fixer and verifier assignments"
 			},
 			"eventsHint": "Choose which project changes should post to Mattermost.",
 			"eventsTitle": "Event notifications",
@@ -1679,7 +1683,9 @@
 			},
 			"webhookHint": "Create an Incoming Webhook in Mattermost and paste the generated URL here.",
 			"webhookLabel": "Incoming webhook URL",
-			"webhookPlaceholder": "https://your-mattermost-server.com/hooks/..."
+			"webhookPlaceholder": "https://your-mattermost-server.com/hooks/...",
+			"bugCreatedMessage": "{{actor}} created a bug.",
+			"bugAssignedMessage": "{{actor}} updated bug assignments."
 		},
 		"customFields": {
 			"addButton": "Add",
@@ -2186,6 +2192,14 @@
 				"title": "Zeiterfassung gestartet",
 				"contentWithTask": "Die Zeiterfassung für die Aufgabe \"{{taskTitle}}\" wurde gestartet",
 				"contentWithoutTask": "Die Zeiterfassung für eine Aufgabe wurde gestartet"
+			},
+			"bug_created": {
+				"title": "New bug created",
+				"content": "Bug \"{{bugTitle}}\" was created. Your role: {{roles}}."
+			},
+			"bug_assigned": {
+				"title": "Bug assigned to you",
+				"content": "You were assigned as {{roles}} for bug \"{{bugTitle}}\"."
 			}
 		},
 		"inbox": {
@@ -2206,7 +2220,12 @@
 			"today": "Today",
 			"unread": "Unread",
 			"loadError": "Notifications couldn't be loaded.",
-			"taskLoadError": "This task couldn’t be loaded."
+			"taskLoadError": "This task couldn’t be loaded.",
+			"openBug": "Open bug"
+		},
+		"bugRoles": {
+			"fixer": "fixer",
+			"verifier": "verifier"
 		}
 	},
 	"activity": {
@@ -2971,7 +2990,17 @@
 			"historyBefore": "Before",
 			"historyAfter": "After",
 			"historyDescriptionChanged": "Description changed — view before and after",
-			"historyEmptyValue": "None"
+			"historyEmptyValue": "None",
+			"comments": "Comments",
+			"commentsEmpty": "No comments yet. Start the conversation.",
+			"commentsError": "Could not load comments.",
+			"addComment": "Add comment",
+			"commentPlaceholder": "Write a comment…",
+			"commentLimit": "Comments can contain up to 10,000 characters.",
+			"commentEdited": "Edited",
+			"deleteCommentTitle": "Delete comment?",
+			"deleteCommentDescription": "This comment and its attachments will be permanently deleted.",
+			"commentDeleteError": "Could not delete the comment. Please try again."
 		}
 	},
 	"invitations": {
@@ -3088,7 +3117,11 @@
 				"empty": "Nothing has happened in the last 30 days.",
 				"loadError": "Activity couldn't be loaded.",
 				"title": "Activity",
-				"updated": "updated the task"
+				"updated": "updated the task",
+				"bugCreated": "created a bug",
+				"bugUpdated": "updated a bug",
+				"bugCommentCreated": "commented on a bug",
+				"bugCommentUpdated": "edited a bug comment"
 			},
 			"greeting": {
 				"afternoon": "Good afternoon",

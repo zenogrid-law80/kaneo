@@ -590,7 +590,8 @@ export function NotificationPreferencesSettings() {
         <div className="flex flex-col gap-4">
           <ChannelToggle
             checked={eventPrefs.taskAssignmentEnabled}
-            label={t("settings:notificationsPage.eventTaskAssignments")}
+            label={t("settings:notificationsPage.eventTaskAndBugAssignments")}
+            hint={t("settings:notificationsPage.bugAssignmentHint")}
             onCheckedChange={(checked) =>
               setEventPrefs((current) => ({
                 ...current,

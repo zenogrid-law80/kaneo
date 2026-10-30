@@ -571,7 +571,9 @@
 			"reminderLeadTimeUnitDays": "일",
 			"reminderLeadTimeInvalid": "1에서 {{max}} 사이의 정수를 입력하세요.",
 			"saveEventPreferences": "알림 유형 저장",
-			"recipientHint": "본인에게 할당된 작업의 댓글과 상태 변경에 대한 알림을 받습니다. 멘션은 선택한 멤버에게 알림을 보냅니다. 본인이 작성한 댓글, 멘션 및 상태 변경에 대해서는 알림을 받지 않습니다."
+			"recipientHint": "본인에게 할당된 작업의 댓글과 상태 변경에 대한 알림을 받습니다. 멘션은 선택한 멤버에게 알림을 보냅니다. 본인이 작성한 댓글, 멘션 및 상태 변경에 대해서는 알림을 받지 않습니다.",
+			"eventTaskAndBugAssignments": "작업 및 버그 할당",
+			"bugAssignmentHint": "버그 생성 시 지정된 수정자·검수자 및 이후 새 담당자에게도 알림을 보냅니다."
 		},
 		"preferencesPage": {
 			"title": "환경설정",
@@ -1575,7 +1577,9 @@
 				"taskDescriptionChanged": "Description changes",
 				"taskPriorityChanged": "Priority changes",
 				"taskStatusChanged": "Status changes",
-				"taskTitleChanged": "Title changes"
+				"taskTitleChanged": "Title changes",
+				"bugCreated": "버그 생성",
+				"bugAssigneesChanged": "버그 수정자·검수자 할당"
 			},
 			"eventsHint": "Choose which project changes should post to Mattermost.",
 			"eventsTitle": "Event notifications",
@@ -1596,7 +1600,9 @@
 			},
 			"webhookHint": "Create an Incoming Webhook in Mattermost and paste the generated URL here.",
 			"webhookLabel": "Incoming webhook URL",
-			"webhookPlaceholder": "https://your-mattermost-server.com/hooks/..."
+			"webhookPlaceholder": "https://your-mattermost-server.com/hooks/...",
+			"bugCreatedMessage": "{{actor}}님이 버그를 등록했습니다.",
+			"bugAssignedMessage": "{{actor}}님이 버그 담당자를 지정했습니다."
 		},
 		"customFields": {
 			"addButton": "Add",
@@ -2168,6 +2174,14 @@
 			"task_overdue": {
 				"title": "작업 기한 초과",
 				"content": "{{taskTitle}}이(가) 마감일을 지났습니다"
+			},
+			"bug_created": {
+				"title": "새 버그가 등록되었습니다",
+				"content": "버그 \"{{bugTitle}}\"가 등록되었습니다. 담당 역할: {{roles}}"
+			},
+			"bug_assigned": {
+				"title": "버그 담당자로 지정되었습니다",
+				"content": "버그 \"{{bugTitle}}\"의 {{roles}}로 지정되었습니다."
 			}
 		},
 		"reminderLeadTime": {
@@ -2193,7 +2207,12 @@
 			"today": "Today",
 			"unread": "Unread",
 			"loadError": "Notifications couldn't be loaded.",
-			"taskLoadError": "This task couldn’t be loaded."
+			"taskLoadError": "This task couldn’t be loaded.",
+			"openBug": "Bug 열기"
+		},
+		"bugRoles": {
+			"fixer": "수정자",
+			"verifier": "검수자"
 		}
 	},
 	"activity": {
@@ -2986,7 +3005,17 @@
 			"historyBefore": "변경 전",
 			"historyAfter": "변경 후",
 			"historyDescriptionChanged": "내용 변경 — 변경 전후 보기",
-			"historyEmptyValue": "없음"
+			"historyEmptyValue": "없음",
+			"comments": "댓글",
+			"commentsEmpty": "아직 댓글이 없습니다. 첫 댓글을 남겨보세요.",
+			"commentsError": "댓글을 불러오지 못했습니다.",
+			"addComment": "댓글 등록",
+			"commentPlaceholder": "댓글을 입력하세요…",
+			"commentLimit": "댓글은 10,000자까지 입력할 수 있습니다.",
+			"commentEdited": "수정됨",
+			"deleteCommentTitle": "댓글을 삭제할까요?",
+			"deleteCommentDescription": "댓글과 첨부파일이 영구적으로 삭제됩니다.",
+			"commentDeleteError": "댓글을 삭제하지 못했습니다. 다시 시도해 주세요."
 		}
 	},
 	"invitations": {
@@ -3102,7 +3131,11 @@
 				"empty": "Nothing has happened in the last 30 days.",
 				"loadError": "Activity couldn't be loaded.",
 				"title": "Activity",
-				"updated": "updated the task"
+				"updated": "updated the task",
+				"bugCreated": "버그를 등록했습니다",
+				"bugUpdated": "버그를 수정했습니다",
+				"bugCommentCreated": "버그에 댓글을 남겼습니다",
+				"bugCommentUpdated": "버그 댓글을 수정했습니다"
 			},
 			"greeting": {
 				"afternoon": "Good afternoon",

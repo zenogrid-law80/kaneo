@@ -1723,6 +1723,102 @@
           ]
         }
       },
+      "BugComments": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BugComment"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "page",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "BugComment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "bugId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "image"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "bugId",
+          "userId",
+          "content",
+          "createdAt",
+          "updatedAt",
+          "user"
+        ]
+      },
       "BugHistory": {
         "type": "object",
         "properties": {
@@ -2500,93 +2596,196 @@
         ]
       },
       "WorkspaceActivity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, supporting_assignee_added, supporting_assignee_removed, unassigned, due_date_changed, title_changed, description_changed."
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "eventData": {
-            "description": "Type-specific payload. For status_changed, oldStatus/newStatus are slugs and oldStatusName/newStatusName carry current configured column names when available."
-          },
-          "excerpt": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Plain-text preview of the stored content, at most 240 characters: the comment body, or the description older system events carry instead of eventData."
-          },
-          "userId": {
-            "type": [
-              "string",
-              "null"
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, supporting_assignee_added, supporting_assignee_removed, unassigned, due_date_changed, title_changed, description_changed. Bug events: bug_created, bug_updated, bug_comment_created, bug_comment_updated."
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Event time; for bug comments, the latest edit time."
+              },
+              "eventData": {
+                "description": "Type-specific payload. Task status changes include current configured column names when available. Null for bug events."
+              },
+              "excerpt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Plain-text content preview, at most 240 characters."
+              },
+              "userId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "userName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "userImage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "externalUserName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "externalUserAvatar": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "projectId": {
+                "type": "string"
+              },
+              "projectSlug": {
+                "type": "string"
+              },
+              "resourceType": {
+                "type": "string",
+                "enum": [
+                  "task"
+                ]
+              },
+              "taskId": {
+                "type": "string"
+              },
+              "taskTitle": {
+                "type": "string"
+              },
+              "taskNumber": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "createdAt",
+              "excerpt",
+              "userId",
+              "userName",
+              "userImage",
+              "externalUserName",
+              "externalUserAvatar",
+              "projectId",
+              "projectSlug",
+              "resourceType",
+              "taskId",
+              "taskTitle",
+              "taskNumber"
             ]
           },
-          "userName": {
-            "type": [
-              "string",
-              "null"
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "description": "One of: comment, task, create, status_changed, priority_changed, assignee_changed, supporting_assignee_added, supporting_assignee_removed, unassigned, due_date_changed, title_changed, description_changed. Bug events: bug_created, bug_updated, bug_comment_created, bug_comment_updated."
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Event time; for bug comments, the latest edit time."
+              },
+              "eventData": {
+                "description": "Type-specific payload. Task status changes include current configured column names when available. Null for bug events."
+              },
+              "excerpt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Plain-text content preview, at most 240 characters."
+              },
+              "userId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "userName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "userImage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "externalUserName": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "externalUserAvatar": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "projectId": {
+                "type": "string"
+              },
+              "projectSlug": {
+                "type": "string"
+              },
+              "resourceType": {
+                "type": "string",
+                "enum": [
+                  "bug"
+                ]
+              },
+              "bugId": {
+                "type": "string"
+              },
+              "bugTitle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "createdAt",
+              "excerpt",
+              "userId",
+              "userName",
+              "userImage",
+              "externalUserName",
+              "externalUserAvatar",
+              "projectId",
+              "projectSlug",
+              "resourceType",
+              "bugId",
+              "bugTitle"
             ]
-          },
-          "userImage": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "externalUserName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "externalUserAvatar": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "taskId": {
-            "type": "string"
-          },
-          "taskTitle": {
-            "type": "string"
-          },
-          "taskNumber": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "projectId": {
-            "type": "string"
-          },
-          "projectSlug": {
-            "type": "string"
           }
-        },
-        "required": [
-          "id",
-          "type",
-          "createdAt",
-          "excerpt",
-          "userId",
-          "userName",
-          "userImage",
-          "externalUserName",
-          "externalUserAvatar",
-          "taskId",
-          "taskTitle",
-          "taskNumber",
-          "projectId",
-          "projectSlug"
         ]
       },
       "Activity": {
@@ -2896,7 +3095,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: info, task_created, workspace_created, task_status_changed, task_assignee_changed, time_entry_created, due_date_reminder, task_overdue, task_mention, task_comment."
+            "description": "One of: info, task_created, bug_created, bug_assigned, workspace_created, task_status_changed, task_assignee_changed, time_entry_created, due_date_reminder, task_overdue, task_mention, task_comment."
           },
           "eventData": {
             "description": "Type-specific payload, e.g. { taskTitle, oldStatus, newStatus, projectId, workspaceId }."
@@ -2912,14 +3111,14 @@
               "string",
               "null"
             ],
-            "description": "The id of the task or workspace the notification points at."
+            "description": "The id of the task, bug or workspace the notification points at."
           },
           "resourceType": {
             "type": [
               "string",
               "null"
             ],
-            "description": "`task` or `workspace`."
+            "description": "`task`, `bug` or `workspace`."
           },
           "createdAt": {
             "type": "string",
@@ -4767,7 +4966,7 @@
             "description": "The webhook URL with its secret path segment masked, or an empty string when none is set."
           },
           "events": {
-            "$ref": "#/components/schemas/IntegrationEvents"
+            "$ref": "#/components/schemas/MattermostEvents"
           },
           "isActive": {
             "type": [
@@ -4794,6 +4993,28 @@
           "isActive",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "MattermostEvents": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/IntegrationEvents"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "bugCreated": {
+                "type": "boolean"
+              },
+              "bugAssigneesChanged": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "bugCreated",
+              "bugAssigneesChanged"
+            ]
+          }
         ]
       },
       "SlackIntegration": {
@@ -13071,6 +13292,377 @@
         }
       }
     },
+    "/bug/project/{projectId}/{id}/comments": {
+      "get": {
+        "operationId": "listBugComments",
+        "tags": [
+          "Bugs"
+        ],
+        "summary": "List bug comments, newest first (20 per page)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bug comments with author and timestamps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugComments"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid comment or project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or insufficient permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bug or comment not found, or comment belongs to another author",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createBugComment",
+        "tags": [
+          "Bugs"
+        ],
+        "summary": "Add a Markdown comment to a bug",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  }
+                },
+                "required": [
+                  "content"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugComment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid comment or project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or insufficient permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bug or comment not found, or comment belongs to another author",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bug/project/{projectId}/{id}/comments/{commentId}": {
+      "patch": {
+        "operationId": "updateBugComment",
+        "tags": [
+          "Bugs"
+        ],
+        "summary": "Edit your own bug comment",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "commentId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  }
+                },
+                "required": [
+                  "content"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugComment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid comment or project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or insufficient permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bug or comment not found, or comment belongs to another author",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteBugComment",
+        "tags": [
+          "Bugs"
+        ],
+        "summary": "Delete your own bug comment and its attachments",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "commentId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted comment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid comment or project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or insufficient permission",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bug or comment not found, or comment belongs to another author",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/bug/project/{projectId}/uploads": {
       "post": {
         "operationId": "stageBugAssetUpload",
@@ -15344,7 +15936,7 @@
           "Activity"
         ],
         "summary": "Get recent workspace activity",
-        "description": "Get the 20 most recent task events across a workspace's active projects from the last 30 days, newest first. Each event carries a short plain-text excerpt instead of its full content.",
+        "description": "Get the 20 most recent task and bug events across a workspace's active projects from the last 30 days, newest first. Bug comments appear once with their current text and latest edit time. Each event carries a short plain-text excerpt instead of its full content.",
         "parameters": [
           {
             "schema": {
@@ -17011,11 +17603,11 @@
                   },
                   "relatedEntityId": {
                     "type": "string",
-                    "description": "Stored as resourceId: the task or workspace being pointed at."
+                    "description": "Stored as resourceId: the task, bug or workspace being pointed at."
                   },
                   "relatedEntityType": {
                     "type": "string",
-                    "description": "Stored as resourceType: `task` or `workspace`."
+                    "description": "Stored as resourceType: `task`, `bug` or `workspace`."
                   }
                 },
                 "required": [
@@ -21236,6 +21828,12 @@
                       },
                       "taskCommentCreated": {
                         "type": "boolean"
+                      },
+                      "bugCreated": {
+                        "type": "boolean"
+                      },
+                      "bugAssigneesChanged": {
+                        "type": "boolean"
                       }
                     }
                   }
@@ -21338,6 +21936,12 @@
                         "type": "boolean"
                       },
                       "taskCommentCreated": {
+                        "type": "boolean"
+                      },
+                      "bugCreated": {
+                        "type": "boolean"
+                      },
+                      "bugAssigneesChanged": {
                         "type": "boolean"
                       }
                     }

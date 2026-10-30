@@ -1,3 +1,5 @@
+import type { BugNotificationEvent } from "../bug/event-types";
+
 export type PluginContext = {
   integrationId: string;
   projectId: string;
@@ -149,6 +151,14 @@ export type ConfigValidator = (
 export type IntegrationPlugin = {
   type: string;
   name: string;
+  onBugCreated?: (
+    event: BugNotificationEvent,
+    context: PluginContext,
+  ) => Promise<void>;
+  onBugAssigneesChanged?: (
+    event: BugNotificationEvent,
+    context: PluginContext,
+  ) => Promise<void>;
 
   onTaskCreated?: TaskEventHandler<TaskCreatedEvent>;
   onTaskStatusChanged?: TaskEventHandler<TaskStatusChangedEvent>;

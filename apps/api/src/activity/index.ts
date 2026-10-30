@@ -37,7 +37,7 @@ const getWorkspaceActivitiesRoute = createRoute({
   tags: ["Activity"],
   summary: "Get recent workspace activity",
   description:
-    "Get the 20 most recent task events across a workspace's active projects from the last 30 days, newest first. Each event carries a short plain-text excerpt instead of its full content.",
+    "Get the 20 most recent task and bug events across a workspace's active projects from the last 30 days, newest first. Bug comments appear once with their current text and latest edit time. Each event carries a short plain-text excerpt instead of its full content.",
   middleware: [
     workspaceAccess.fromParam(),
     requireWorkspacePermission({ project: ["read"], task: ["read"] }),

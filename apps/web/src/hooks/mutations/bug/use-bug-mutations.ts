@@ -11,7 +11,10 @@ import {
 export function useBugMutations(projectId: string) {
   const client = useQueryClient();
   const invalidate = () =>
-    client.invalidateQueries({ queryKey: ["bugs", projectId] });
+    Promise.all([
+      client.invalidateQueries({ queryKey: ["bugs", projectId] }),
+      client.invalidateQueries({ queryKey: ["workspace-activity"] }),
+    ]);
   return {
     create: useMutation({
       mutationFn: (input: BugInput) => createBug(projectId, input),

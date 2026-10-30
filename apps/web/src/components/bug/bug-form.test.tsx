@@ -7,6 +7,9 @@ import {
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vite-plus/test";
 import BugForm from "./bug-form";
+vi.mock("./bug-comments", () => ({
+  default: () => <section aria-label="Bug comments" />,
+}));
 vi.mock("./bug-description-editor", () => ({
   default: ({
     value,

@@ -60,6 +60,8 @@ describe("API integration: Mattermost", () => {
       webhookConfigured: true,
       isActive: true,
       events: {
+        bugCreated: true,
+        bugAssigneesChanged: true,
         taskCreated: true,
         taskStatusChanged: true,
         taskCommentCreated: true,
@@ -72,13 +74,19 @@ describe("API integration: Mattermost", () => {
     const updated = await request("PATCH", {
       isActive: false,
       channelName: null,
-      events: { taskCreated: false },
+      events: {
+        taskCreated: false,
+        bugCreated: false,
+        bugAssigneesChanged: false,
+      },
     });
     expect(updated.status).toBe(200);
     expect(await updated.json()).toMatchObject({
       isActive: false,
       channelName: null,
       events: {
+        bugCreated: false,
+        bugAssigneesChanged: false,
         taskCreated: false,
         taskStatusChanged: true,
         taskCommentCreated: true,

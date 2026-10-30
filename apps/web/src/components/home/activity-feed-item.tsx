@@ -37,28 +37,45 @@ export function ActivityFeedItem({
           <span className="font-medium text-foreground">{actorName}</span>{" "}
           {describeActivity(activity, t)}
         </p>
-        {activity.type === "comment" && activity.excerpt && (
-          <p className="line-clamp-3 rounded-lg bg-muted/70 px-2.5 py-2 text-[13px] text-foreground/85 leading-[18px]">
-            {activity.excerpt}
-          </p>
-        )}
+        {["comment", "bug_comment_created", "bug_comment_updated"].includes(
+          activity.type,
+        ) &&
+          activity.excerpt && (
+            <p className="line-clamp-3 rounded-lg bg-muted/70 px-2.5 py-2 text-[13px] text-foreground/85 leading-[18px]">
+              {activity.excerpt}
+            </p>
+          )}
         <p className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
-          <Link
-            to="/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId"
-            params={{
-              workspaceId,
-              projectId: activity.projectId,
-              taskId: activity.taskId,
-            }}
-            className="min-w-0 truncate hover:text-foreground"
-          >
-            <span className="font-medium">
-              {activity.taskNumber == null
-                ? activity.projectSlug
-                : `${activity.projectSlug}-${activity.taskNumber}`}
-            </span>{" "}
-            {activity.taskTitle}
-          </Link>
+          {activity.resourceType === "bug" ? (
+            <Link
+              to="/dashboard/workspace/$workspaceId/project/$projectId/bugs"
+              params={{ workspaceId, projectId: activity.projectId }}
+              search={{ bugId: activity.bugId }}
+              className="min-w-0 truncate hover:text-foreground"
+            >
+              <span className="font-medium">
+                {activity.projectSlug} · {t("tasks:bugs.title")}
+              </span>{" "}
+              {activity.bugTitle}
+            </Link>
+          ) : (
+            <Link
+              to="/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId"
+              params={{
+                workspaceId,
+                projectId: activity.projectId,
+                taskId: activity.taskId,
+              }}
+              className="min-w-0 truncate hover:text-foreground"
+            >
+              <span className="font-medium">
+                {activity.taskNumber == null
+                  ? activity.projectSlug
+                  : `${activity.projectSlug}-${activity.taskNumber}`}
+              </span>{" "}
+              {activity.taskTitle}
+            </Link>
+          )}
           <span aria-hidden="true">·</span>
           <time
             dateTime={activity.createdAt}

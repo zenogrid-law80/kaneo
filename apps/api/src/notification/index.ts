@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import "./bug-events";
 import db from "../database";
 import { projectTable, taskTable } from "../database/schema";
 import { subscribeToEvent } from "../events";

@@ -33,6 +33,7 @@ import {
 } from "./schema";
 
 import bugUploads from "./uploads";
+import bugComments from "./comments";
 import { getBugHistory } from "./controllers/history";
 
 const errors = {
@@ -210,6 +211,7 @@ const historyRoute = createRoute({
 });
 
 const bugs = apiRouter()
+  .route("/", bugComments)
   .route("/", bugUploads)
   .openapi(historyRoute, async (c) => {
     const { projectId, id } = c.req.valid("param");

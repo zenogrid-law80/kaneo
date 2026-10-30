@@ -18,6 +18,12 @@ export function notificationResourceAccess(
       JOIN workspace_member AS notification_member ON notification_member.workspace_id = notification_project.workspace_id
       WHERE notification_task.id = ${resourceId} AND notification_member.user_id = ${userId}
     ))
+    OR (${resourceType}::text = 'bug' AND EXISTS (
+      SELECT 1 FROM bug AS notification_bug
+      JOIN project AS notification_project ON notification_project.id = notification_bug.project_id
+      JOIN workspace_member AS notification_member ON notification_member.workspace_id = notification_project.workspace_id
+      WHERE notification_bug.id = ${resourceId} AND notification_member.user_id = ${userId}
+    ))
     OR (${resourceType}::text = 'workspace' AND EXISTS (
       SELECT 1 FROM workspace_member AS notification_member
       WHERE notification_member.workspace_id = ${resourceId} AND notification_member.user_id = ${userId}

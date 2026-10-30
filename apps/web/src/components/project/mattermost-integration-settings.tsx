@@ -26,6 +26,8 @@ import { toast } from "@/lib/toast";
 type MattermostIntegrationFormValues = {
   webhookUrl: string;
   channelName: string;
+  bugCreated: boolean;
+  bugAssigneesChanged: boolean;
   taskCreated: boolean;
   taskStatusChanged: boolean;
   taskPriorityChanged: boolean;
@@ -44,6 +46,8 @@ function EventToggle({
   >["control"];
   name: keyof Pick<
     MattermostIntegrationFormValues,
+    | "bugCreated"
+    | "bugAssigneesChanged"
     | "taskCreated"
     | "taskStatusChanged"
     | "taskPriorityChanged"
@@ -87,6 +91,8 @@ export function MattermostIntegrationSettings({
       z.object({
         webhookUrl: z.string(),
         channelName: z.string(),
+        bugCreated: z.boolean(),
+        bugAssigneesChanged: z.boolean(),
         taskCreated: z.boolean(),
         taskStatusChanged: z.boolean(),
         taskPriorityChanged: z.boolean(),
@@ -110,6 +116,8 @@ export function MattermostIntegrationSettings({
     () => ({
       webhookUrl: "",
       channelName: integration?.channelName ?? "",
+      bugCreated: integration?.events?.bugCreated ?? true,
+      bugAssigneesChanged: integration?.events?.bugAssigneesChanged ?? true,
       taskCreated: integration?.events?.taskCreated ?? true,
       taskStatusChanged: integration?.events?.taskStatusChanged ?? true,
       taskPriorityChanged: integration?.events?.taskPriorityChanged ?? false,
@@ -126,6 +134,8 @@ export function MattermostIntegrationSettings({
     defaultValues: {
       webhookUrl: "",
       channelName: "",
+      bugCreated: true,
+      bugAssigneesChanged: true,
       taskCreated: true,
       taskStatusChanged: true,
       taskPriorityChanged: false,
@@ -154,6 +164,8 @@ export function MattermostIntegrationSettings({
     try {
       const trimmedWebhookUrl = values.webhookUrl.trim();
       const events = {
+        bugCreated: values.bugCreated,
+        bugAssigneesChanged: values.bugAssigneesChanged,
         taskCreated: values.taskCreated,
         taskStatusChanged: values.taskStatusChanged,
         taskPriorityChanged: values.taskPriorityChanged,
@@ -246,6 +258,8 @@ export function MattermostIntegrationSettings({
       form.reset({
         webhookUrl: "",
         channelName: "",
+        bugCreated: true,
+        bugAssigneesChanged: true,
         taskCreated: true,
         taskStatusChanged: true,
         taskPriorityChanged: false,
@@ -377,6 +391,18 @@ export function MattermostIntegrationSettings({
               </p>
             </div>
 
+            <EventToggle
+              control={form.control}
+              name="bugCreated"
+              label={t("settings:mattermostIntegration.events.bugCreated")}
+            />
+            <EventToggle
+              control={form.control}
+              name="bugAssigneesChanged"
+              label={t(
+                "settings:mattermostIntegration.events.bugAssigneesChanged",
+              )}
+            />
             <EventToggle
               control={form.control}
               label={t("settings:mattermostIntegration.events.taskCreated")}

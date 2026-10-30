@@ -18,7 +18,11 @@ export function useCreateMattermostIntegration() {
       projectId: string;
       data: CreateMattermostIntegrationRequest;
     }) => createMattermostIntegration(projectId, data),
-    onSuccess: (_, { projectId }) => {
+    onSuccess: (integration, { projectId }) => {
+      queryClient.setQueryData(
+        ["mattermost-integration", projectId],
+        integration,
+      );
       void queryClient.invalidateQueries({
         queryKey: ["mattermost-integration", projectId],
       });
@@ -37,7 +41,11 @@ export function useUpdateMattermostIntegration() {
       projectId: string;
       json: UpdateMattermostIntegrationRequest;
     }) => updateMattermostIntegration(projectId, json),
-    onSuccess: (_, { projectId }) => {
+    onSuccess: (integration, { projectId }) => {
+      queryClient.setQueryData(
+        ["mattermost-integration", projectId],
+        integration,
+      );
       void queryClient.invalidateQueries({
         queryKey: ["mattermost-integration", projectId],
       });
@@ -51,6 +59,7 @@ export function useDeleteMattermostIntegration() {
   return useMutation({
     mutationFn: (projectId: string) => deleteMattermostIntegration(projectId),
     onSuccess: (_, projectId) => {
+      queryClient.setQueryData(["mattermost-integration", projectId], null);
       void queryClient.invalidateQueries({
         queryKey: ["mattermost-integration", projectId],
       });

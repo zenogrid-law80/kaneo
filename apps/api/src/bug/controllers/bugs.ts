@@ -15,6 +15,7 @@ import { validateBugPeople } from "../validate-bug-people";
 import { claimBugAssets } from "./claim-assets";
 import { recordBugChanges } from "./history";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
+import { getBugAssignments } from "../assignment-changes";
 
 const personColumns = { id: true, name: true, image: true } as const;
 const people = {
@@ -112,6 +113,13 @@ export async function createBug(
     return created;
   });
   if (!bug) throw new HTTPException(500, { message: "Failed to create bug" });
+  await publishEvent("bug.created", {
+    bugId: bug.id,
+    projectId,
+    userId: reporterId,
+    title: bug.title,
+    assignments: getBugAssignments(bug),
+  });
   await publishEvent("bug.changed", { projectId });
   return getBug(projectId, bug.id);
 }
@@ -122,7 +130,7 @@ export async function updateBug(
   userId: string,
 ) {
   await validateBugPeople(projectId, input);
-  const bug = await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     await lockMilestoneProjects(tx, [projectId]);
     const [current] = await tx
       .select()
@@ -140,9 +148,22 @@ export async function updateBug(
       .set(input)
       .where(and(eq(bugTable.projectId, projectId), eq(bugTable.id, id)))
       .returning();
-    return updated;
+    return {
+      bug: updated,
+      assignments: updated ? getBugAssignments(updated, current) : [],
+    };
   });
+  const { bug, assignments } = result;
   if (!bug) throw new HTTPException(404, { message: "Bug not found" });
+  if (assignments.length) {
+    await publishEvent("bug.assignees_changed", {
+      bugId: bug.id,
+      projectId,
+      userId,
+      title: bug.title,
+      assignments,
+    });
+  }
   await publishEvent("bug.changed", { projectId });
   return getBug(projectId, bug.id);
 }

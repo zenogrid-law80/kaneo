@@ -4,6 +4,8 @@ import { assertPublicWebhookDestination } from "../generic-webhook/config";
 const mattermostWebhookUrlPattern = /^https:\/\/[^\s]+$/;
 
 export const mattermostEventKeys = [
+  "bugCreated",
+  "bugAssigneesChanged",
   "taskCreated",
   "taskStatusChanged",
   "taskPriorityChanged",
@@ -22,6 +24,8 @@ export const mattermostConfigSchema = v.object({
   channelName: v.optional(v.string()),
   events: v.optional(
     v.object({
+      bugCreated: v.optional(v.boolean()),
+      bugAssigneesChanged: v.optional(v.boolean()),
       taskCreated: v.optional(v.boolean()),
       taskStatusChanged: v.optional(v.boolean()),
       taskPriorityChanged: v.optional(v.boolean()),
@@ -35,6 +39,8 @@ export const mattermostConfigSchema = v.object({
 export type MattermostConfig = v.InferOutput<typeof mattermostConfigSchema>;
 
 export const defaultMattermostEvents: Record<MattermostEventKey, boolean> = {
+  bugCreated: true,
+  bugAssigneesChanged: true,
   taskCreated: true,
   taskStatusChanged: true,
   taskPriorityChanged: false,

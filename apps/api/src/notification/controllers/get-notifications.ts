@@ -1,9 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   notificationTable,
   projectTable,
   taskTable,
+  bugTable,
   workspaceTable,
 } from "../../database/schema";
 
@@ -25,7 +26,20 @@ async function getNotifications(userId: string, workspaceId?: string) {
         eq(notificationTable.resourceType, "task"),
       ),
     )
-    .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+    .leftJoin(
+      bugTable,
+      and(
+        eq(notificationTable.resourceId, bugTable.id),
+        eq(notificationTable.resourceType, "bug"),
+      ),
+    )
+    .leftJoin(
+      projectTable,
+      eq(
+        sql`coalesce(${taskTable.projectId}, ${bugTable.projectId})`,
+        projectTable.id,
+      ),
+    )
     .leftJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
     .where(
       and(

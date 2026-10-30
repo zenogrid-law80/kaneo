@@ -10,6 +10,7 @@ export async function claimBugAssets(
   bugId: string,
   userId: string,
   description: string,
+  commentId?: string,
 ) {
   const ids = [...extractAssetIds(description)];
   if (!ids.length) return;
@@ -22,7 +23,8 @@ export async function claimBugAssets(
     .update(assetTable)
     .set({
       bugId,
-      surface: "bug-description",
+      bugCommentId: commentId ?? null,
+      surface: commentId ? "bug-comment" : "bug-description",
       workspaceId: project.workspaceId,
     })
     .where(
@@ -33,6 +35,7 @@ export async function claimBugAssets(
         eq(assetTable.surface, "draft"),
         isNull(assetTable.taskId),
         isNull(assetTable.bugId),
+        isNull(assetTable.bugCommentId),
       ),
     );
   const owned = await tx
@@ -43,12 +46,15 @@ export async function claimBugAssets(
         inArray(assetTable.id, ids),
         eq(assetTable.bugId, bugId),
         eq(assetTable.projectId, projectId),
+        commentId
+          ? eq(assetTable.bugCommentId, commentId)
+          : isNull(assetTable.bugCommentId),
       ),
     );
   if (owned.length !== ids.length)
     throw new HTTPException(400, {
       message:
-        "Attachments must belong to this bug or be your finalized uploads in this project",
+        "Attachments must belong to this content or be your finalized uploads in this project",
     });
   // Keep prior description attachments for the history; deleting the bug queues them for cleanup.
 }

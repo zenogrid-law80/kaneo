@@ -6,6 +6,7 @@ import {
   notificationTable,
   projectTable,
   taskTable,
+  bugTable,
   userNotificationPreferenceTable,
   userNotificationWorkspaceRuleTable,
   userTable,
@@ -17,6 +18,8 @@ import {
   sendOutboundRequest,
 } from "../utils/outbound-request";
 import { decryptSecret } from "./secrets";
+import { buildBugUrl } from "../bug/url";
+import { getBugNotificationContent } from "../bug/notification-copy";
 
 type ResolvedNotificationContext = {
   workspaceId: string;
@@ -26,6 +29,7 @@ type ResolvedNotificationContext = {
   taskId: string | null;
   taskTitle: string | null;
   taskUrl: string | null;
+  bug?: { id: string; title: string; url: string };
 };
 
 type DeliveryContent = {
@@ -233,6 +237,41 @@ async function resolveNotificationContext(notification: {
     };
   }
 
+  if (notification.resourceType === "bug") {
+    const [bug] = await db
+      .select({
+        id: bugTable.id,
+        title: bugTable.title,
+        projectId: projectTable.id,
+        projectName: projectTable.name,
+        workspaceId: workspaceTable.id,
+        workspaceName: workspaceTable.name,
+      })
+      .from(bugTable)
+      .innerJoin(projectTable, eq(bugTable.projectId, projectTable.id))
+      .innerJoin(
+        workspaceTable,
+        eq(projectTable.workspaceId, workspaceTable.id),
+      )
+      .where(eq(bugTable.id, notification.resourceId))
+      .limit(1);
+    if (!bug) return null;
+    return {
+      workspaceId: bug.workspaceId,
+      workspaceName: bug.workspaceName,
+      projectId: bug.projectId,
+      projectName: bug.projectName,
+      taskId: null,
+      taskTitle: null,
+      taskUrl: null,
+      bug: {
+        id: bug.id,
+        title: bug.title,
+        url: buildBugUrl(bug.workspaceId, bug.projectId, bug.id),
+      },
+    };
+  }
+
   if (notification.resourceType === "workspace") {
     const [workspace] = await db
       .select({
@@ -428,7 +467,7 @@ export async function deliverNotification(
     return;
   }
 
-  const content = buildDeliveryContent({
+  const contentInput = {
     type: notification.type,
     title: notification.title ?? null,
     content: notification.content ?? null,
@@ -436,9 +475,19 @@ export async function deliverNotification(
       notification.eventData && typeof notification.eventData === "object"
         ? (notification.eventData as Record<string, unknown>)
         : null,
-  });
+  };
+  const content =
+    notification.type === "bug_created" || notification.type === "bug_assigned"
+      ? getBugNotificationContent(
+          notification.type,
+          contentInput.eventData,
+          user.locale,
+        )
+      : buildDeliveryContent(contentInput);
+  const actionUrl = context.bug?.url ?? context.taskUrl;
 
   const webhookPayload = {
+    ...(context.bug ? { bug: context.bug } : {}),
     notification: {
       id: notification.id,
       type: notification.type,
@@ -480,8 +529,8 @@ export async function deliverNotification(
       sendNotificationEmail(user.email, content.title, {
         title: content.title,
         message: content.body,
-        actionUrl: context.taskUrl,
-        actionLabel: context.taskUrl ? "Open in Kaneo" : undefined,
+        actionUrl,
+        actionLabel: actionUrl ? "Open in Kaneo" : undefined,
         locale: user.locale ?? null,
       }).then(() => undefined),
     );
@@ -500,7 +549,7 @@ export async function deliverNotification(
         token: decryptedPreference.ntfyToken,
         title: content.title,
         body: content.body,
-        clickUrl: context.taskUrl,
+        clickUrl: actionUrl,
       }),
     );
   }
@@ -517,7 +566,7 @@ export async function deliverNotification(
         token: decryptedPreference.gotifyToken,
         title: content.title,
         body: content.body,
-        clickUrl: context.taskUrl,
+        clickUrl: actionUrl,
       }),
     );
   }

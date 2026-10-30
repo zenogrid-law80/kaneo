@@ -36,6 +36,10 @@ export function getNotificationTitle(
   const eventData = getEventDataRecord(notification.eventData);
   if (eventData) {
     switch (notification.type) {
+      case "bug_created":
+        return t("notifications:events.bug_created.title");
+      case "bug_assigned":
+        return t("notifications:events.bug_assigned.title");
       case "task_created":
         return t("notifications:events.task_created.title", {
           ...eventData,
@@ -96,6 +100,25 @@ export function getNotificationContent(
   const eventData = getEventDataRecord(notification.eventData);
   if (eventData) {
     switch (notification.type) {
+      case "bug_created":
+      case "bug_assigned": {
+        const roles = Array.isArray(eventData.roles) ? eventData.roles : [];
+        const options = {
+          ...eventData,
+          roles: roles
+            .flatMap((role) =>
+              role === "fixer"
+                ? [t("notifications:bugRoles.fixer")]
+                : role === "verifier"
+                  ? [t("notifications:bugRoles.verifier")]
+                  : [],
+            )
+            .join(", "),
+        };
+        return notification.type === "bug_created"
+          ? t("notifications:events.bug_created.content", options)
+          : t("notifications:events.bug_assigned.content", options);
+      }
       case "task_created":
         return t("notifications:events.task_created.content", {
           ...eventData,

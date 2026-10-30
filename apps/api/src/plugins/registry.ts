@@ -3,6 +3,8 @@ import { and, eq } from "drizzle-orm";
 import db from "../database";
 import { integrationTable } from "../database/schema";
 import { subscribeToEvent } from "../events";
+import type { BugNotificationEvent } from "../bug/event-types";
+import { safeOutboundError } from "../utils/outbound-request";
 import type {
   IntegrationPlugin,
   PluginContext,
@@ -33,6 +35,28 @@ export function registerPlugin(plugin: IntegrationPlugin): void {
 export function initializeEventSubscriptions(): void {
   if (eventSubscriptionsInitialized) {
     return;
+  }
+
+  for (const name of ["bug.created", "bug.assignees_changed"] as const) {
+    subscribeToEvent<BugNotificationEvent>(name, async (event) => {
+      const integrations = await getActiveIntegrations(event.projectId);
+      for (const integration of integrations) {
+        const plugin = getPlugin(integration.type);
+        const handler =
+          name === "bug.created"
+            ? plugin?.onBugCreated
+            : plugin?.onBugAssigneesChanged;
+        if (!handler) continue;
+        try {
+          await handler(event, createContext(integration));
+        } catch (error) {
+          console.error(
+            `Plugin ${integration.type} error on ${name}`,
+            safeOutboundError(error),
+          );
+        }
+      }
+    });
   }
 
   subscribeToEvent<{
