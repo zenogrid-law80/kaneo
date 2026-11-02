@@ -13,6 +13,11 @@ import type { BugFilters } from "@/fetchers/bug";
 import { useBugs } from "@/hooks/queries/bug/use-bugs";
 import { bugStatusKeys } from "./bug-status";
 import BugPagination from "./bug-pagination";
+import {
+  bugPriorityKeys,
+  bugSeverityKeys,
+  bugEnvironmentKeys,
+} from "./bug-metadata";
 
 export default function BugList({
   projectId,
@@ -58,6 +63,9 @@ export default function BugList({
                 <TableRow>
                   <TableHead>{t("tasks:bugs.issueTitle")}</TableHead>
                   <TableHead>{t("tasks:bugs.status")}</TableHead>
+                  <TableHead>{t("tasks:priority.label")}</TableHead>
+                  <TableHead>{t("tasks:bugs.severity")}</TableHead>
+                  <TableHead>{t("tasks:bugs.environment")}</TableHead>
                   <TableHead>{t("tasks:bugs.reporter")}</TableHead>
                   <TableHead>{t("tasks:bugs.fixer")}</TableHead>
                   <TableHead>{t("tasks:bugs.verifier")}</TableHead>
@@ -79,6 +87,15 @@ export default function BugList({
                     <TableCell className="whitespace-nowrap">
                       {t(bugStatusKeys[bug.status])}
                     </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {t(bugPriorityKeys[bug.priority])}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {t(bugSeverityKeys[bug.severity])}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {t(bugEnvironmentKeys[bug.environment ?? "none"])}
+                    </TableCell>
                     <TableCell>
                       {bug.reporter?.name ?? t("tasks:bugs.unrecorded")}
                     </TableCell>
@@ -96,7 +113,7 @@ export default function BugList({
                 {!query.data.data.length && (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={9}
                       className="p-8 text-center text-muted-foreground"
                     >
                       {t("tasks:bugs.noResults")}

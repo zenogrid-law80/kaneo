@@ -1889,7 +1889,10 @@
                           "reporterId",
                           "fixerId",
                           "verifierId",
-                          "milestoneId"
+                          "milestoneId",
+                          "priority",
+                          "severity",
+                          "environment"
                         ]
                       },
                       "before": {
@@ -1984,6 +1987,38 @@
                     "new",
                     "in-progress",
                     "resolved"
+                  ]
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": [
+                    "no-priority",
+                    "low",
+                    "medium",
+                    "high",
+                    "urgent"
+                  ]
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "no-severity",
+                    "trivial",
+                    "minor",
+                    "major",
+                    "critical"
+                  ]
+                },
+                "environment": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "development",
+                    "staging",
+                    "production",
+                    null
                   ]
                 },
                 "reporterId": {
@@ -2126,6 +2161,9 @@
                 "projectId",
                 "title",
                 "status",
+                "priority",
+                "severity",
+                "environment",
                 "reporterId",
                 "fixerId",
                 "verifierId",
@@ -2204,6 +2242,38 @@
               "new",
               "in-progress",
               "resolved"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "no-priority",
+              "low",
+              "medium",
+              "high",
+              "urgent"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "no-severity",
+              "trivial",
+              "minor",
+              "major",
+              "critical"
+            ]
+          },
+          "environment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "development",
+              "staging",
+              "production",
+              null
             ]
           },
           "reporterId": {
@@ -2347,6 +2417,9 @@
           "title",
           "description",
           "status",
+          "priority",
+          "severity",
+          "environment",
           "reporterId",
           "fixerId",
           "verifierId",
@@ -14072,6 +14145,85 @@
           {
             "schema": {
               "type": "string",
+              "maxLength": 200,
+              "description": "Case-insensitive literal substring search across title and Markdown description."
+            },
+            "required": false,
+            "description": "Case-insensitive literal substring search across title and Markdown description.",
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Comma-separated priorities (OR): no-priority, low, medium, high, urgent."
+            },
+            "required": false,
+            "description": "Comma-separated priorities (OR): no-priority, low, medium, high, urgent.",
+            "name": "priority",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Comma-separated severities (OR): no-severity, trivial, minor, major, critical."
+            },
+            "required": false,
+            "description": "Comma-separated severities (OR): no-severity, trivial, minor, major, critical.",
+            "name": "severity",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Comma-separated branch environments (OR): development, staging, production, none. Different filters are combined with AND."
+            },
+            "required": false,
+            "description": "Comma-separated branch environments (OR): development, staging, production, none. Different filters are combined with AND.",
+            "name": "environment",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "title",
+                "priority",
+                "severity",
+                "environment"
+              ],
+              "default": "createdAt"
+            },
+            "required": false,
+            "name": "sortBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc",
+              "description": "Priority and severity use impact rank; environment uses development, staging, production order. Unspecified values sort last in both directions. Ties use creation time then ID descending."
+            },
+            "required": false,
+            "description": "Priority and severity use impact rank; environment uses development, staging, production order. Unspecified values sort last in both directions. Ties use creation time then ID descending.",
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
               "minLength": 1,
               "maxLength": 10000,
               "pattern": "^[^,\\s]+(?:,[^,\\s]+)*$",
@@ -14246,13 +14398,45 @@
                     "minLength": 1,
                     "description": "Workspace member responsible for verifying the fix. Requires task:assign. Use null to unassign."
                   },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "no-priority",
+                      "low",
+                      "medium",
+                      "high",
+                      "urgent"
+                    ]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": [
+                      "no-severity",
+                      "trivial",
+                      "minor",
+                      "major",
+                      "critical"
+                    ]
+                  },
+                  "environment": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "development",
+                      "staging",
+                      "production",
+                      null
+                    ]
+                  },
                   "milestoneId": {
                     "type": [
                       "string",
                       "null"
                     ],
                     "minLength": 1,
-                    "description": "An open milestone in this project, or null to leave unassigned."
+                    "description": "Defaults to the project's current milestone when omitted. An open milestone in this project, or null to leave unassigned."
                   },
                   "title": {
                     "type": "string",
@@ -14642,6 +14826,38 @@
                     ],
                     "minLength": 1,
                     "description": "Workspace member responsible for verifying the fix. Requires task:assign. Use null to unassign."
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "no-priority",
+                      "low",
+                      "medium",
+                      "high",
+                      "urgent"
+                    ]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": [
+                      "no-severity",
+                      "trivial",
+                      "minor",
+                      "major",
+                      "critical"
+                    ]
+                  },
+                  "environment": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "development",
+                      "staging",
+                      "production",
+                      null
+                    ]
                   },
                   "milestoneId": {
                     "type": [

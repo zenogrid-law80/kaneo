@@ -7,9 +7,19 @@ import {
   within,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeEach, expect, it, vi } from "vite-plus/test";
 import BugFilters from "./bug-filters";
 import { parseBugSearch, type BugSearch } from "./bug-search";
+
+const current = vi.hoisted(() => ({
+  data: null as { id: string; name: string } | null,
+}));
+vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
+  useCurrentMilestone: () => current,
+}));
+beforeEach(() => {
+  current.data = null;
+});
 
 vi.mock("react-i18next", async (original) => ({
   ...(await original<typeof import("react-i18next")>()),
@@ -140,10 +150,46 @@ it("keeps milestone separate from the people menu, preserves filters across view
       name: "common:actions.clearAllFilters",
     }),
   );
-  expect(screen.getByTestId("search")).toHaveTextContent('{"view":"list"}');
+  expect(screen.getByTestId("search")).toHaveTextContent(
+    '{"view":"list","milestoneId":"all"}',
+  );
   expect(
     screen.getByRole("combobox", { name: "tasks:milestones.title" }),
   ).toHaveTextContent("tasks:milestones.all");
+});
+it("defaults to the current milestone and preserves explicit all and none when the default changes", async () => {
+  const view = render(<Harness />);
+  const selector = () =>
+    screen.getByRole("combobox", { name: "tasks:milestones.title" });
+  const choose = async (name: string) => {
+    fireEvent.click(selector());
+    const option = await screen.findByRole("option", { name });
+    fireEvent.pointerDown(option, { pointerType: "mouse" });
+    fireEvent.click(option);
+    await waitFor(() =>
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument(),
+    );
+  };
+  current.data = { id: "release", name: "Release" };
+  view.rerender(<Harness />);
+  expect(selector()).toHaveTextContent("Release");
+  await choose("tasks:milestones.all");
+  current.data = { id: "next", name: "Next" };
+  view.rerender(<Harness />);
+  expect(selector()).toHaveTextContent("tasks:milestones.all");
+  await choose("tasks:milestones.none");
+  expect(screen.getByTestId("search")).toHaveTextContent(
+    '"milestoneId":"none"',
+  );
+  await choose("Next");
+  expect(screen.getByTestId("search")).not.toHaveTextContent('"milestoneId"');
+  current.data = { id: "release", name: "Release" };
+  view.rerender(<Harness />);
+  expect(selector()).toHaveTextContent("Release");
+  await choose("tasks:milestones.none");
+  current.data = null;
+  view.rerender(<Harness />);
+  expect(selector()).toHaveTextContent("tasks:milestones.none");
 });
 it("uses the Tasks team groups to select and deselect all active members without losing unassigned", async () => {
   render(<Harness />);
@@ -194,4 +240,87 @@ it("restores single and multi-person bookmarks and ignores malformed parameters"
   expect(
     parseBugSearch({ view: "invalid", fixerId: ["member"], verifierId: "  " }),
   ).toEqual({ view: "cards" });
+  expect(
+    parseBugSearch({
+      priority: "urgent,high,urgent,invalid",
+      severity: "critical,major",
+      environment: "production,none",
+      search: "  한글 오류  ",
+      sortBy: "severity",
+      sortOrder: "asc",
+    }),
+  ).toEqual({
+    view: "cards",
+    priority: "urgent,high",
+    severity: "critical,major",
+    environment: "production,none",
+    search: "한글 오류",
+    sortBy: "severity",
+    sortOrder: "asc",
+  });
+  expect(
+    parseBugSearch({
+      priority: "invalid",
+      severity: ["critical"],
+      environment: "qa",
+      sortBy: "description",
+      sortOrder: "sideways",
+    }),
+  ).toEqual({ view: "cards" });
+});
+
+it("combines metadata filters with text search and sorting, keeps them across views and clears filters", async () => {
+  render(<Harness />);
+  for (const [field, option] of [
+    ["tasks:priority.label", "tasks:priority.urgent"],
+    ["tasks:bugs.severity", "tasks:bugs.severities.critical"],
+    ["tasks:bugs.environment", "tasks:bugs.environments.production"],
+  ]) {
+    openFilters();
+    await openSubmenu(field);
+    fireEvent.click(
+      await screen.findByRole("menuitemcheckbox", { name: option }),
+    );
+    await closeMenus();
+  }
+  fireEvent.change(screen.getByRole("searchbox"), {
+    target: { value: "  재현 내용  " },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "tasks:bugs.searchAction" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "tasks:sort.label" }));
+  fireEvent.click(
+    await screen.findByRole("menuitemradio", {
+      name: "tasks:bugs.severity",
+    }),
+  );
+  fireEvent.click(
+    await screen.findByRole("menuitemradio", { name: "tasks:sort.ascending" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "tasks:sort.label" }));
+  await waitFor(() => expect(screen.queryAllByRole("menu")).toHaveLength(0));
+  fireEvent.click(screen.getByRole("button", { name: "tasks:bugs.listView" }));
+  expect(JSON.parse(screen.getByTestId("search").textContent!)).toEqual({
+    view: "list",
+    priority: "urgent",
+    severity: "critical",
+    environment: "production",
+    search: "재현 내용",
+    sortBy: "severity",
+    sortOrder: "asc",
+  });
+  openFilters();
+  fireEvent.click(
+    await screen.findByRole("menuitem", {
+      name: "common:actions.clearAllFilters",
+    }),
+  );
+  expect(screen.getByRole("searchbox")).toHaveValue("");
+  expect(JSON.parse(screen.getByTestId("search").textContent!)).toEqual({
+    view: "list",
+    milestoneId: "all",
+    sortBy: "severity",
+    sortOrder: "asc",
+  });
 });

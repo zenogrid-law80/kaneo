@@ -40,6 +40,11 @@ async function fixture(role = "admin") {
       priority: "no-priority",
       milestoneId,
     });
+  const bug = (milestoneId?: string | null) =>
+    request(`/api/bug/project/${project.id}`, "POST", {
+      title: "New bug",
+      milestoneId,
+    });
   return {
     member,
     project,
@@ -49,11 +54,64 @@ async function fixture(role = "admin") {
     select,
     current,
     task,
+    bug,
   };
 }
 
 describe("API integration: current milestone", () => {
   beforeEach(resetTestDatabase);
+
+  it("uses the same current milestone for new bugs and tasks while retaining explicit bug choices", async () => {
+    const { first, second, select, task, bug, project, request } =
+      await fixture();
+    expect((await (await bug()).json()).milestoneId).toBeNull();
+    await select(first.id);
+    const original = await (await bug()).json();
+    expect(original.milestoneId).toBe(first.id);
+    expect((await (await task()).json()).milestoneId).toBe(first.id);
+    for (const [input, expected] of [
+      [null, null],
+      [second.id, second.id],
+    ] as const) {
+      const response = await bug(input);
+      expect(response.status).toBe(200);
+      expect((await response.json()).milestoneId).toBe(expected);
+    }
+    await select(second.id);
+    expect((await (await bug()).json()).milestoneId).toBe(second.id);
+    const edited = await request(
+      `/api/bug/project/${project.id}/${original.id}`,
+      "PATCH",
+      { title: "Existing bug" },
+    );
+    expect((await edited.json()).milestoneId).toBe(first.id);
+    await select(second.id, false);
+    expect((await (await bug()).json()).milestoneId).toBeNull();
+  });
+
+  it("does not assign a bug to a closed or foreign project's current milestone", async () => {
+    const { first, select, bug, request } = await fixture();
+    const outsider = await createWorkspaceMember();
+    const { project: foreign } = await createProjectFixture({
+      workspaceId: outsider.workspace.id,
+    });
+    const [foreignMilestone] = await db
+      .insert(schema.milestoneTable)
+      .values({ projectId: foreign.id, name: "Foreign", isCurrent: true })
+      .returning();
+    expect((await (await bug()).json()).milestoneId).toBeNull();
+    expect((await bug(foreignMilestone.id)).status).toBe(400);
+    await select(first.id);
+    expect(
+      (
+        await request(`/api/milestone/${first.id}`, "PATCH", {
+          status: "closed",
+        })
+      ).status,
+    ).toBe(200);
+    expect((await (await bug()).json()).milestoneId).toBeNull();
+    expect((await bug(first.id)).status).toBe(409);
+  });
 
   it("switches and clears the project default without changing existing tasks", async () => {
     const { first, second, select, current, task } = await fixture();

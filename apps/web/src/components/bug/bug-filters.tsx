@@ -20,6 +20,10 @@ import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-
 import type { BugSearch } from "./bug-search";
 import BugMilestoneFilter from "./bug-milestone-filter";
 import BugViewSwitch from "./bug-view-switch";
+import { bugMetadataFields } from "./bug-metadata";
+import BugMetadataFilterItems from "./bug-metadata-filter-items";
+import BugSort from "./bug-sort";
+import BugTextSearch from "./bug-text-search";
 
 const roles = [
   { key: "reporterId", label: "tasks:bugs.reporter" },
@@ -43,7 +47,8 @@ export default function BugFilters({
   const members = useGetActiveWorkspaceUsers(workspaceId);
   const teams = useWorkspaceTeams(workspaceId);
   const activeRoles = roles.filter(({ key }) => search[key]);
-  const activeFilterCount = activeRoles.length;
+  const activeProperties = bugMetadataFields.filter(({ key }) => search[key]);
+  const activeFilterCount = activeRoles.length + activeProperties.length;
   const selectedIds = activeRoles[0]
     ? (search[activeRoles[0].key]?.split(",") ?? [])
     : [];
@@ -53,7 +58,7 @@ export default function BugFilters({
   const filterLabel =
     activeFilterCount === 0
       ? t("tasks:hierarchy.filters.all")
-      : activeFilterCount > 1
+      : activeFilterCount > 1 || activeProperties.length > 0
         ? t("tasks:hierarchy.filters.selected", { count: activeFilterCount })
         : selectedIds.length > 1
           ? t("tasks:boardFilters.selectedCount", {
@@ -135,7 +140,11 @@ export default function BugFilters({
                 </DropdownMenuSub>
               ))}
             </DropdownMenuGroup>
-            {(activeFilterCount > 0 || search.milestoneId) && (
+            <DropdownMenuSeparator />
+            <BugMetadataFilterItems search={search} onChange={onChange} />
+            {(activeFilterCount > 0 ||
+              search.search ||
+              (search.milestoneId && search.milestoneId !== "all")) && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -144,7 +153,11 @@ export default function BugFilters({
                       reporterId: undefined,
                       fixerId: undefined,
                       verifierId: undefined,
-                      milestoneId: undefined,
+                      milestoneId: "all",
+                      priority: undefined,
+                      severity: undefined,
+                      environment: undefined,
+                      search: undefined,
                     })
                   }
                 >
@@ -154,6 +167,11 @@ export default function BugFilters({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        <BugSort search={search} onChange={onChange} />
+        <BugTextSearch
+          value={search.search}
+          onChange={(value) => onChange({ search: value })}
+        />
       </div>
       <BugViewSwitch search={search} onChange={onChange} />
     </div>

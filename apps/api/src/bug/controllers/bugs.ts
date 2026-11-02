@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { bugTable, bugHistoryTable, assetTable } from "../../database/schema";
@@ -16,6 +16,8 @@ import { claimBugAssets } from "./claim-assets";
 import { recordBugChanges } from "./history";
 import { queueStorageCleanup } from "../../storage/cleanup-queue";
 import { getBugAssignments } from "../assignment-changes";
+import { getCurrentMilestone } from "../../milestone/controllers/current-milestone";
+import { bugListQuery } from "./list-query";
 
 const personColumns = { id: true, name: true, image: true } as const;
 const people = {
@@ -29,30 +31,13 @@ export async function listBugs(
   projectId: string,
   query: z.infer<typeof listBugsQuery>,
 ) {
-  const where = and(
-    eq(bugTable.projectId, projectId),
-    query.status ? eq(bugTable.status, query.status) : undefined,
-    ...(["reporterId", "fixerId", "verifierId"] as const).map((key) => {
-      const selectedIds = query[key]?.split(",") ?? [];
-      if (selectedIds.length === 0) return undefined;
-      const userIds = selectedIds.filter((id) => id !== "none");
-      return or(
-        selectedIds.includes("none") ? isNull(bugTable[key]) : undefined,
-        userIds.length > 0 ? inArray(bugTable[key], userIds) : undefined,
-      );
-    }),
-    query.milestoneId === "none"
-      ? isNull(bugTable.milestoneId)
-      : query.milestoneId
-        ? eq(bugTable.milestoneId, query.milestoneId)
-        : undefined,
-  );
+  const { where, orderBy } = bugListQuery(projectId, query);
   const [data, [totalRow]] = await Promise.all([
     db.query.bugTable.findMany({
       columns: { description: false },
       with: people,
       where,
-      orderBy: [desc(bugTable.createdAt), desc(bugTable.id)],
+      orderBy,
       limit: query.limit,
       offset: (query.page - 1) * query.limit,
     }),
@@ -87,14 +72,18 @@ export async function createBug(
     input.description ?? (await getBugTemplate(projectId)).template;
   const bug = await db.transaction(async (tx) => {
     await lockMilestoneProjects(tx, [projectId]);
-    if (input.milestoneId) {
-      await assertOpenMilestone(tx, input.milestoneId, projectId);
-    }
+    const milestone =
+      input.milestoneId === undefined
+        ? await getCurrentMilestone(projectId, tx)
+        : input.milestoneId
+          ? await assertOpenMilestone(tx, input.milestoneId, projectId)
+          : null;
     const [created] = await tx
       .insert(bugTable)
       .values({
         ...input,
         projectId,
+        milestoneId: milestone?.id ?? null,
         reporterId:
           input.reporterId === undefined ? reporterId : input.reporterId,
         description,

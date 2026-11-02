@@ -16,9 +16,11 @@ import BugDescriptionEditor from "./bug-description-editor";
 import BugComments from "./bug-comments";
 import { Radio, RadioGroup } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import type { Bug, BugStatus, BugUpdate } from "@/fetchers/bug";
+import type { Bug, BugStatus, BugUpdate, BugMetadata } from "@/fetchers/bug";
+import BugMetadataFields from "./bug-metadata-fields";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import MilestoneSelect from "@/components/milestone/milestone-select";
+import NewTaskMilestoneField from "@/components/milestone/new-task-milestone-field";
 import DeleteBug from "./delete-bug";
 import BugPeople from "./bug-people";
 import { bugStatuses, bugStatusKeys } from "./bug-status";
@@ -54,6 +56,7 @@ export default function BugForm({
   const [titleDraft, setTitle] = useState<string>();
   const [descriptionDraft, setDescription] = useState<string>();
   const [statusDraft, setStatus] = useState<BugStatus>();
+  const [metadataDraft, setMetadata] = useState<Partial<BugMetadata>>({});
   const [reporterDraft, setReporter] = useState<string | null>();
   const [milestoneDraft, setMilestone] = useState<string | null>();
   const [fixerDraft, setFixer] = useState<string | null>();
@@ -99,6 +102,7 @@ export default function BugForm({
                 title: title.trim(),
                 description,
                 ...(bug ? { status } : {}),
+                ...metadataDraft,
                 ...(canAssign && reporterDraft !== undefined
                   ? { reporterId: reporterDraft }
                   : {}),
@@ -165,6 +169,18 @@ export default function BugForm({
                 </RadioGroup>
               </fieldset>
             )}
+            <BugMetadataFields
+              value={{
+                priority: bug?.priority ?? "no-priority",
+                severity: bug?.severity ?? "no-severity",
+                environment: bug?.environment ?? null,
+                ...metadataDraft,
+              }}
+              onChange={(patch) =>
+                setMetadata((draft) => ({ ...draft, ...patch }))
+              }
+              disabled={busy || readOnly}
+            />
             <BugPeople
               workspaceId={workspaceId}
               bug={bug}
@@ -199,19 +215,28 @@ export default function BugForm({
               onFixerChange={setFixer}
               onVerifierChange={setVerifier}
             />
-            <Field>
-              <FieldLabel>{t("tasks:milestones.title")}</FieldLabel>
-              <MilestoneSelect
+            {bug ? (
+              <Field>
+                <FieldLabel>{t("tasks:milestones.title")}</FieldLabel>
+                <MilestoneSelect
+                  projectId={projectId}
+                  value={
+                    milestoneDraft !== undefined
+                      ? milestoneDraft
+                      : bug.milestoneId
+                  }
+                  onChange={setMilestone}
+                  disabled={busy || readOnly}
+                />
+              </Field>
+            ) : (
+              <NewTaskMilestoneField
                 projectId={projectId}
-                value={
-                  milestoneDraft !== undefined
-                    ? milestoneDraft
-                    : (bug?.milestoneId ?? null)
-                }
+                value={milestoneDraft}
                 onChange={setMilestone}
                 disabled={busy || readOnly}
               />
-            </Field>
+            )}
             <Field>
               <FieldLabel>{t("tasks:bugs.description")}</FieldLabel>
               <BugDescriptionEditor

@@ -6,11 +6,21 @@ const api = client.bug.project[":projectId"];
 export type Bug = InferResponseType<(typeof api)[":id"]["$get"], 200>;
 export type BugSummary = Omit<Bug, "description">;
 export type BugStatus = Bug["status"];
+export type BugMetadata = Pick<Bug, "priority" | "severity" | "environment">;
 export type BugInput = InferRequestType<typeof api.$post>["json"];
 export type BugUpdate = InferRequestType<(typeof api)[":id"]["$patch"]>["json"];
 export type BugFilters = Pick<
   InferRequestType<typeof api.$get>["query"],
-  "reporterId" | "fixerId" | "verifierId" | "milestoneId"
+  | "reporterId"
+  | "fixerId"
+  | "verifierId"
+  | "milestoneId"
+  | "priority"
+  | "severity"
+  | "environment"
+  | "search"
+  | "sortBy"
+  | "sortOrder"
 >;
 export async function getBugs(
   projectId: string,

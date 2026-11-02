@@ -6,6 +6,9 @@ export const bugHistoryFields = [
   "fixerId",
   "verifierId",
   "milestoneId",
+  "priority",
+  "severity",
+  "environment",
 ] as const;
 
 export type BugChange = {

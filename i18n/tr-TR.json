@@ -3000,7 +3000,26 @@
 			"commentEdited": "Edited",
 			"deleteCommentTitle": "Delete comment?",
 			"deleteCommentDescription": "This comment and its attachments will be permanently deleted.",
-			"commentDeleteError": "Could not delete the comment. Please try again."
+			"commentDeleteError": "Could not delete the comment. Please try again.",
+			"severity": "Severity",
+			"environment": "Branch environment",
+			"updatedAt": "Updated date",
+			"searchPlaceholder": "Search title and description",
+			"searchAction": "Search bugs",
+			"clearSearch": "Clear search",
+			"severities": {
+				"none": "No severity",
+				"trivial": "Trivial",
+				"minor": "Minor",
+				"major": "Major",
+				"critical": "Critical"
+			},
+			"environments": {
+				"none": "No environment",
+				"development": "Development",
+				"staging": "Staging",
+				"production": "Production"
+			}
 		}
 	},
 	"invitations": {

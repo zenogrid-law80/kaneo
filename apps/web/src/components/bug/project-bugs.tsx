@@ -14,6 +14,7 @@ import BugForm from "@/components/bug/bug-form";
 import { useBugTemplate } from "@/hooks/queries/bug/use-bugs";
 import { useBugMutations } from "@/hooks/mutations/bug/use-bug-mutations";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
+import { useCurrentMilestone } from "@/hooks/queries/milestone/use-current-milestone";
 
 export default function ProjectBugs({
   projectId,
@@ -25,8 +26,35 @@ export default function ProjectBugs({
   search: BugSearch;
 }) {
   const { t } = useTranslation();
-  const { bugId, reporterId, fixerId, verifierId, milestoneId } = search;
-  const filters = { reporterId, fixerId, verifierId, milestoneId };
+  const {
+    bugId,
+    reporterId,
+    fixerId,
+    verifierId,
+    priority,
+    severity,
+    environment,
+    search: textSearch,
+    sortBy,
+    sortOrder,
+  } = search;
+  const currentMilestone = useCurrentMilestone(projectId);
+  const milestoneId =
+    search.milestoneId === "all"
+      ? undefined
+      : (search.milestoneId ?? currentMilestone.data?.id);
+  const filters = {
+    reporterId,
+    fixerId,
+    verifierId,
+    milestoneId,
+    priority,
+    severity,
+    environment,
+    search: textSearch,
+    sortBy,
+    sortOrder,
+  };
   const filterKey = JSON.stringify(filters);
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
@@ -122,6 +150,9 @@ export default function ProjectBugs({
             fixerId,
             verifierId,
             milestoneId,
+            priority,
+            severity,
+            environment,
           }) =>
             mutations.create.mutateAsync({
               title,
@@ -130,6 +161,9 @@ export default function ProjectBugs({
               milestoneId,
               fixerId,
               verifierId,
+              priority,
+              severity,
+              environment,
             })
           }
         />

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { BugHistoryEntry, BugStatus } from "@/fetchers/bug";
 import { bugStatusKeys } from "./bug-status";
+import { bugMetadataFields } from "./bug-metadata";
 
 const fieldLabels = {
   title: "tasks:bugs.issueTitle",
@@ -10,6 +11,9 @@ const fieldLabels = {
   fixerId: "tasks:bugs.fixer",
   verifierId: "tasks:bugs.verifier",
   milestoneId: "tasks:milestones.title",
+  priority: "tasks:priority.label",
+  severity: "tasks:bugs.severity",
+  environment: "tasks:bugs.environment",
 } as const;
 
 export default function BugHistoryChange({
@@ -23,6 +27,13 @@ export default function BugHistoryChange({
     if (raw === null || raw === "") return t("tasks:bugs.historyEmptyValue");
     if (change.field === "status")
       return t(bugStatusKeys[raw as BugStatus] ?? "tasks:bugs.status");
+    const metadata = bugMetadataFields.find(({ key }) => key === change.field);
+    if (metadata) {
+      const label = Object.entries(metadata.values).find(
+        ([value]) => value === raw,
+      )?.[1];
+      if (label) return t(label);
+    }
     return change[`${side}Label`] ?? raw;
   };
   if (change.field === "description")

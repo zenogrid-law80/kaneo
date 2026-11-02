@@ -7,6 +7,14 @@ import {
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vite-plus/test";
 import BugForm from "./bug-form";
+const metadataDefaults = {
+  priority: "no-priority",
+  severity: "no-severity",
+  environment: null,
+} as const;
+vi.mock("@/hooks/queries/milestone/use-current-milestone", () => ({
+  useCurrentMilestone: () => ({ data: { id: "milestone" }, isPending: false }),
+}));
 vi.mock("./bug-comments", () => ({
   default: () => <section aria-label="Bug comments" />,
 }));
@@ -95,6 +103,105 @@ vi.mock("@/hooks/queries/workspace/use-workspace-teams", () => ({
   default: () => ({ data: [], isPending: false, isError: false }),
 }));
 afterEach(cleanup);
+it("creates a bug with priority, severity and environment and can reset each field", async () => {
+  const save = vi.fn().mockResolvedValue({});
+  render(
+    <BugForm
+      projectId="project"
+      workspaceId="workspace"
+      onSave={save}
+      onClose={vi.fn()}
+    />,
+  );
+  const choose = async (field: string, option: string) => {
+    fireEvent.click(screen.getByRole("combobox", { name: field }));
+    const selected = await screen.findByRole("option", {
+      name: option,
+    });
+    fireEvent.pointerDown(selected, { pointerType: "mouse" });
+    fireEvent.click(selected);
+    await waitFor(() =>
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument(),
+    );
+  };
+  fireEvent.change(screen.getByLabelText("tasks:bugs.issueTitle"), {
+    target: { value: "Classified bug" },
+  });
+  await choose("tasks:priority.label", "tasks:priority.urgent");
+  await choose("tasks:bugs.severity", "tasks:bugs.severities.critical");
+  await choose("tasks:bugs.environment", "tasks:bugs.environments.production");
+  await choose("tasks:bugs.environment", "tasks:bugs.environments.none");
+  await choose("tasks:priority.label", "tasks:priority.no-priority");
+  await choose("tasks:bugs.severity", "tasks:bugs.severities.none");
+  await choose("tasks:priority.label", "tasks:priority.high");
+  await choose("tasks:bugs.severity", "tasks:bugs.severities.major");
+  await choose("tasks:bugs.environment", "tasks:bugs.environments.staging");
+  fireEvent.click(screen.getByRole("button", { name: "tasks:bugs.save" }));
+  await waitFor(() =>
+    expect(save).toHaveBeenCalledWith({
+      title: "Classified bug",
+      description: "",
+      priority: "high",
+      severity: "major",
+      environment: "staging",
+    }),
+  );
+});
+it("shows the current milestone for a new bug and lets the server resolve the default on save", async () => {
+  const save = vi.fn().mockResolvedValue({});
+  render(
+    <BugForm
+      projectId="project"
+      workspaceId="workspace"
+      onSave={save}
+      onClose={vi.fn()}
+    />,
+  );
+  expect(screen.getByLabelText("milestone")).toHaveValue("milestone");
+  fireEvent.change(screen.getByLabelText("tasks:bugs.issueTitle"), {
+    target: { value: "Current milestone" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "tasks:bugs.save" }));
+  await waitFor(() =>
+    expect(save).toHaveBeenCalledWith({
+      title: "Current milestone",
+      description: "",
+    }),
+  );
+});
+it("can explicitly create without a milestone and restore the current default", async () => {
+  const save = vi.fn().mockResolvedValue({});
+  render(
+    <BugForm
+      projectId="project"
+      workspaceId="workspace"
+      onSave={save}
+      onClose={vi.fn()}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText("tasks:bugs.issueTitle"), {
+    target: { value: "Unassigned milestone" },
+  });
+  fireEvent.change(screen.getByLabelText("milestone"), {
+    target: { value: "" },
+  });
+  expect(screen.getByLabelText("milestone")).toHaveValue("");
+  fireEvent.click(
+    screen.getByRole("button", { name: "tasks:milestones.useDefault" }),
+  );
+  expect(screen.getByLabelText("milestone")).toHaveValue("milestone");
+  fireEvent.change(screen.getByLabelText("milestone"), {
+    target: { value: "" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "tasks:bugs.save" }));
+  await waitFor(() =>
+    expect(save).toHaveBeenCalledWith({
+      title: "Unassigned milestone",
+      description: "",
+      milestoneId: null,
+    }),
+  );
+});
 it("updates the reporter and milestone while retaining untouched assignments", async () => {
   const save = vi.fn().mockResolvedValue({});
   render(
@@ -104,6 +211,7 @@ it("updates the reporter and milestone while retaining untouched assignments", a
       canAssign
       bug={{
         id: "bug",
+        ...metadataDefaults,
         projectId: "project",
         title: "Existing",
         description: "Report",
@@ -184,6 +292,7 @@ it("clears an assignment and locks both selectors when assignment permission is 
   const save = vi.fn().mockResolvedValue({});
   const bug = {
     id: "bug",
+    ...metadataDefaults,
     projectId: "project",
     milestoneId: null,
     milestone: null,
@@ -310,6 +419,7 @@ it("reads an existing report without replacing it with a changed template and hi
       workspaceId="workspace"
       bug={{
         id: "bug",
+        ...metadataDefaults,
         projectId: "project",
         milestoneId: null,
         milestone: null,
@@ -350,6 +460,7 @@ it("changes an existing bug status and can reopen a resolved report", async () =
       workspaceId="workspace"
       bug={{
         id: "bug",
+        ...metadataDefaults,
         projectId: "project",
         milestoneId: null,
         milestone: null,
@@ -383,6 +494,7 @@ it("changes an existing bug status and can reopen a resolved report", async () =
 it("refreshes untouched fields from realtime while preserving the user's draft", () => {
   const bug = {
     id: "bug",
+    ...metadataDefaults,
     projectId: "project",
     milestoneId: null,
     milestone: null,

@@ -1,6 +1,7 @@
 import { responseTimestamp, z } from "../openapi";
 import { bugHistoryFields } from "./history-types";
 import { bugStatus } from "./schema";
+import { bugPriorities, bugSeverities, bugEnvironments } from "./metadata";
 
 const bugPerson = z
   .object({
@@ -17,6 +18,9 @@ export const bugSchema = z
     title: z.string(),
     description: z.string(),
     status: bugStatus,
+    priority: z.enum(bugPriorities),
+    severity: z.enum(bugSeverities),
+    environment: z.enum(bugEnvironments).nullable(),
     reporterId: z.string().nullable().openapi({
       description:
         "Defaults to the creator and can be reassigned. Null when unassigned, for older reports or deleted accounts.",

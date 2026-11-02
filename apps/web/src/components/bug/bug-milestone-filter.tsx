@@ -9,6 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMilestoneOptions } from "@/hooks/queries/milestone/use-milestones";
+import { useCurrentMilestone } from "@/hooks/queries/milestone/use-current-milestone";
+import { CURRENT_MILESTONE_FILTER } from "@/store/milestone-filters";
 
 export default function BugMilestoneFilter({
   projectId,
@@ -21,6 +23,7 @@ export default function BugMilestoneFilter({
 }) {
   const { t } = useTranslation();
   const query = useMilestoneOptions(projectId);
+  const current = useCurrentMilestone(projectId);
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
   useEffect(() => {
     if (hasNextPage && !isFetchingNextPage)
@@ -28,23 +31,33 @@ export default function BugMilestoneFilter({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
   const milestones = query.data?.pages.flatMap((page) => page.data) ?? [];
   const items = [
+    ...(current.data
+      ? [{ value: CURRENT_MILESTONE_FILTER, label: current.data.name }]
+      : []),
     { value: "all", label: t("tasks:milestones.all") },
     { value: "none", label: t("tasks:milestones.none") },
-    ...milestones.map((milestone) => ({
-      value: milestone.id,
-      label: milestone.name,
-    })),
+    ...milestones
+      .filter((milestone) => milestone.id !== current.data?.id)
+      .map((milestone) => ({ value: milestone.id, label: milestone.name })),
   ];
+  const selected =
+    value === undefined || value === current.data?.id
+      ? current.data
+        ? CURRENT_MILESTONE_FILTER
+        : "all"
+      : value;
   // Preserve the active filter while loading or when a milestone was deleted.
-  if (value && !items.some((item) => item.value === value))
-    items.push({ value, label: t("tasks:bugs.selectedMilestone") });
+  if (!items.some((item) => item.value === selected))
+    items.push({ value: selected, label: t("tasks:bugs.selectedMilestone") });
   return (
     <div className="min-w-36 max-w-full">
       <Select
         items={items}
-        value={value ?? "all"}
-        onValueChange={(id) => onChange(!id || id === "all" ? undefined : id)}
-        disabled={query.isPending || query.isError}
+        value={selected}
+        onValueChange={(id) => {
+          if (id) onChange(id === CURRENT_MILESTONE_FILTER ? undefined : id);
+        }}
+        disabled={query.isPending || query.isError || current.isPending}
       >
         <SelectTrigger
           size="sm"
@@ -61,8 +74,15 @@ export default function BugMilestoneFilter({
           ))}
         </SelectPopup>
       </Select>
-      {query.isError && (
-        <Button size="xs" variant="ghost" onClick={() => void query.refetch()}>
+      {(query.isError || current.isError) && (
+        <Button
+          size="xs"
+          variant="ghost"
+          onClick={() => {
+            void query.refetch();
+            void current.refetch();
+          }}
+        >
           {t("tasks:milestones.retry")}
         </Button>
       )}

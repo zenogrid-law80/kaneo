@@ -12408,6 +12408,65 @@
 						},
 						"commentDeleteError": {
 							"type": "string"
+						},
+						"severity": {
+							"type": "string"
+						},
+						"environment": {
+							"type": "string"
+						},
+						"updatedAt": {
+							"type": "string"
+						},
+						"searchPlaceholder": {
+							"type": "string"
+						},
+						"searchAction": {
+							"type": "string"
+						},
+						"clearSearch": {
+							"type": "string"
+						},
+						"severities": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"none": {
+									"type": "string"
+								},
+								"trivial": {
+									"type": "string"
+								},
+								"minor": {
+									"type": "string"
+								},
+								"major": {
+									"type": "string"
+								},
+								"critical": {
+									"type": "string"
+								}
+							},
+							"required": ["none", "trivial", "minor", "major", "critical"]
+						},
+						"environments": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"none": {
+									"type": "string"
+								},
+								"development": {
+									"type": "string"
+								},
+								"staging": {
+									"type": "string"
+								},
+								"production": {
+									"type": "string"
+								}
+							},
+							"required": ["none", "development", "staging", "production"]
 						}
 					},
 					"required": [
@@ -12480,7 +12539,15 @@
 						"commentEdited",
 						"deleteCommentTitle",
 						"deleteCommentDescription",
-						"commentDeleteError"
+						"commentDeleteError",
+						"severity",
+						"environment",
+						"updatedAt",
+						"searchPlaceholder",
+						"searchAction",
+						"clearSearch",
+						"severities",
+						"environments"
 					]
 				}
 			},

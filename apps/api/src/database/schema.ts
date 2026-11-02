@@ -17,6 +17,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import type { GitHubImportState } from "../github-integration/import-state";
+import { bugPriorities, bugSeverities, bugEnvironments } from "../bug/metadata";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
@@ -380,6 +381,13 @@ export const bugTable = pgTable(
     status: text("status", { enum: ["new", "in-progress", "resolved"] })
       .notNull()
       .default("new"),
+    priority: text("priority", { enum: bugPriorities })
+      .notNull()
+      .default("no-priority"),
+    severity: text("severity", { enum: bugSeverities })
+      .notNull()
+      .default("no-severity"),
+    environment: text("environment", { enum: bugEnvironments }),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" })
       .defaultNow()
@@ -391,6 +399,21 @@ export const bugTable = pgTable(
       "bug_status_check",
       sql`${table.status} IN ('new', 'in-progress', 'resolved')`,
     ),
+    check(
+      "bug_priority_check",
+      sql`${table.priority} IN ('no-priority', 'low', 'medium', 'high', 'urgent')`,
+    ),
+    check(
+      "bug_severity_check",
+      sql`${table.severity} IN ('no-severity', 'trivial', 'minor', 'major', 'critical')`,
+    ),
+    check(
+      "bug_environment_check",
+      sql`${table.environment} IN ('development', 'staging', 'production')`,
+    ),
+    index("bug_project_priority_idx").on(table.projectId, table.priority),
+    index("bug_project_severity_idx").on(table.projectId, table.severity),
+    index("bug_project_environment_idx").on(table.projectId, table.environment),
     foreignKey({
       name: "bug_project_milestone_fk",
       columns: [table.projectId, table.milestoneId],
