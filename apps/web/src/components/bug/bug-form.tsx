@@ -13,6 +13,7 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import BugDescriptionEditor from "./bug-description-editor";
+import { prepareBugTemplate } from "./bug-markdown";
 import BugComments from "./bug-comments";
 import { Radio, RadioGroup } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -52,7 +53,7 @@ export default function BugForm({
 }) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [initialTemplate] = useState(template ?? "");
+  const [initialTemplate] = useState(() => prepareBugTemplate(template ?? ""));
   const [titleDraft, setTitle] = useState<string>();
   const [descriptionDraft, setDescription] = useState<string>();
   const [statusDraft, setStatus] = useState<BugStatus>();

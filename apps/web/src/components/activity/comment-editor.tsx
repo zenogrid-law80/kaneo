@@ -5,6 +5,10 @@ import {
 } from "@/components/editor/slash-commands";
 import { TableToolbar } from "@/components/editor/table-toolbar";
 import { createEditorExtensions } from "@/components/editor/extensions";
+import {
+  parseBugMarkdown,
+  serializeBugMarkdown,
+} from "@/components/bug/bug-markdown";
 import { insertUploadedAsset as insertEditorAsset } from "@/components/editor/insert-uploaded-asset";
 import { useEditorHighlighter } from "@/components/editor/use-editor-highlighter";
 import type { Editor } from "@tiptap/core";
@@ -60,6 +64,7 @@ import { uploadTaskImage } from "@/lib/upload-task-image";
 
 type CommentEditorProps = {
   ariaLabel?: string;
+  preserveEmptyBlocks?: boolean;
   value: string;
   onChange?: (value: string) => void;
   placeholder?: string;
@@ -138,6 +143,7 @@ type EmbedComposerState = {
 
 export default function CommentEditor({
   ariaLabel,
+  preserveEmptyBlocks = false,
   value,
   onChange,
   placeholder,
@@ -770,12 +776,19 @@ export default function CommentEditor({
       },
       onUpdate: ({ editor: activeEditor }) => {
         if (readOnly || disabled || !onChange || isSyncingRef.current) return;
-        const markdown = normalizeCommentMarkdown(activeEditor.getMarkdown());
+        const markdown = preserveEmptyBlocks
+          ? serializeBugMarkdown(activeEditor)
+          : normalizeCommentMarkdown(activeEditor.getMarkdown());
         latestValueRef.current = markdown;
         onChange(markdown);
       },
     },
-    [handleAssetFileUpload, resolvedPlaceholder, toShikiLanguage],
+    [
+      handleAssetFileUpload,
+      resolvedPlaceholder,
+      toShikiLanguage,
+      preserveEmptyBlocks,
+    ],
   );
 
   useEffect(() => {
@@ -924,14 +937,19 @@ export default function CommentEditor({
       lastEditorRef.current = editor;
     }
 
-    const incoming = normalizeCommentMarkdown(value || "");
+    const incoming = preserveEmptyBlocks
+      ? (value || "").replace(/\r\n/g, "\n")
+      : normalizeCommentMarkdown(value || "");
     if (!hasHydratedRef.current) {
       isSyncingRef.current = true;
       latestValueRef.current = incoming;
-      editor.commands.setContent(incoming, {
-        emitUpdate: false,
-        contentType: "markdown",
-      });
+      editor.commands.setContent(
+        preserveEmptyBlocks ? parseBugMarkdown(editor, incoming) : incoming,
+        {
+          emitUpdate: false,
+          ...(preserveEmptyBlocks ? {} : { contentType: "markdown" as const }),
+        },
+      );
       hasHydratedRef.current = true;
       queueMicrotask(() => {
         isSyncingRef.current = false;
@@ -941,15 +959,18 @@ export default function CommentEditor({
 
     if (incoming === latestValueRef.current) return;
     isSyncingRef.current = true;
-    editor.commands.setContent(incoming, {
-      emitUpdate: false,
-      contentType: "markdown",
-    });
+    editor.commands.setContent(
+      preserveEmptyBlocks ? parseBugMarkdown(editor, incoming) : incoming,
+      {
+        emitUpdate: false,
+        ...(preserveEmptyBlocks ? {} : { contentType: "markdown" as const }),
+      },
+    );
     latestValueRef.current = incoming;
     queueMicrotask(() => {
       isSyncingRef.current = false;
     });
-  }, [editor, value]);
+  }, [editor, value, preserveEmptyBlocks]);
 
   const setLink = useCallback(() => {
     if (readOnly || disabled || !editor) return;

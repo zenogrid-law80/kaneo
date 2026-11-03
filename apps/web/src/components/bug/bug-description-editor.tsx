@@ -43,6 +43,7 @@ export default function BugDescriptionEditor({
         </p>
       )}
       <CommentEditor
+        preserveEmptyBlocks
         value={value}
         onChange={onChange}
         disabled={disabled}
