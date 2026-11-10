@@ -262,7 +262,7 @@ it("restores single and multi-person bookmarks and ignores malformed parameters"
     parseBugSearch({
       priority: "invalid",
       severity: ["critical"],
-      environment: "qa",
+      environment: "qa!",
       sortBy: "description",
       sortOrder: "sideways",
     }),

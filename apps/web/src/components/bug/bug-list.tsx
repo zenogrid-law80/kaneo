@@ -13,11 +13,8 @@ import type { BugFilters } from "@/fetchers/bug";
 import { useBugs } from "@/hooks/queries/bug/use-bugs";
 import { bugStatusKeys } from "./bug-status";
 import BugPagination from "./bug-pagination";
-import {
-  bugPriorityKeys,
-  bugSeverityKeys,
-  bugEnvironmentKeys,
-} from "./bug-metadata";
+import { bugPriorityKeys, bugSeverityKeys } from "./bug-metadata";
+import { useEnvironmentOptions } from "./bug-environments";
 
 export default function BugList({
   projectId,
@@ -29,6 +26,7 @@ export default function BugList({
   onSelect: (id: string) => void;
 }) {
   const { t } = useTranslation();
+  const { label: environmentLabel } = useEnvironmentOptions();
   const [page, setPage] = useState(1);
   const query = useBugs(projectId, undefined, page, filters);
   useEffect(() => {
@@ -94,7 +92,7 @@ export default function BugList({
                       {t(bugSeverityKeys[bug.severity])}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {t(bugEnvironmentKeys[bug.environment ?? "none"])}
+                      {environmentLabel(bug.environment)}
                     </TableCell>
                     <TableCell>
                       {bug.reporter?.name ?? t("tasks:bugs.unrecorded")}

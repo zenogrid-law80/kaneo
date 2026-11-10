@@ -53,6 +53,7 @@ const milestone: Milestone = {
   projectId: "project",
   name: "Beta",
   description: null,
+  startDate: null,
   dueDate: null,
   status: "open",
   isCurrent: false,

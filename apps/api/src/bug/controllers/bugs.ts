@@ -18,6 +18,8 @@ import { queueStorageCleanup } from "../../storage/cleanup-queue";
 import { getBugAssignments } from "../assignment-changes";
 import { getCurrentMilestone } from "../../milestone/controllers/current-milestone";
 import { bugListQuery } from "./list-query";
+import { assertBugEnvironment, getBugEnvironments } from "./environments";
+import { bugEnvironments } from "../metadata";
 
 const personColumns = { id: true, name: true, image: true } as const;
 const people = {
@@ -31,7 +33,33 @@ export async function listBugs(
   projectId: string,
   query: z.infer<typeof listBugsQuery>,
 ) {
-  const { where, orderBy } = bugListQuery(projectId, query);
+  const options =
+    query.environment || query.sortBy === "environment"
+      ? await getBugEnvironments(projectId)
+      : [];
+  if (
+    query.environment &&
+    query.environment
+      .split(",")
+      .some(
+        (id) => id !== "none" && !options.some((option) => option.id === id),
+      )
+  )
+    throw new HTTPException(400, {
+      message: "Environment is not available in this project",
+    });
+  const custom = options
+    .filter((item) => !bugEnvironments.some((id) => id === item.id))
+    .sort(
+      (a, b) =>
+        (a.name ?? a.id).localeCompare(b.name ?? b.id) ||
+        a.id.localeCompare(b.id),
+    )
+    .map((item) => item.id);
+  const { where, orderBy } = bugListQuery(projectId, query, [
+    ...bugEnvironments,
+    ...custom,
+  ]);
   const [data, [totalRow]] = await Promise.all([
     db.query.bugTable.findMany({
       columns: { description: false },
@@ -72,6 +100,7 @@ export async function createBug(
     input.description ?? (await getBugTemplate(projectId)).template;
   const bug = await db.transaction(async (tx) => {
     await lockMilestoneProjects(tx, [projectId]);
+    await assertBugEnvironment(projectId, input.environment, tx);
     const milestone =
       input.milestoneId === undefined
         ? await getCurrentMilestone(projectId, tx)
@@ -127,6 +156,11 @@ export async function updateBug(
       .where(and(eq(bugTable.projectId, projectId), eq(bugTable.id, id)))
       .for("update");
     if (!current) throw new HTTPException(404, { message: "Bug not found" });
+    if (
+      input.environment !== undefined &&
+      input.environment !== current.environment
+    )
+      await assertBugEnvironment(projectId, input.environment, tx);
     if (input.milestoneId && input.milestoneId !== current.milestoneId)
       await assertOpenMilestone(tx, input.milestoneId, projectId);
     if (input.description !== undefined)

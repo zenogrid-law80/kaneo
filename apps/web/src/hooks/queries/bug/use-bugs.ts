@@ -4,6 +4,7 @@ import {
   getBugHistory,
   getBugs,
   getBugTemplate,
+  getBugEnvironments,
   type BugStatus,
   type BugFilters,
 } from "@/fetchers/bug";
@@ -48,6 +49,15 @@ export function useBugHistory(projectId: string, id: string, page: number) {
     queryFn: () => getBugHistory(projectId, id, page),
     enabled: !!projectId && !!id,
     retry: false,
+    refetchInterval,
+  });
+}
+
+export function useBugEnvironments(projectId: string) {
+  return useQuery({
+    queryKey: ["bug-environments", projectId],
+    queryFn: () => getBugEnvironments(projectId),
+    enabled: !!projectId,
     refetchInterval,
   });
 }

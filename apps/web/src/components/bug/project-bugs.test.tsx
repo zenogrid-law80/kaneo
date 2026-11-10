@@ -29,6 +29,7 @@ vi.mock("./bug-list", () => ({
 }));
 vi.mock("@/hooks/queries/bug/use-bugs", () => ({
   useBugTemplate: () => ({ data: { template: "Bug template" } }),
+  useBugEnvironments: () => ({ data: [] }),
 }));
 vi.mock("@/hooks/mutations/bug/use-bug-mutations", () => ({
   useBugMutations: () => ({}),

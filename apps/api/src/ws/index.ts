@@ -856,7 +856,11 @@ for (const name of [
   );
 }
 
-for (const name of ["bug.changed", "bug.template.updated"]) {
+for (const name of [
+  "bug.changed",
+  "bug.template.updated",
+  "bug.environments.updated",
+]) {
   subscribeToEvent<{ projectId: string; initiatorId?: string }>(
     name,
     async (data) => {
@@ -864,7 +868,11 @@ for (const name of ["bug.changed", "bug.template.updated"]) {
         data.projectId,
         {
           type:
-            name === "bug.changed" ? "BUGS_UPDATED" : "BUG_TEMPLATE_UPDATED",
+            name === "bug.changed"
+              ? "BUGS_UPDATED"
+              : name === "bug.template.updated"
+                ? "BUG_TEMPLATE_UPDATED"
+                : "BUG_ENVIRONMENTS_UPDATED",
           projectId: data.projectId,
         },
         data.initiatorId,

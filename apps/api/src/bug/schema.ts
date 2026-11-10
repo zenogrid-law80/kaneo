@@ -1,10 +1,5 @@
 import { z } from "../openapi";
-import {
-  bugPriorities,
-  bugSeverities,
-  bugEnvironments,
-  bugSortFields,
-} from "./metadata";
+import { bugPriorities, bugSeverities, bugSortFields } from "./metadata";
 
 export const bugStatus = z.enum(["new", "in-progress", "resolved"]);
 export const bugProjectParam = z.object({ projectId: z.string().min(1) });
@@ -39,14 +34,14 @@ export const listBugsQuery = z.object({
     description:
       "Comma-separated severities (OR): no-severity, trivial, minor, major, critical.",
   }),
-  environment: metadataFilter([...bugEnvironments, "none"]).openapi({
+  environment: peopleFilter.openapi({
     description:
-      "Comma-separated branch environments (OR): development, staging, production, none. Different filters are combined with AND.",
+      "Comma-separated project environment IDs (OR), including none for unassigned. Different filters are combined with AND.",
   }),
   sortBy: z.enum(bugSortFields).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc").openapi({
     description:
-      "Priority and severity use impact rank; environment uses development, staging, production order. Unspecified values sort last in both directions. Ties use creation time then ID descending.",
+      "Priority and severity use impact rank; environment uses default environment order followed by custom environments ordered by name. Unspecified values sort last in both directions. Ties use creation time then ID descending.",
   }),
   reporterId: peopleFilter.openapi({
     description:
@@ -70,7 +65,11 @@ export const listBugsQuery = z.object({
 const bugMetadata = {
   priority: z.enum(bugPriorities).optional(),
   severity: z.enum(bugSeverities).optional(),
-  environment: z.enum(bugEnvironments).nullable().optional(),
+  environment: z
+    .string()
+    .regex(/^[a-z0-9-]{1,64}$/)
+    .nullable()
+    .optional(),
 };
 const bugAssignments = {
   reporterId: z.string().trim().min(1).nullable().optional().openapi({
@@ -120,3 +119,20 @@ export const bugTemplateBody = z.strictObject({
       "Use null to restore the default template. Changes apply only to future bugs.",
   }),
 });
+
+export const bugEnvironmentParam = bugProjectParam.extend({
+  environmentId: z.string().regex(/^[a-z0-9-]{1,64}$/),
+});
+export const bugEnvironmentBody = z.strictObject({
+  name: z.string().trim().min(1).max(80),
+});
+
+export const updateBugEnvironmentBody = z
+  .strictObject({
+    name: z.string().trim().min(1).max(80).optional(),
+    archived: z.boolean().optional(),
+  })
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required",
+  );

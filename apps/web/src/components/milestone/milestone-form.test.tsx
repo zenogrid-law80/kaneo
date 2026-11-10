@@ -34,6 +34,7 @@ it("can create a milestone as the project default", async () => {
     expect(save).toHaveBeenCalledWith({
       name: "Current release",
       description: null,
+      startDate: null,
       dueDate: null,
       isCurrent: true,
     }),
@@ -44,6 +45,7 @@ const milestone: Milestone = {
   projectId: "project",
   name: "Beta",
   description: null,
+  startDate: "2026-10-01",
   dueDate: "2026-10-15",
   status: "open",
   isCurrent: false,
@@ -85,6 +87,7 @@ describe("milestone form", () => {
         name: "Beta",
         description: null,
         isCurrent: false,
+        startDate: "2026-10-01",
         dueDate: "2026-10-31",
       }),
     );
@@ -105,6 +108,7 @@ describe("milestone form", () => {
         name: "Beta",
         description: null,
         isCurrent: false,
+        startDate: "2026-10-01",
         dueDate: null,
       }),
     );
@@ -130,4 +134,39 @@ describe("milestone form", () => {
     ).toBe("Do not lose this");
     expect(close).not.toHaveBeenCalled();
   });
+});
+
+it("sets a start date while preserving Markdown source", async () => {
+  const save = vi.fn().mockResolvedValue({});
+  form(save, vi.fn(), milestone);
+  fireEvent.change(screen.getByLabelText("Description"), {
+    target: { value: "**Release**\n\n- Ship" },
+  });
+  fireEvent.click(screen.getByLabelText("Start date"));
+  fireEvent.click(
+    await screen.findByRole("button", { name: /October 5th, 2026/ }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  await waitFor(() =>
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        startDate: "2026-10-05",
+        description: "**Release**\n\n- Ship",
+      }),
+    ),
+  );
+});
+
+it("clears an existing start date", async () => {
+  const save = vi.fn().mockResolvedValue({});
+  form(save, vi.fn(), milestone);
+  fireEvent.click(screen.getByLabelText("Start date"));
+  fireEvent.click(await screen.findByRole("button", { name: "Clear date" }));
+  expect(screen.getByLabelText("Start date").textContent).toBe("No start date");
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  await waitFor(() =>
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({ startDate: null }),
+    ),
+  );
 });

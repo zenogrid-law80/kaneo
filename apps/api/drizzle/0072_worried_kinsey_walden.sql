@@ -1,0 +1,1 @@
+ALTER TABLE "milestone" ADD COLUMN "start_date" date;

@@ -1,9 +1,6 @@
-import { parseISO } from "date-fns";
-import { CalendarIcon, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -15,15 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import type { Milestone, MilestoneInput } from "@/fetchers/milestone";
-import { formatDateMedium } from "@/lib/format";
-import { localDateString } from "@/lib/milestone-date";
+import MilestoneDateField from "./milestone-date-field";
 
 export default function MilestoneForm({
   milestone,
@@ -34,13 +25,12 @@ export default function MilestoneForm({
   onSave: (input: MilestoneInput) => Promise<unknown>;
   onClose: () => void;
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [name, setName] = useState(milestone?.name ?? "");
   const [description, setDescription] = useState(milestone?.description ?? "");
+  const [startDate, setStartDate] = useState(milestone?.startDate ?? "");
   const [dueDate, setDueDate] = useState(milestone?.dueDate ?? "");
   const [isCurrent, setIsCurrent] = useState(milestone?.isCurrent ?? false);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const selectedDate = dueDate ? parseISO(dueDate) : undefined;
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
   return (
@@ -61,6 +51,7 @@ export default function MilestoneForm({
               await onSave({
                 name: name.trim(),
                 description: description || null,
+                startDate: startDate || null,
                 dueDate: dueDate || null,
                 isCurrent,
               });
@@ -104,6 +95,9 @@ export default function MilestoneForm({
               <label htmlFor="milestone-description" className="text-sm">
                 {t("tasks:milestones.description")}
               </label>
+              <p className="text-xs text-muted-foreground">
+                {t("tasks:milestones.markdownHint")}
+              </p>
               <Textarea
                 id="milestone-description"
                 value={description}
@@ -112,55 +106,22 @@ export default function MilestoneForm({
                 disabled={pending}
               />
             </div>
-            <div className="space-y-1">
-              <label htmlFor="milestone-date" className="text-sm">
-                {t("tasks:milestones.dueDate")}
-              </label>
-              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                <PopoverTrigger
-                  render={<Button type="button" variant="outline" />}
-                  id="milestone-date"
-                  className="w-full justify-start gap-2"
-                  disabled={pending}
-                >
-                  <CalendarIcon className="size-4" />
-                  {selectedDate
-                    ? formatDateMedium(selectedDate, i18n.resolvedLanguage)
-                    : t("tasks:milestones.noDate")}
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    defaultMonth={selectedDate}
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      setDueDate(date ? localDateString(date) : "");
-                      setDatePickerOpen(false);
-                    }}
-                    disabled={pending}
-                    className="w-full bg-popover"
-                  />
-                  {selectedDate && (
-                    <div className="pt-2 border-t border-border">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-2 text-muted-foreground"
-                        disabled={pending}
-                        onClick={() => {
-                          setDueDate("");
-                          setDatePickerOpen(false);
-                        }}
-                      >
-                        <X className="size-4" />
-                        {t("tasks:popover.dueDate.clear")}
-                      </Button>
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
-            </div>
+            <MilestoneDateField
+              id="milestone-start-date"
+              label={t("tasks:milestones.startDate")}
+              emptyLabel={t("tasks:milestones.noStartDate")}
+              value={startDate}
+              onChange={setStartDate}
+              disabled={pending}
+            />
+            <MilestoneDateField
+              id="milestone-date"
+              label={t("tasks:milestones.dueDate")}
+              emptyLabel={t("tasks:milestones.noDate")}
+              value={dueDate}
+              onChange={setDueDate}
+              disabled={pending}
+            />
             {milestone?.status !== "closed" && (
               <div className="space-y-1">
                 <label className="flex items-center gap-2 text-sm">

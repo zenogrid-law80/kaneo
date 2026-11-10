@@ -498,6 +498,20 @@
       "when": 1793583474378,
       "tag": "0070_amused_purple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1793754384690,
+      "tag": "0071_sparkling_betty_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1794288787384,
+      "tag": "0072_worried_kinsey_walden",
+      "breakpoints": true
     }
   ]
 }

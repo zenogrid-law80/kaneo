@@ -719,6 +719,16 @@ describe("API integration: isolated project bugs", () => {
           }),
         ),
       );
+      socket.send.mockClear();
+      await request("/environments", "POST", { name: "QA" });
+      await vi.waitFor(() =>
+        expect(socket.send).toHaveBeenCalledWith(
+          JSON.stringify({
+            type: "BUG_ENVIRONMENTS_UPDATED",
+            projectId: project.id,
+          }),
+        ),
+      );
       expect(otherSocket.send).not.toHaveBeenCalled();
     } finally {
       removeConnection(project.id, connection);

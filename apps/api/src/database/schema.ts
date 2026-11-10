@@ -17,7 +17,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import type { GitHubImportState } from "../github-integration/import-state";
-import { bugPriorities, bugSeverities, bugEnvironments } from "../bug/metadata";
+import { bugPriorities, bugSeverities } from "../bug/metadata";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
@@ -387,7 +387,7 @@ export const bugTable = pgTable(
     severity: text("severity", { enum: bugSeverities })
       .notNull()
       .default("no-severity"),
-    environment: text("environment", { enum: bugEnvironments }),
+    environment: text("environment"),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" })
       .defaultNow()
@@ -406,10 +406,6 @@ export const bugTable = pgTable(
     check(
       "bug_severity_check",
       sql`${table.severity} IN ('no-severity', 'trivial', 'minor', 'major', 'critical')`,
-    ),
-    check(
-      "bug_environment_check",
-      sql`${table.environment} IN ('development', 'staging', 'production')`,
     ),
     index("bug_project_priority_idx").on(table.projectId, table.priority),
     index("bug_project_severity_idx").on(table.projectId, table.severity),
@@ -502,6 +498,23 @@ export const bugTemplateTable = pgTable("bug_template", {
   template: text("template").notNull(),
 });
 
+export const bugEnvironmentTable = pgTable(
+  "bug_environment",
+  {
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projectTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    id: text("id").notNull(),
+    name: text("name"),
+    archived: boolean("archived").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.projectId, table.id] })],
+);
+
 export const columnTable = pgTable(
   "column",
   {
@@ -575,6 +588,7 @@ export const milestoneTable = pgTable(
       }),
     name: text("name").notNull(),
     description: text("description"),
+    startDate: date("start_date", { mode: "string" }),
     dueDate: date("due_date", { mode: "string" }),
     isCurrent: boolean("is_current").notNull().default(false),
     status: text("status", { enum: ["open", "closed"] })

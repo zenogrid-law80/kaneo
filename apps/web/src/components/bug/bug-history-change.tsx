@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import type { BugHistoryEntry, BugStatus } from "@/fetchers/bug";
 import { bugStatusKeys } from "./bug-status";
 import { bugMetadataFields } from "./bug-metadata";
+import { useEnvironmentOptions } from "./bug-environments";
 
 const fieldLabels = {
   title: "tasks:bugs.issueTitle",
@@ -22,11 +23,14 @@ export default function BugHistoryChange({
   change: BugHistoryEntry["changes"][number];
 }) {
   const { t } = useTranslation();
+  const { label: environmentLabel } = useEnvironmentOptions();
   const value = (side: "before" | "after") => {
     const raw = change[side];
     if (raw === null || raw === "") return t("tasks:bugs.historyEmptyValue");
     if (change.field === "status")
       return t(bugStatusKeys[raw as BugStatus] ?? "tasks:bugs.status");
+    if (change.field === "environment")
+      return change[`${side}Label`] ?? environmentLabel(raw);
     const metadata = bugMetadataFields.find(({ key }) => key === change.field);
     if (metadata) {
       const label = Object.entries(metadata.values).find(

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import type { BugMetadata } from "@/fetchers/bug";
 import { bugMetadataFields } from "./bug-metadata";
+import { useEnvironmentOptions } from "./bug-environments";
 
 export default function BugMetadataFields({
   value,
@@ -20,20 +21,38 @@ export default function BugMetadataFields({
   disabled?: boolean;
 }) {
   const { t } = useTranslation();
+  const {
+    environments,
+    label: environmentLabel,
+    ready,
+  } = useEnvironmentOptions();
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       {bugMetadataFields.map(({ key, label, values }) => {
-        const items = Object.entries(values).map(([value, label]) => ({
-          value,
-          label: t(label),
-        }));
+        const items =
+          key === "environment"
+            ? [
+                { value: "none", label: environmentLabel(null) },
+                ...environments
+                  .filter(
+                    (item) => !item.archived || item.id === value.environment,
+                  )
+                  .map((item) => ({
+                    value: item.id,
+                    label: environmentLabel(item.id),
+                  })),
+              ]
+            : Object.entries(values).map(([value, label]) => ({
+                value,
+                label: t(label),
+              }));
         return (
           <Field key={key}>
             <FieldLabel>{t(label)}</FieldLabel>
             <Select
               items={items}
               value={value[key] ?? "none"}
-              disabled={disabled}
+              disabled={disabled || (key === "environment" && !ready)}
               onValueChange={(id) => {
                 if (id)
                   onChange({

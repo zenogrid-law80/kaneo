@@ -198,6 +198,7 @@ it("reconciles a milestone event during initial pagination once without restarti
 it("refreshes bug caches independently while a task board request is in flight", async () => {
   const bugs = vi.fn().mockResolvedValue([]);
   const template = vi.fn().mockResolvedValue({ template: "Current" });
+  const environments = vi.fn().mockResolvedValue([]);
   renderHook(
     () => {
       useGetTasks("project");
@@ -206,6 +207,10 @@ it("refreshes bug caches independently while a task board request is in flight",
         queryFn: bugs,
       });
       useQuery({ queryKey: ["bug-template", "project"], queryFn: template });
+      useQuery({
+        queryKey: ["bug-environments", "project"],
+        queryFn: environments,
+      });
       useProjectWebSocket("project");
     },
     {
@@ -216,10 +221,15 @@ it("refreshes bug caches independently while a task board request is in flight",
   );
   await waitFor(() => expect(bugs).toHaveBeenCalledTimes(1));
   await waitFor(() => expect(template).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(environments).toHaveBeenCalledTimes(1));
   act(() => Socket.current.message("BUGS_UPDATED"));
   await waitFor(() => expect(bugs).toHaveBeenCalledTimes(2));
   expect(template).toHaveBeenCalledTimes(1);
   act(() => Socket.current.message("BUG_TEMPLATE_UPDATED"));
   await waitFor(() => expect(template).toHaveBeenCalledTimes(2));
+  act(() => Socket.current.message("BUG_ENVIRONMENTS_UPDATED"));
+  await waitFor(() => expect(environments).toHaveBeenCalledTimes(2));
+  expect(bugs).toHaveBeenCalledTimes(2);
+  expect(template).toHaveBeenCalledTimes(2);
   expect(mocks.board).toHaveBeenCalledTimes(1);
 });

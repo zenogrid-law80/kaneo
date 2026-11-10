@@ -91,3 +91,32 @@ export async function getBugHistory(
 export type BugHistoryEntry = Awaited<
   ReturnType<typeof getBugHistory>
 >["data"][number];
+
+export async function getBugEnvironments(projectId: string) {
+  const response = await api.environments.$get({ param: { projectId } });
+  if (!response.ok) throw new HttpError(response.status, await response.text());
+  return response.json();
+}
+export type BugEnvironment = Awaited<
+  ReturnType<typeof getBugEnvironments>
+>[number];
+export async function createBugEnvironment(projectId: string, name: string) {
+  const response = await api.environments.$post({
+    param: { projectId },
+    json: { name },
+  });
+  if (!response.ok) throw new HttpError(response.status, await response.text());
+  return response.json();
+}
+export async function updateBugEnvironment(
+  projectId: string,
+  environmentId: string,
+  json: { name?: string; archived?: boolean },
+) {
+  const response = await api.environments[":environmentId"].$patch({
+    param: { projectId, environmentId },
+    json,
+  });
+  if (!response.ok) throw new HttpError(response.status, await response.text());
+  return response.json();
+}

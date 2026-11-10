@@ -1,3 +1,4 @@
+import CommentEditor from "@/components/activity/comment-editor";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Flag, Link, Plus } from "lucide-react";
 import { useDeferredValue, useState } from "react";
@@ -208,6 +209,12 @@ export default function MilestoneDetail({
             {milestone.status === "open"
               ? t("tasks:milestones.open")
               : t("tasks:milestones.closed")}{" "}
+            {milestone.startDate && (
+              <>
+                {" "}
+                · {t("tasks:milestones.startDate")}: {milestone.startDate}
+              </>
+            )}{" "}
             · {milestone.dueDate ?? t("tasks:milestones.noDate")}
           </p>
         </div>
@@ -254,7 +261,7 @@ export default function MilestoneDetail({
         )}
       </div>
       {milestone.description && (
-        <p className="whitespace-pre-wrap text-sm">{milestone.description}</p>
+        <CommentEditor value={milestone.description} readOnly />
       )}
       <MilestoneBugLink
         workspaceId={workspaceId}

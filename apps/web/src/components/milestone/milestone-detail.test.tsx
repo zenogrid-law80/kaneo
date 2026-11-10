@@ -24,6 +24,8 @@ const state = vi.hoisted(() => ({
   edit: true,
   status: "open",
   isCurrent: false,
+  description: null as string | null,
+  startDate: null as string | null,
   error: false,
   update: vi.fn(),
   remove: vi.fn(),
@@ -38,7 +40,8 @@ vi.mock("@/hooks/queries/milestone/use-milestones", () => ({
       id: "m1",
       projectId: "p1",
       name: "Beta",
-      description: null,
+      description: state.description,
+      startDate: state.startDate,
       dueDate: null,
       status: state.status,
       isCurrent: state.isCurrent,
@@ -81,6 +84,15 @@ vi.mock("@/hooks/use-workspace-permission", () => ({
 vi.mock("@/components/task/task-details-sheet", () => ({
   default: () => null,
 }));
+vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
+  default: () => ({ data: undefined }),
+}));
+vi.mock(
+  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  () => ({
+    useGetActiveWorkspaceUsers: () => ({ data: undefined }),
+  }),
+);
 vi.mock("@/lib/toast", () => ({ toast: { error: vi.fn() } }));
 const i18n = createInstance();
 void i18n.init({
@@ -95,6 +107,8 @@ beforeEach(() => {
   state.edit = true;
   state.status = "open";
   state.isCurrent = false;
+  state.description = null;
+  state.startDate = null;
   state.error = false;
   state.update.mockReset().mockResolvedValue({});
   state.remove.mockReset().mockResolvedValue({});
@@ -186,4 +200,14 @@ describe("milestone details", () => {
     expect(back).not.toHaveBeenCalled();
     expect(screen.getByRole("alertdialog")).toBeTruthy();
   });
+});
+
+it("renders the start date and Markdown description", async () => {
+  state.startDate = "2026-10-01";
+  state.description = "**Release**\n\n- Ship";
+  detail();
+  expect(screen.getByText(/Start date: 2026-10-01/)).toBeTruthy();
+  const bold = await screen.findByText("Release");
+  expect(bold.tagName).toBe("STRONG");
+  expect(screen.getByText("Ship").closest("li")).toBeTruthy();
 });

@@ -41,6 +41,11 @@ export default function MilestoneListRow({
           <p
             className={`mt-1 text-xs ${isMilestoneOverdue(milestone, today) ? "text-destructive" : "text-muted-foreground"}`}
           >
+            {milestone.startDate && (
+              <>
+                {t("tasks:milestones.startDate")}: {milestone.startDate} ·{" "}
+              </>
+            )}
             {milestone.dueDate ?? t("tasks:milestones.noDate")}
             {isMilestoneOverdue(milestone, today) &&
               ` · ${t("tasks:milestones.overdue")}`}

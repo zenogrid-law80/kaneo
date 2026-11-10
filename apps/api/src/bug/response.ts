@@ -1,7 +1,7 @@
 import { responseTimestamp, z } from "../openapi";
 import { bugHistoryFields } from "./history-types";
 import { bugStatus } from "./schema";
-import { bugPriorities, bugSeverities, bugEnvironments } from "./metadata";
+import { bugPriorities, bugSeverities } from "./metadata";
 
 const bugPerson = z
   .object({
@@ -20,7 +20,7 @@ export const bugSchema = z
     status: bugStatus,
     priority: z.enum(bugPriorities),
     severity: z.enum(bugSeverities),
-    environment: z.enum(bugEnvironments).nullable(),
+    environment: z.string().nullable(),
     reporterId: z.string().nullable().openapi({
       description:
         "Defaults to the creator and can be reassigned. Null when unassigned, for older reports or deleted accounts.",
@@ -86,3 +86,12 @@ export const bugHistorySchema = z
     }),
   })
   .openapi("BugHistory");
+
+export const bugEnvironmentSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().nullable(),
+    archived: z.boolean(),
+  })
+  .openapi("BugEnvironment");
+export const bugEnvironmentListSchema = z.array(bugEnvironmentSchema);

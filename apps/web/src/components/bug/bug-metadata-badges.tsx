@@ -1,13 +1,11 @@
 import { useTranslation } from "react-i18next";
 import type { BugMetadata } from "@/fetchers/bug";
-import {
-  bugPriorityKeys,
-  bugSeverityKeys,
-  bugEnvironmentKeys,
-} from "./bug-metadata";
+import { bugPriorityKeys, bugSeverityKeys } from "./bug-metadata";
+import { useEnvironmentOptions } from "./bug-environments";
 
 export default function BugMetadataBadges({ bug }: { bug: BugMetadata }) {
   const { t } = useTranslation();
+  const { label: environmentLabel } = useEnvironmentOptions();
   const items = [
     ...(bug.priority !== "no-priority"
       ? [
@@ -29,7 +27,7 @@ export default function BugMetadataBadges({ bug }: { bug: BugMetadata }) {
       ? [
           {
             label: t("tasks:bugs.environment"),
-            value: t(bugEnvironmentKeys[bug.environment]),
+            value: environmentLabel(bug.environment),
           },
         ]
       : []),

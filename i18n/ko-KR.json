@@ -2892,6 +2892,9 @@
 			"formDescription": "프로젝트 목표와 목표일에 맞춰 태스크를 묶습니다.",
 			"name": "이름",
 			"description": "설명",
+			"startDate": "시작일",
+			"noStartDate": "시작일 없음",
+			"markdownHint": "Markdown 형식을 지원합니다.",
 			"dueDate": "목표일",
 			"open": "열림",
 			"closed": "닫힘",
@@ -3034,7 +3037,17 @@
 				"development": "개발",
 				"staging": "스테이징",
 				"production": "운영"
-			}
+			},
+			"environmentSettingsTitle": "버그 브랜치 환경",
+			"environmentSettingsHint": "새 버그에 사용할 환경을 설정합니다. 삭제한 환경은 기존 버그에 유지되며 복원할 수 있습니다.",
+			"environmentName": "환경 이름",
+			"environmentRename": "이름 저장",
+			"environmentAdd": "환경 추가",
+			"environmentDelete": "삭제",
+			"environmentRestore": "복원",
+			"environmentArchived": "삭제됨",
+			"environmentLoadError": "환경 목록을 불러오지 못했습니다.",
+			"environmentSaveError": "환경을 저장하지 못했습니다."
 		}
 	},
 	"invitations": {

@@ -476,6 +476,39 @@ describe("milestone MCP tools", () => {
       body: JSON.stringify({ isCurrent: false }),
     });
   });
+  it("accepts and forwards start dates for creation and updates", async () => {
+    const { server, tools } = createServerMock();
+    const client = { json: vi.fn().mockResolvedValue({}) };
+    registerTools(server as never, { client: client as never });
+    const create = tools.get("create_milestone")!;
+    const args = create.config.inputSchema!.parse({
+      projectId: "p1",
+      name: "Beta",
+      startDate: "2028-02-01",
+    }) as Record<string, unknown>;
+    await create.handler(args);
+    expect(client.json).toHaveBeenCalledWith("/api/milestone/project/p1", {
+      method: "POST",
+      body: JSON.stringify({ name: "Beta", startDate: "2028-02-01" }),
+    });
+    const update = tools.get("update_milestone")!;
+    const updateArgs = update.config.inputSchema!.parse({
+      id: "m1",
+      startDate: null,
+    }) as Record<string, unknown>;
+    await update.handler(updateArgs);
+    expect(client.json).toHaveBeenCalledWith("/api/milestone/m1", {
+      method: "PATCH",
+      body: JSON.stringify({ startDate: null }),
+    });
+    expect(() =>
+      create.config.inputSchema!.parse({
+        projectId: "p1",
+        name: "Beta",
+        startDate: "2028-02-30",
+      }),
+    ).toThrow();
+  });
   it("passes null to unlink and open/closed to update without a full task overwrite", async () => {
     const { server, tools } = createServerMock();
     const client = { json: vi.fn().mockResolvedValue({ success: true }) };

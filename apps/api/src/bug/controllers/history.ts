@@ -10,6 +10,7 @@ import {
 import { HTTPException } from "hono/http-exception";
 import { bugHistoryFields, type BugChange } from "../history-types";
 import type { updateBugBody } from "../schema";
+import { getBugEnvironments } from "./environments";
 
 export async function recordBugChanges(
   tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
@@ -41,6 +42,16 @@ export async function recordBugChanges(
         people.find((person) => person.id === change.before)?.name ?? null;
       change.afterLabel =
         people.find((person) => person.id === change.after)?.name ?? null;
+    } else if (change.field === "environment") {
+      const environments = await getBugEnvironments(before.projectId, tx);
+      const beforeName = environments.find(
+        (item) => item.id === change.before,
+      )?.name;
+      const afterName = environments.find(
+        (item) => item.id === change.after,
+      )?.name;
+      if (beforeName) change.beforeLabel = beforeName;
+      if (afterName) change.afterLabel = afterName;
     } else if (change.field === "milestoneId") {
       const ids = [change.before, change.after].filter((id): id is string =>
         Boolean(id),

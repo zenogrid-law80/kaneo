@@ -19,10 +19,7 @@ export const bugEnvironmentKeys = {
   development: "tasks:bugs.environments.development",
   staging: "tasks:bugs.environments.staging",
   production: "tasks:bugs.environments.production",
-} as const satisfies Record<
-  NonNullable<BugMetadata["environment"]> | "none",
-  string
->;
+} as const;
 export const bugMetadataFields = [
   { key: "priority", label: "tasks:priority.label", values: bugPriorityKeys },
   { key: "severity", label: "tasks:bugs.severity", values: bugSeverityKeys },

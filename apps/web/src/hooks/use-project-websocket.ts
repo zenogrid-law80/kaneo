@@ -193,6 +193,9 @@ export function useProjectWebSocket(projectId: string) {
         void queryClient.invalidateQueries({
           queryKey: ["bug-template", projectId],
         });
+        void queryClient.invalidateQueries({
+          queryKey: ["bug-environments", projectId],
+        });
         needsReconcile = true;
         flushPending();
         if (healthyTimeout !== null) clearTimeout(healthyTimeout);
@@ -227,6 +230,12 @@ export function useProjectWebSocket(projectId: string) {
             });
             void queryClient.invalidateQueries({
               queryKey: ["bug-comments", projectId, message.bugId],
+            });
+            return;
+          }
+          if (message.type === "BUG_ENVIRONMENTS_UPDATED") {
+            void queryClient.invalidateQueries({
+              queryKey: ["bug-environments", projectId],
             });
             return;
           }

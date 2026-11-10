@@ -6,6 +6,7 @@ export const milestoneDate = z.iso.date();
 const fields = {
   name: z.string().trim().min(1).max(200),
   description: z.string().max(10_000).nullable(),
+  startDate: milestoneDate.nullable(),
   dueDate: milestoneDate.nullable(),
   isCurrent: z.boolean().optional().openapi({
     description:
@@ -15,6 +16,7 @@ const fields = {
 export const createMilestoneBody = z.object({
   name: fields.name,
   description: fields.description.optional(),
+  startDate: fields.startDate.optional(),
   dueDate: fields.dueDate.optional(),
   isCurrent: fields.isCurrent,
 });
@@ -22,6 +24,7 @@ export const updateMilestoneBody = z
   .object({
     name: fields.name.optional(),
     description: fields.description.optional(),
+    startDate: fields.startDate.optional(),
     dueDate: fields.dueDate.optional(),
     status: z.enum(["open", "closed"]).optional(),
     isCurrent: fields.isCurrent,

@@ -70,15 +70,27 @@ describe("API integration: project milestones", () => {
     const response = await request(
       `/api/milestone/project/${project.id}`,
       "POST",
-      { name: " Launch ", dueDate: "2028-02-29", description: "Goal" },
+      {
+        name: " Launch ",
+        startDate: "2028-02-01",
+        dueDate: "2028-02-29",
+        description: "**Goal**",
+      },
     );
     expect(response.status).toBe(200);
     const created = await response.json();
     expect(created).toMatchObject({
       name: "Launch",
+      startDate: "2028-02-01",
+      description: "**Goal**",
       dueDate: "2028-02-29",
       status: "open",
       closedAt: null,
+    });
+    const fetched = await request(`/api/milestone/${created.id}`);
+    expect(await fetched.json()).toMatchObject({
+      startDate: "2028-02-01",
+      description: "**Goal**",
     });
     const close = await request(`/api/milestone/${created.id}`, "PATCH", {
       status: "closed",
@@ -94,9 +106,11 @@ describe("API integration: project milestones", () => {
     const reopen = await request(`/api/milestone/${created.id}`, "PATCH", {
       status: "open",
       dueDate: null,
+      startDate: null,
     });
     expect(await reopen.json()).toMatchObject({
       closedAt: null,
+      startDate: null,
       dueDate: null,
     });
   });
@@ -105,6 +119,7 @@ describe("API integration: project milestones", () => {
     for (const body of [
       { name: " " },
       { name: "Bad", dueDate: "2026-02-29" },
+      { name: "Bad", startDate: "2026-02-29" },
       { name: "Bad", dueDate: "2026-10-31T00:00:00Z" },
     ])
       expect(

@@ -16,7 +16,11 @@ export function parseBugSearch(search: Record<string, unknown>): BugSearch {
         raw
           .split(",")
           .map((value) => value.trim())
-          .filter((value) => Object.hasOwn(values, value)),
+          .filter((value) =>
+            key === "environment"
+              ? /^[a-z0-9-]{1,64}$/.test(value)
+              : Object.hasOwn(values, value),
+          ),
       ),
     ];
     if (selected.length) result[key] = selected.join(",");

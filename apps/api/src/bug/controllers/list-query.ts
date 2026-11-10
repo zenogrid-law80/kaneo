@@ -18,6 +18,7 @@ import { bugPriorities, bugSeverities, bugEnvironments } from "../metadata";
 export function bugListQuery(
   projectId: string,
   query: z.infer<typeof listBugsQuery>,
+  environmentOrder: string[] = [...bugEnvironments],
 ) {
   const term = query.search?.trim();
   const pattern = term ? `%${term.replace(/[\\%_]/g, "\\$&")}%` : undefined;
@@ -59,7 +60,7 @@ export function bugListQuery(
   const ranks = {
     priority: bugPriorities.slice(1),
     severity: bugSeverities.slice(1),
-    environment: bugEnvironments,
+    environment: environmentOrder,
   };
   let sortValue: SQLWrapper = bugTable[query.sortBy];
   if (

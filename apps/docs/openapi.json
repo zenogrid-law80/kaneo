@@ -2013,12 +2013,6 @@
                   "type": [
                     "string",
                     "null"
-                  ],
-                  "enum": [
-                    "development",
-                    "staging",
-                    "production",
-                    null
                   ]
                 },
                 "reporterId": {
@@ -2221,6 +2215,28 @@
           "isDefault"
         ]
       },
+      "BugEnvironment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "archived"
+        ]
+      },
       "Bug": {
         "type": "object",
         "properties": {
@@ -2268,12 +2284,6 @@
             "type": [
               "string",
               "null"
-            ],
-            "enum": [
-              "development",
-              "staging",
-              "production",
-              null
             ]
           },
           "reporterId": {
@@ -2460,6 +2470,13 @@
               "null"
             ]
           },
+          "startDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
           "dueDate": {
             "type": [
               "string",
@@ -2498,6 +2515,7 @@
           "projectId",
           "name",
           "description",
+          "startDate",
           "dueDate",
           "status",
           "isCurrent",
@@ -14181,11 +14199,12 @@
             "schema": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 200,
-              "description": "Comma-separated branch environments (OR): development, staging, production, none. Different filters are combined with AND."
+              "maxLength": 10000,
+              "pattern": "^[^,\\s]+(?:,[^,\\s]+)*$",
+              "description": "Comma-separated project environment IDs (OR), including none for unassigned. Different filters are combined with AND."
             },
             "required": false,
-            "description": "Comma-separated branch environments (OR): development, staging, production, none. Different filters are combined with AND.",
+            "description": "Comma-separated project environment IDs (OR), including none for unassigned. Different filters are combined with AND.",
             "name": "environment",
             "in": "query"
           },
@@ -14214,10 +14233,10 @@
                 "desc"
               ],
               "default": "desc",
-              "description": "Priority and severity use impact rank; environment uses development, staging, production order. Unspecified values sort last in both directions. Ties use creation time then ID descending."
+              "description": "Priority and severity use impact rank; environment uses default environment order followed by custom environments ordered by name. Unspecified values sort last in both directions. Ties use creation time then ID descending."
             },
             "required": false,
-            "description": "Priority and severity use impact rank; environment uses development, staging, production order. Unspecified values sort last in both directions. Ties use creation time then ID descending.",
+            "description": "Priority and severity use impact rank; environment uses default environment order followed by custom environments ordered by name. Unspecified values sort last in both directions. Ties use creation time then ID descending.",
             "name": "sortOrder",
             "in": "query"
           },
@@ -14423,12 +14442,7 @@
                       "string",
                       "null"
                     ],
-                    "enum": [
-                      "development",
-                      "staging",
-                      "production",
-                      null
-                    ]
+                    "pattern": "^[a-z0-9-]{1,64}$"
                   },
                   "milestoneId": {
                     "type": [
@@ -14687,6 +14701,283 @@
         }
       }
     },
+    "/bug/project/{projectId}/environments": {
+      "get": {
+        "operationId": "getBugEnvironments",
+        "tags": [
+          "Bugs"
+        ],
+        "summary": "List project bug environments, including archived values",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project environments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BugEnvironment"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unknown project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bug not found in this project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Reopen the milestone before assigning bugs",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createBugEnvironment",
+        "tags": [
+          "Bugs"
+        ],
+        "summary": "Add a project bug environment",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created environment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugEnvironment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unknown project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bug not found in this project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Reopen the milestone before assigning bugs",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bug/project/{projectId}/environments/{environmentId}": {
+      "patch": {
+        "operationId": "updateBugEnvironment",
+        "tags": [
+          "Bugs"
+        ],
+        "summary": "Rename, archive, or restore a project bug environment",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{1,64}$"
+            },
+            "required": true,
+            "name": "environmentId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "archived": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated environment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugEnvironment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unknown project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "No workspace access or insufficient permissions",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bug not found in this project",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Reopen the milestone before assigning bugs",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/bug/project/{projectId}/{id}": {
       "get": {
         "operationId": "getBug",
@@ -14852,12 +15143,7 @@
                       "string",
                       "null"
                     ],
-                    "enum": [
-                      "development",
-                      "staging",
-                      "production",
-                      null
-                    ]
+                    "pattern": "^[a-z0-9-]{1,64}$"
                   },
                   "milestoneId": {
                     "type": [
@@ -15272,6 +15558,13 @@
                     ],
                     "maxLength": 10000
                   },
+                  "startDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date"
+                  },
                   "dueDate": {
                     "type": [
                       "string",
@@ -15472,6 +15765,13 @@
                       "null"
                     ],
                     "maxLength": 10000
+                  },
+                  "startDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date"
                   },
                   "dueDate": {
                     "type": [

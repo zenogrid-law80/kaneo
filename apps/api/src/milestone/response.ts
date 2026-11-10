@@ -8,6 +8,7 @@ export const milestoneSchema = z
     projectId: z.string(),
     name: z.string(),
     description: z.string().nullable(),
+    startDate: milestoneDate.nullable(),
     dueDate: milestoneDate.nullable(),
     status: z.enum(["open", "closed"]),
     isCurrent: z.boolean(),

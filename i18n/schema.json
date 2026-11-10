@@ -11942,6 +11942,15 @@
 						"description": {
 							"type": "string"
 						},
+						"startDate": {
+							"type": "string"
+						},
+						"noStartDate": {
+							"type": "string"
+						},
+						"markdownHint": {
+							"type": "string"
+						},
 						"dueDate": {
 							"type": "string"
 						},
@@ -12094,6 +12103,9 @@
 						"formDescription",
 						"name",
 						"description",
+						"startDate",
+						"noStartDate",
+						"markdownHint",
 						"dueDate",
 						"open",
 						"closed",
@@ -12467,6 +12479,36 @@
 								}
 							},
 							"required": ["none", "development", "staging", "production"]
+						},
+						"environmentSettingsTitle": {
+							"type": "string"
+						},
+						"environmentSettingsHint": {
+							"type": "string"
+						},
+						"environmentName": {
+							"type": "string"
+						},
+						"environmentRename": {
+							"type": "string"
+						},
+						"environmentAdd": {
+							"type": "string"
+						},
+						"environmentDelete": {
+							"type": "string"
+						},
+						"environmentRestore": {
+							"type": "string"
+						},
+						"environmentArchived": {
+							"type": "string"
+						},
+						"environmentLoadError": {
+							"type": "string"
+						},
+						"environmentSaveError": {
+							"type": "string"
 						}
 					},
 					"required": [
@@ -12547,7 +12589,17 @@
 						"searchAction",
 						"clearSearch",
 						"severities",
-						"environments"
+						"environments",
+						"environmentSettingsTitle",
+						"environmentSettingsHint",
+						"environmentName",
+						"environmentRename",
+						"environmentAdd",
+						"environmentDelete",
+						"environmentRestore",
+						"environmentArchived",
+						"environmentLoadError",
+						"environmentSaveError"
 					]
 				}
 			},

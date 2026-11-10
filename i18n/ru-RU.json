@@ -2961,6 +2961,9 @@
 			"formDescription": "Group tasks around a project goal and target date.",
 			"name": "Name",
 			"description": "Description",
+			"startDate": "Start date",
+			"noStartDate": "No start date",
+			"markdownHint": "Markdown supported.",
 			"dueDate": "Target date",
 			"open": "Open",
 			"closed": "Closed",
@@ -3103,7 +3106,17 @@
 				"development": "Development",
 				"staging": "Staging",
 				"production": "Production"
-			}
+			},
+			"environmentSettingsTitle": "Bug branch environments",
+			"environmentSettingsHint": "Configure options for new bugs. Deleted options remain visible on existing bugs and can be restored.",
+			"environmentName": "Environment name",
+			"environmentRename": "Save name",
+			"environmentAdd": "Add environment",
+			"environmentDelete": "Delete",
+			"environmentRestore": "Restore",
+			"environmentArchived": "Deleted",
+			"environmentLoadError": "Could not load environments.",
+			"environmentSaveError": "Could not save the environment."
 		}
 	},
 	"invitations": {

@@ -17,10 +17,17 @@ import {
 } from "./controllers/bugs";
 import { getBugTemplate, updateBugTemplate } from "./controllers/template";
 import {
+  getBugEnvironments,
+  createBugEnvironment,
+  updateBugEnvironment,
+} from "./controllers/environments";
+import {
   bugSchema,
   bugHistorySchema,
   bugListSchema,
   bugTemplateSchema,
+  bugEnvironmentSchema,
+  bugEnvironmentListSchema,
   deleteBugSchema,
 } from "./response";
 import {
@@ -30,6 +37,9 @@ import {
   createBugBody,
   updateBugBody,
   bugTemplateBody,
+  bugEnvironmentParam,
+  bugEnvironmentBody,
+  updateBugEnvironmentBody,
 } from "./schema";
 
 import bugUploads from "./uploads";
@@ -99,6 +109,67 @@ const templateUpdateRoute = createRoute({
       "Update or reset the template for future bugs",
       bugTemplateSchema,
     ),
+    ...errors,
+  },
+});
+
+const environmentsGetRoute = createRoute({
+  method: "get",
+  path: "/project/{projectId}/environments",
+  operationId: "getBugEnvironments",
+  tags: ["Bugs"],
+  summary: "List project bug environments, including archived values",
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ project: ["read"] }),
+  ] as const,
+  request: { params: bugProjectParam },
+  responses: {
+    200: jsonResponse("Project environments", bugEnvironmentListSchema),
+    ...errors,
+  },
+});
+const environmentsCreateRoute = createRoute({
+  method: "post",
+  path: "/project/{projectId}/environments",
+  operationId: "createBugEnvironment",
+  tags: ["Bugs"],
+  summary: "Add a project bug environment",
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ project: ["update"] }),
+  ] as const,
+  request: {
+    params: bugProjectParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: bugEnvironmentBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("Created environment", bugEnvironmentSchema),
+    ...errors,
+  },
+});
+const environmentsUpdateRoute = createRoute({
+  method: "patch",
+  path: "/project/{projectId}/environments/{environmentId}",
+  operationId: "updateBugEnvironment",
+  tags: ["Bugs"],
+  summary: "Rename, archive, or restore a project bug environment",
+  middleware: [
+    workspaceAccess.fromProject("projectId"),
+    requireWorkspacePermission({ project: ["update"] }),
+  ] as const,
+  request: {
+    params: bugEnvironmentParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateBugEnvironmentBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("Updated environment", bugEnvironmentSchema),
     ...errors,
   },
 });
@@ -232,6 +303,25 @@ const bugs = apiRouter()
     const { projectId } = c.req.valid("param");
     return c.json(
       await updateBugTemplate(projectId, c.req.valid("json").template),
+      200,
+    );
+  })
+  .openapi(environmentsGetRoute, async (c) =>
+    c.json(await getBugEnvironments(c.req.valid("param").projectId), 200),
+  )
+  .openapi(environmentsCreateRoute, async (c) =>
+    c.json(
+      await createBugEnvironment(
+        c.req.valid("param").projectId,
+        c.req.valid("json").name,
+      ),
+      200,
+    ),
+  )
+  .openapi(environmentsUpdateRoute, async (c) => {
+    const { projectId, environmentId } = c.req.valid("param");
+    return c.json(
+      await updateBugEnvironment(projectId, environmentId, c.req.valid("json")),
       200,
     );
   })
