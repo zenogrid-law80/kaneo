@@ -65,6 +65,95 @@ vi.mock("@/lib/shiki-highlighter", () => ({
 }));
 
 describe("TaskDescription", () => {
+  it("pastes text after the editor is recreated", async () => {
+    mocks.save.mockClear();
+    mocks.tasks.set("recreated-task", {
+      id: "recreated-task",
+      description: "",
+    });
+    const { container, rerender, unmount } = render(
+      <TaskDescription taskId="recreated-task" />,
+    );
+    await waitFor(() =>
+      expect(
+        container.querySelector('[contenteditable="true"]'),
+      ).not.toBeNull(),
+    );
+    const previousT = mocks.t;
+    try {
+      mocks.t = (key: string) => previousT(key);
+      rerender(<TaskDescription taskId="recreated-task" />);
+      await new Promise(requestAnimationFrame);
+      const editable = container.querySelector<HTMLElement>(
+        '[contenteditable="true"]',
+      );
+      if (!editable) throw new Error("Editor missing");
+      fireEvent.paste(editable, {
+        clipboardData: {
+          files: [],
+          getData: (type: string) =>
+            type === "text/plain" ? "**pasted text**" : "",
+        },
+      });
+      await waitFor(() => expect(mocks.save).toHaveBeenCalled());
+      expect(editable.querySelector("strong")?.textContent).toBe("pasted text");
+    } finally {
+      mocks.t = previousT;
+      unmount();
+    }
+  });
+
+  it.each([
+    "메모장에서 복사한 텍스트",
+    "첫 번째 줄\r\n두 번째 줄",
+    "메모\r\n\r\n>",
+    ">",
+  ])("pastes and saves plain text from the clipboard: %s", async (text) => {
+    mocks.save.mockClear();
+    mocks.tasks.set("plain-text-task", {
+      id: "plain-text-task",
+      description: "",
+    });
+    const { container, unmount } = render(
+      <TaskDescription taskId="plain-text-task" />,
+    );
+    await waitFor(() =>
+      expect(
+        container.querySelector('[contenteditable="true"]'),
+      ).not.toBeNull(),
+    );
+    await new Promise(requestAnimationFrame);
+    const editable = container.querySelector<HTMLElement>(
+      '[contenteditable="true"]',
+    );
+    if (!editable) throw new Error("Editor missing");
+
+    fireEvent.paste(editable, {
+      clipboardData: {
+        files: [],
+        getData: (type: string) => (type === "text/plain" ? text : ""),
+      },
+    });
+
+    await waitFor(() => expect(mocks.save).toHaveBeenCalled());
+    const saved = mocks.save.mock.calls[0][0].description;
+    for (const line of text.split(/\r?\n/)) {
+      expect(editable.textContent).toContain(line);
+    }
+    unmount();
+    mocks.tasks.set("plain-text-task", {
+      id: "plain-text-task",
+      description: saved,
+    });
+    const reopened = render(<TaskDescription taskId="plain-text-task" />);
+    await waitFor(() => {
+      for (const line of text.split(/\r?\n/)) {
+        expect(reopened.container.textContent).toContain(line);
+      }
+    });
+    reopened.unmount();
+  });
+
   it("preserves bold Markdown when pasting, saving and reopening a checklist (#1779)", async () => {
     mocks.save.mockClear();
     mocks.tasks.set("markdown-task", { id: "markdown-task", description: "" });

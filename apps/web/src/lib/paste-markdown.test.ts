@@ -80,6 +80,25 @@ describe("Markdown paste and edit round trips", () => {
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(editor.getHTML()).toBe("<p><code>literal</code></p>");
   });
+  it("falls back to normal paste when parsed Markdown cannot be inserted", () => {
+    setup();
+    const event = clipboard(">");
+
+    expect(pasteMarkdown(editor, event)).toBe(false);
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(editor.isEmpty).toBe(true);
+  });
+  it("falls back to normal paste when Markdown parsing fails", () => {
+    setup();
+    const event = clipboard("**text**");
+    if (!editor.markdown) throw new Error("Markdown extension missing");
+    vi.spyOn(editor.markdown, "parse").mockImplementationOnce(() => {
+      throw new Error("Unable to parse clipboard content");
+    });
+
+    expect(pasteMarkdown(editor, event)).toBe(false);
+    expect(event.preventDefault).not.toHaveBeenCalled();
+  });
   it.each(["line  \nbreak", "line\\\nbreak"])(
     "preserves explicit hard breaks in %s",
     (markdown) => {

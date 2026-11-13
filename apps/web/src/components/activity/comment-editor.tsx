@@ -562,7 +562,14 @@ export default function CommentEditor({
           }
 
           const plainText = event.clipboardData?.getData("text/plain") || "";
-          if (editor && pasteMarkdown(editor, event)) return true;
+          const currentEditor = lastEditorRef.current;
+          if (
+            currentEditor &&
+            !currentEditor.isDestroyed &&
+            currentEditor.view === view &&
+            pasteMarkdown(currentEditor, event)
+          )
+            return true;
 
           const pastedText = plainText.trim();
           if (!pastedText || /\s/.test(pastedText)) return false;

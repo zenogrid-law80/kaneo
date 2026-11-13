@@ -16,7 +16,12 @@ export function pasteMarkdown(editor: Editor, event: ClipboardEvent): boolean {
   if (!text || !editor.markdown) return false;
   // Leave single URLs to the issue-link and video-embed paste handlers.
   if (/^https?:\/\/\S+$/i.test(text.trim())) return false;
-  const document = editor.markdown.parse(text);
+  let document: ReturnType<typeof editor.markdown.parse>;
+  try {
+    document = editor.markdown.parse(text);
+  } catch {
+    return false;
+  }
   const soleParagraph =
     document.content?.length === 1 && document.content[0].type === "paragraph"
       ? document.content[0]
@@ -37,9 +42,17 @@ export function pasteMarkdown(editor: Editor, event: ClipboardEvent): boolean {
         hasFormatting(node.content),
     );
   if (!hasFormatting(document.content)) return false;
+  try {
+    if (
+      !editor.commands.insertContent(
+        soleParagraph?.content ?? document.content ?? [],
+      )
+    )
+      return false;
+  } catch {
+    // Let the editor's normal paste path handle invalid Markdown content.
+    return false;
+  }
   event.preventDefault();
-  editor.commands.insertContent(
-    soleParagraph?.content ?? document.content ?? [],
-  );
   return true;
 }
