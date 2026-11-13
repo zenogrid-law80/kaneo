@@ -308,7 +308,10 @@ export default function ProjectLayout({
               size="xs"
               aria-current={resolvedView === "milestones" ? "page" : undefined}
               onClick={handleNavigateToMilestones}
-              className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs"
+              className={cn(
+                "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                resolvedView !== "milestones" && "text-muted-foreground",
+              )}
             >
               <Flag className="size-3.5" />
               {t("tasks:milestones.title")}
@@ -318,7 +321,10 @@ export default function ProjectLayout({
               size="xs"
               aria-current={resolvedView === "bugs" ? "page" : undefined}
               onClick={handleNavigateToBugs}
-              className="h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs"
+              className={cn(
+                "h-8 shrink-0 gap-1.5 rounded-md px-3 text-xs",
+                resolvedView !== "bugs" && "text-muted-foreground",
+              )}
             >
               <Bug className="size-3.5" />
               {t("tasks:bugs.title")}

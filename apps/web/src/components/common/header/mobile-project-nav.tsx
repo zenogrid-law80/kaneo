@@ -166,10 +166,10 @@ export default function MobileProjectNav({
                 type="button"
                 onClick={onSelectMilestones}
                 className={cn(
-                  "flex w-full items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs",
+                  "flex w-full items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
                   activeView === "milestones"
-                    ? "bg-secondary border-border"
-                    : "border-transparent hover:bg-accent",
+                    ? "border-border bg-secondary text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-accent",
                 )}
               >
                 <Flag className="size-3.5" />
